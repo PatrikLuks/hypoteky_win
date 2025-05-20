@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load l10n %}
+{% block content %}
+<h1>Detail klienta</h1>
+<table class="table table-bordered mb-4">
+  <tr><th>Jméno klienta</th><td>{{ klient.jmeno }}</td></tr>
+  <tr><th>Datum založení</th><td>{{ klient.datum|date:"d.m.Y" }}</td></tr>
+  <tr><th>Co financuje</th><td>{{ klient.co_financuje }}</td></tr>
+  <tr><th>Cena</th><td>{{ klient.cena|floatformat:0 }} Kč</td></tr>
+  <tr><th>Návrh financování</th><td>{{ klient.navrh_financovani }}</td></tr>
+  <tr><th>Návrh financování (částka)</th><td>{% if klient.navrh_financovani_castka %}{{ klient.navrh_financovani_castka|floatformat:0 }} Kč{% else %}-{% endif %}</td></tr>
+  <tr><th>Návrh financování (%)</th><td>{% if klient.navrh_financovani_procento %}{{ klient.navrh_financovani_procento|floatformat:2 }} %{% else %}-{% endif %}</td></tr>
+  <tr><th>Výběr banky</th><td>{{ klient.vyber_banky }}</td></tr>
+  <tr><th>Příprava žádosti</th><td>{{ klient.priprava_zadosti }}</td></tr>
+  <tr><th>Kompletace podkladů</th><td>{{ klient.kompletace_podkladu }}</td></tr>
+  <tr><th>Podání žádosti</th><td>{{ klient.podani_zadosti }}</td></tr>
+  <tr><th>Odhad</th><td>{{ klient.odhad }}</td></tr>
+  <tr><th>Schvalování</th><td>{{ klient.schvalovani }}</td></tr>
+  <tr><th>Příprava úvěrové dokumentace</th><td>{{ klient.priprava_uverove_dokumentace }}</td></tr>
+  <tr><th>Podpis úvěrové dokumentace</th><td>{{ klient.podpis_uverove_dokumentace }}</td></tr>
+  <tr><th>Příprava čerpání</th><td>{{ klient.priprava_cerpani }}</td></tr>
+  <tr><th>Čerpání</th><td>{{ klient.cerpani }}</td></tr>
+  <tr><th>Zahájení splácení</th><td>{{ klient.zahajeni_splaceni }}</td></tr>
+  <tr><th>Podmínky pro splacení</th><td>{{ klient.podminky_pro_splaceni }}</td></tr>
+</table>
+<h4>Deadliny a data splnění jednotlivých kroků</h4>
+<table class="table table-sm table-striped">
+  <thead>
+    <tr>
+      <th>Krok</th>
+      <th>Deadline</th>
+      <th>Datum splnění</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Co chce klient financovat</td><td>{{ klient.deadline_co_financuje|date:"d.m.Y" }}</td><td>{{ klient.splneno_co_financuje|date:"d.m.Y" }}</td></tr>
+    <tr><td>Návrh financování</td><td>{{ klient.deadline_navrh_financovani|date:"d.m.Y" }}</td><td>{{ klient.splneno_navrh_financovani|date:"d.m.Y" }}</td></tr>
+    <tr><td>Výběr banky</td><td>{{ klient.deadline_vyber_banky|date:"d.m.Y" }}</td><td>{{ klient.splneno_vyber_banky|date:"d.m.Y" }}</td></tr>
+    <tr><td>Příprava žádosti</td><td>{{ klient.deadline_priprava_zadosti|date:"d.m.Y" }}</td><td>{{ klient.splneno_priprava_zadosti|date:"d.m.Y" }}</td></tr>
+    <tr><td>Kompletace podkladů</td><td>{{ klient.deadline_kompletace_podkladu|date:"d.m.Y" }}</td><td>{{ klient.splneno_kompletace_podkladu|date:"d.m.Y" }}</td></tr>
+    <tr><td>Podání žádosti</td><td>{{ klient.deadline_podani_zadosti|date:"d.m.Y" }}</td><td>{{ klient.splneno_podani_zadosti|date:"d.m.Y" }}</td></tr>
+    <tr><td>Odhad</td><td>{{ klient.deadline_odhad|date:"d.m.Y" }}</td><td>{{ klient.splneno_odhad|date:"d.m.Y" }}</td></tr>
+    <tr><td>Schvalování</td><td>{{ klient.deadline_schvalovani|date:"d.m.Y" }}</td><td>{{ klient.splneno_schvalovani|date:"d.m.Y" }}</td></tr>
+    <tr><td>Příprava úvěrové dokumentace</td><td>{{ klient.deadline_priprava_uverove_dokumentace|date:"d.m.Y" }}</td><td>{{ klient.splneno_priprava_uverove_dokumentace|date:"d.m.Y" }}</td></tr>
+    <tr><td>Podpis úvěrové dokumentace</td><td>{{ klient.deadline_podpis_uverove_dokumentace|date:"d.m.Y" }}</td><td>{{ klient.splneno_podpis_uverove_dokumentace|date:"d.m.Y" }}</td></tr>
+    <tr><td>Příprava čerpání</td><td>{{ klient.deadline_priprava_cerpani|date:"d.m.Y" }}</td><td>{{ klient.splneno_priprava_cerpani|date:"d.m.Y" }}</td></tr>
+    <tr><td>Čerpání</td><td>{{ klient.deadline_cerpani|date:"d.m.Y" }}</td><td>{{ klient.splneno_cerpani|date:"d.m.Y" }}</td></tr>
+    <tr><td>Zahájení splácení</td><td>{{ klient.deadline_zahajeni_splaceni|date:"d.m.Y" }}</td><td>{{ klient.splneno_zahajeni_splaceni|date:"d.m.Y" }}</td></tr>
+    <tr><td>Podmínky pro splacení</td><td>{{ klient.deadline_podminky_pro_splaceni|date:"d.m.Y" }}</td><td>{{ klient.splneno_podminky_pro_splaceni|date:"d.m.Y" }}</td></tr>
+  </tbody>
+</table>
+<a href="{% url 'klient_edit' klient.pk %}" class="btn btn-primary">Upravit</a>
+<a href="{% url 'klient_delete' klient.pk %}" class="btn btn-danger">Smazat</a>
+<a href="{% url 'home' %}" class="btn btn-secondary">Zpět</a>
+{% endblock %}

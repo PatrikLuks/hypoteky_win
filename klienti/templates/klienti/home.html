@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% load l10n %}
+{% block content %}
+<h1>Centrum aplikace – Klienti</h1>
+<a href="{% url 'klient_create' %}" class="btn btn-success mb-3">Přidat klienta</a>
+
+{% if klienti_deadlines %}
+  <div class="mb-4">
+    <h4 class="text-danger">Nejbližší deadliny</h4>
+    <table class="table table-sm table-warning table-bordered align-middle">
+      <thead>
+        <tr>
+          <th>Jméno klienta</th>
+          <th>Nejbližší krok</th>
+          <th>Termín</th>
+          <th>Zbývá dní</th>
+          <th>Co financuje</th>
+          <th>Návrh financování (%)</th>
+          <th>Akce</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in klienti_deadlines|slice:":5" %}
+        <tr{% if item.po_termínu %} class="table-danger"{% endif %}>
+          <td><a href="{% url 'klient_detail' item.klient.pk %}">{{ item.klient.jmeno }}</a></td>
+          <td>{{ item.krok|title }}</td>
+          <td>{{ item.deadline|date:"d.m.Y" }}</td>
+          <td>
+            {% if item.days_left < 0 %}<span class="text-danger fw-bold">Po termínu</span>{% else %}{{ item.days_left }}{% endif %}
+          </td>
+          <td>{{ item.klient.co_financuje|default_if_none:'-' }}</td>
+          <td>{% if item.klient.navrh_financovani_procento %}{{ item.klient.navrh_financovani_procento|floatformat:2 }} %{% else %}-{% endif %}</td>
+          <td>
+            <a href="{% url 'klient_detail' item.klient.pk %}" class="btn btn-sm btn-outline-info">Detail</a>
+            <a href="{% url 'klient_edit' item.klient.pk %}" class="btn btn-sm btn-outline-primary">Upravit</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="small text-muted">* Zbývá dní = kolik dní zbývá do deadlinu, červeně pokud je po termínu.</div>
+  </div>
+{% endif %}
+
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Jméno klienta</th>
+      <th>Datum založení</th>
+      <th>Co financuje</th>
+      <th>Návrh financování (%)</th>
+      <th>Návrh financování (částka)</th>
+      <th>Stav</th>
+      <th><span class="text-primary">Další krok</span></th>
+      <th>Akce</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for klient in klienti %}
+      <tr>
+        <td><a href="{% url 'klient_detail' klient.pk %}">{{ klient.jmeno }}</a></td>
+        <td>{{ klient.datum|date:"d.m.Y" }}</td>
+        <td>{{ klient.co_financuje|default_if_none:'-' }}</td>
+        <td>{% if klient.navrh_financovani_procento %}{{ klient.navrh_financovani_procento|floatformat:2 }} %{% else %}-{% endif %}</td>
+        <td>{% if klient.navrh_financovani_castka %}{{ klient.navrh_financovani_castka|floatformat:0 }} Kč{% else %}-{% endif %}</td>
+        <td>
+          {% if klient.podminky_pro_splaceni %}
+            Podmínky pro splacení
+          {% elif klient.zahajeni_splaceni %}
+            Zahájení splácení
+          {% elif klient.cerpani %}
+            Čerpání
+          {% elif klient.priprava_cerpani %}
+            Příprava čerpání
+          {% elif klient.podpis_uverove_dokumentace %}
+            Podpis úvěrové dokumentace
+          {% elif klient.priprava_uverove_dokumentace %}
+            Příprava úvěrové dokumentace
+          {% elif klient.schvalovani %}
+            Schvalování
+          {% elif klient.odhad %}
+            Odhad
+          {% elif klient.podani_zadosti %}
+            Podání žádosti
+          {% elif klient.kompletace_podkladu %}
+            Kompletace podkladů
+          {% elif klient.priprava_zadosti %}
+            Příprava žádosti
+          {% elif klient.vyber_banky %}
+            Výběr banky
+          {% elif klient.navrh_financovani %}
+            Návrh financování
+          {% elif klient.co_financuje %}
+            Co financuje
+          {% else %}
+            Nový klient
+          {% endif %}
+        </td>
+        <td>
+          {% if not klient.co_financuje %}
+            <span class="badge bg-primary">Co chce klient financovat</span>
+          {% elif not klient.navrh_financovani %}
+            <span class="badge bg-primary">Návrh financování</span>
+          {% elif not klient.vyber_banky %}
+            <span class="badge bg-primary">Výběr banky</span>
+          {% elif not klient.priprava_zadosti %}
+            <span class="badge bg-primary">Příprava žádosti</span>
+          {% elif not klient.kompletace_podkladu %}
+            <span class="badge bg-primary">Kompletace podkladů</span>
+          {% elif not klient.podani_zadosti %}
+            <span class="badge bg-primary">Podání žádosti</span>
+          {% elif not klient.odhad %}
+            <span class="badge bg-primary">Odhad</span>
+          {% elif not klient.schvalovani %}
+            <span class="badge bg-primary">Schvalování</span>
+          {% elif not klient.priprava_uverove_dokumentace %}
+            <span class="badge bg-primary">Příprava úvěrové dokumentace</span>
+          {% elif not klient.podpis_uverove_dokumentace %}
+            <span class="badge bg-primary">Podpis úvěrové dokumentace</span>
+          {% elif not klient.priprava_cerpani %}
+            <span class="badge bg-primary">Příprava čerpání</span>
+          {% elif not klient.cerpani %}
+            <span class="badge bg-primary">Čerpání</span>
+          {% elif not klient.zahajeni_splaceni %}
+            <span class="badge bg-primary">Zahájení splácení</span>
+          {% elif not klient.podminky_pro_splaceni %}
+            <span class="badge bg-primary">Podmínky pro splacení</span>
+          {% else %}
+            <span class="badge bg-success">Hotovo</span>
+          {% endif %}
+        </td>
+        <td>
+          <a href="{% url 'klient_detail' klient.pk %}" class="btn btn-sm btn-outline-info">Detail</a>
+          <a href="{% url 'klient_edit' klient.pk %}" class="btn btn-sm btn-outline-primary">Upravit</a>
+          <a href="{% url 'klient_delete' klient.pk %}" class="btn btn-sm btn-outline-danger">Smazat</a>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="8">Žádní klienti nejsou evidováni.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
