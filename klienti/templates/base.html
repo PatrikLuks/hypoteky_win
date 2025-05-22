@@ -3,10 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <title>Správa hypoték</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+      body { background: #f8fafc; }
+      .navbar { box-shadow: 0 2px 8px #0001; }
+      .navbar .nav-link.active, .navbar .nav-link:hover { color: #0d6efd !important; font-weight: 500; }
+      .table thead th { position: sticky; top: 0; background: #fff; z-index: 2; }
+      .table-striped > tbody > tr:nth-of-type(odd) { background-color: #f2f6fa; }
+      .btn i { margin-right: 4px; }
+      .badge-urgent { background: #dc3545; color: #fff; animation: pulse 1.2s infinite alternate; }
+      @keyframes pulse { 0% { box-shadow: 0 0 0 0 #dc354580; } 100% { box-shadow: 0 0 8px 4px #dc354540; } }
+      .table-responsive { overflow-x: auto; }
+      .form-label { font-weight: 500; }
+      .form-control:focus { border-color: #0d6efd; box-shadow: 0 0 0 0.2rem #0d6efd22; }
+      .sticky-bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 1030; background: #fff; border-top: 1px solid #eee; box-shadow: 0 -2px 8px #0001; }
+      @media (max-width: 768px) {
+        .navbar-brand { font-size: 1.1rem; }
+        .table-responsive { font-size: 0.95rem; }
+        .btn { font-size: 0.95rem; }
+        .sticky-bottom-nav { display: block; }
+      }
+      @media (min-width: 769px) {
+        .sticky-bottom-nav { display: none; }
+      }
+    </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 rounded shadow-sm">
+<nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 rounded">
   <div class="container-fluid">
     <a class="navbar-brand fw-bold" href="/">Správa hypoték</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Menu">
@@ -15,20 +40,23 @@
     <div class="collapse navbar-collapse" id="mainNavbar">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link" href="/">Klienti</a>
+          <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">Klienti</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'klient_create' %}">Přidat klienta</a>
+          <a class="nav-link {% if request.path == '/klient/pridat/' %}active{% endif %}" href="{% url 'klient_create' %}"><i class="fa fa-user-plus"></i>Přidat klienta</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.path == '/kalkulacka/' %}active{% endif %}" href="{% url 'kalkulacka' %}"><i class="fa fa-calculator"></i>Kalkulačka hypotéky</a>
         </li>
       </ul>
-      <span class="navbar-text small text-muted">
-        {{ request.user.username|default:'Neregistrovaný uživatel' }}
+      <span class="navbar-text small text-muted me-2">
+        <i class="fa fa-user"></i> {{ request.user.username|default:'Neregistrovaný uživatel' }}
       </span>
-      <ul class="navbar-nav ms-3">
+      <ul class="navbar-nav ms-1">
         {% if request.user.is_authenticated %}
-          <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Odhlásit</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}"><i class="fa fa-sign-out-alt"></i>Odhlásit</a></li>
         {% else %}
-          <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Přihlásit</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'login' %}"><i class="fa fa-sign-in-alt"></i>Přihlásit</a></li>
         {% endif %}
       </ul>
     </div>
@@ -37,6 +65,35 @@
 <div class="container mt-4">
     {% block content %}{% endblock %}
 </div>
+<div class="sticky-bottom-nav d-lg-none">
+  <div class="container-fluid py-2">
+    <div class="row">
+      <div class="col text-center">
+        <a href="/" class="nav-link d-inline-block" title="Klienti">
+          <i class="fa fa-users fa-lg"></i>
+        </a>
+      </div>
+      <div class="col text-center">
+        <a href="{% url 'klient_create' %}" class="nav-link d-inline-block" title="Přidat klienta">
+          <i class="fa fa-user-plus fa-lg"></i>
+        </a>
+      </div>
+      <div class="col text-center">
+        <a href="{% url 'kalkulacka' %}" class="nav-link d-inline-block" title="Kalkulačka hypotéky">
+          <i class="fa fa-calculator fa-lg"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+    new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+});
+</script>
 </body>
 </html>

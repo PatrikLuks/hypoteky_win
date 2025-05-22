@@ -2,6 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .models import Klient
 from django import forms
 from datetime import timedelta, date
+from math import pow
+from collections import defaultdict
+from django.utils import timezone
+import datetime
 
 class KlientForm(forms.ModelForm):
     class Meta:
@@ -24,37 +28,51 @@ class KlientForm(forms.ModelForm):
             'podminky_pro_splaceni', 'deadline_podminky_pro_splaceni', 'splneno_podminky_pro_splaceni',
         ]
         widgets = {
-            'datum': forms.DateInput(attrs={'type': 'date'}),
-            'cena': forms.TextInput(attrs={'inputmode': 'numeric', 'pattern': '[0-9 ]*', 'placeholder': 'např. 12 200 000'}),
-            'navrh_financovani_procento': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100', 'placeholder': 'např. 80'}),
-            'deadline_co_financuje': forms.DateInput(attrs={'type': 'date'}),
-            'deadline_navrh_financovani': forms.DateInput(attrs={'type': 'date'}),
-            'deadline_vyber_banky': forms.DateInput(attrs={'type': 'date'}),
-            'deadline_priprava_zadosti': forms.DateInput(attrs={'type': 'date'}),
-            'deadline_kompletace_podkladu': forms.DateInput(attrs={'type': 'date'}),
-            'deadline_podani_zadosti': forms.DateInput(attrs={'type': 'date'}),
-            'deadline_odhad': forms.DateInput(attrs={'type': 'date'}),
-            'deadline_schvalovani': forms.DateInput(attrs={'type': 'date'}),
-            'deadline_priprava_uverove_dokumentace': forms.DateInput(attrs={'type': 'date'}),
-            'deadline_podpis_uverove_dokumentace': forms.DateInput(attrs={'type': 'date'}),
-            'deadline_priprava_cerpani': forms.DateInput(attrs={'type': 'date'}),
-            'deadline_cerpani': forms.DateInput(attrs={'type': 'date'}),
-            'deadline_zahajeni_splaceni': forms.DateInput(attrs={'type': 'date'}),
-            'deadline_podminky_pro_splaceni': forms.DateInput(attrs={'type': 'date'}),
-            'splneno_co_financuje': forms.DateInput(attrs={'type': 'date'}),
-            'splneno_navrh_financovani': forms.DateInput(attrs={'type': 'date'}),
-            'splneno_vyber_banky': forms.DateInput(attrs={'type': 'date'}),
-            'splneno_priprava_zadosti': forms.DateInput(attrs={'type': 'date'}),
-            'splneno_kompletace_podkladu': forms.DateInput(attrs={'type': 'date'}),
-            'splneno_podani_zadosti': forms.DateInput(attrs={'type': 'date'}),
-            'splneno_odhad': forms.DateInput(attrs={'type': 'date'}),
-            'splneno_schvalovani': forms.DateInput(attrs={'type': 'date'}),
-            'splneno_priprava_uverove_dokumentace': forms.DateInput(attrs={'type': 'date'}),
-            'splneno_podpis_uverove_dokumentace': forms.DateInput(attrs={'type': 'date'}),
-            'splneno_priprava_cerpani': forms.DateInput(attrs={'type': 'date'}),
-            'splneno_cerpani': forms.DateInput(attrs={'type': 'date'}),
-            'splneno_zahajeni_splaceni': forms.DateInput(attrs={'type': 'date'}),
-            'splneno_podminky_pro_splaceni': forms.DateInput(attrs={'type': 'date'}),
+            'datum': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'cena': forms.TextInput(attrs={'inputmode': 'numeric', 'pattern': '[0-9 ]*', 'placeholder': 'např. 12 200 000', 'class': 'form-control'}),
+            'navrh_financovani_procento': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100', 'placeholder': 'např. 80', 'class': 'form-control'}),
+            'co_financuje': forms.TextInput(attrs={'class': 'form-control'}),
+            'navrh_financovani': forms.TextInput(attrs={'class': 'form-control'}),
+            'vyber_banky': forms.TextInput(attrs={'class': 'form-control'}),
+            'priprava_zadosti': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'poznámka'}),
+            'kompletace_podkladu': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'poznámka'}),
+            'podani_zadosti': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'poznámka'}),
+            'odhad': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'poznámka'}),
+            'schvalovani': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'poznámka'}),
+            'priprava_uverove_dokumentace': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'poznámka'}),
+            'podpis_uverove_dokumentace': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'poznámka'}),
+            'priprava_cerpani': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'poznámka'}),
+            'cerpani': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'poznámka'}),
+            'zahajeni_splaceni': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'poznámka'}),
+            'podminky_pro_splaceni': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'poznámka'}),
+            'deadline_co_financuje': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'deadline_navrh_financovani': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'deadline_vyber_banky': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'deadline_priprava_zadosti': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'deadline_kompletace_podkladu': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'deadline_podani_zadosti': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'deadline_odhad': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'deadline_schvalovani': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'deadline_priprava_uverove_dokumentace': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'deadline_podpis_uverove_dokumentace': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'deadline_priprava_cerpani': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'deadline_cerpani': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'deadline_zahajeni_splaceni': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'deadline_podminky_pro_splaceni': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'splneno_co_financuje': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'splneno_navrh_financovani': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'splneno_vyber_banky': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'splneno_priprava_zadosti': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'splneno_kompletace_podkladu': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'splneno_podani_zadosti': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'splneno_odhad': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'splneno_schvalovani': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'splneno_priprava_uverove_dokumentace': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'splneno_podpis_uverove_dokumentace': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'splneno_priprava_cerpani': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'splneno_cerpani': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'splneno_zahajeni_splaceni': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'splneno_podminky_pro_splaceni': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
 
     def clean_cena(self):
@@ -171,4 +189,79 @@ def home(request):
                 'po_termínu': days_left < 0,
             })
     klienti_deadlines = sorted(klienti_deadlines, key=lambda x: x['deadline'])
-    return render(request, 'klienti/home.html', {'klienti': klienti, 'klienti_deadlines': klienti_deadlines, 'today': today})
+
+    # --- Data pro grafy ---
+    workflow_labels = [
+        'co_financuje', 'navrh_financovani', 'vyber_banky', 'priprava_zadosti',
+        'kompletace_podkladu', 'podani_zadosti', 'odhad', 'schvalovani',
+        'priprava_uverove_dokumentace', 'podpis_uverove_dokumentace',
+        'priprava_cerpani', 'cerpani', 'zahajeni_splaceni', 'podminky_pro_splaceni', 'hotovo'
+    ]
+    workflow_counts = [0]*15
+    workflow_sums = [0]*15
+    # --- Časové řady ---
+    # Získat posledních 7 měsíců
+    today = timezone.now().date()
+    months = []
+    for i in range(6, -1, -1):
+        m = (today.replace(day=1) - datetime.timedelta(days=30*i)).replace(day=1)
+        months.append(m.strftime('%Y-%m'))
+    months = sorted(list(set(months)))
+    klienti_timeline = defaultdict(int)
+    objem_timeline = defaultdict(float)
+    for klient in klienti:
+        m = klient.datum.strftime('%Y-%m')
+        klienti_timeline[m] += 1
+        objem_timeline[m] += float(klient.navrh_financovani_castka or 0)
+    klientiTimeline = [klienti_timeline.get(m, 0) for m in months]
+    objemTimeline = [objem_timeline.get(m, 0) for m in months]
+    # workflow stav
+    for klient in klienti:
+        stav = 0
+        for idx, krok in enumerate(workflow_labels[:-1]):
+            if not getattr(klient, krok):
+                stav = idx
+                break
+        else:
+            stav = 14  # hotovo
+        workflow_counts[stav] += 1
+        workflow_sums[stav] += float(klient.navrh_financovani_castka or 0)
+    # ---
+    return render(request, 'klienti/home.html', {
+        'klienti': klienti,
+        'klienti_deadlines': klienti_deadlines,
+        'today': today,
+        'workflow_counts': workflow_counts,
+        'workflow_sums': workflow_sums,
+        'months': months,
+        'klientiTimeline': klientiTimeline,
+        'objemTimeline': objemTimeline,
+    })
+
+class KalkulackaForm(forms.Form):
+    castka = forms.DecimalField(label="Výše úvěru", max_digits=12, decimal_places=2, min_value=10000)
+    urok = forms.DecimalField(label="Úroková sazba (%)", max_digits=5, decimal_places=2, min_value=0.01)
+    doba = forms.IntegerField(label="Doba splatnosti (roky)", min_value=1, max_value=40)
+    fixace = forms.IntegerField(label="Doba fixace (roky)", min_value=1, max_value=40, required=False)
+    mimoradne_splatky = forms.DecimalField(label="Mimořádná splátka (Kč)", max_digits=12, decimal_places=2, required=False)
+
+
+def kalkulacka(request):
+    vysledek = None
+    if request.method == 'POST':
+        form = KalkulackaForm(request.POST)
+        if form.is_valid():
+            castka = float(form.cleaned_data['castka'])
+            urok = float(form.cleaned_data['urok']) / 100 / 12
+            doba = int(form.cleaned_data['doba']) * 12
+            splatka = castka * urok * pow(1 + urok, doba) / (pow(1 + urok, doba) - 1)
+            celkem = splatka * doba
+            urok_celkem = celkem - castka
+            vysledek = {
+                'splatka': round(splatka, 2),
+                'celkem': round(celkem, 2),
+                'urok_celkem': round(urok_celkem, 2),
+            }
+    else:
+        form = KalkulackaForm()
+    return render(request, 'klienti/kalkulacka.html', {'form': form, 'vysledek': vysledek})

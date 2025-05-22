@@ -1,135 +1,278 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>{% if editace %}Editace klienta{% else %}Přidat klienta{% endif %}</h1>
-<form method="post">
+<h1>{% if editace %}<i class="fa fa-edit text-primary"></i> Editace klienta{% else %}<i class="fa fa-user-plus text-success"></i> Přidat klienta{% endif %}</h1>
+<form method="post" class="mb-4">
   {% csrf_token %}
-  <div class="mb-3">
-    <label for="id_jmeno" class="form-label">Jméno klienta</label>
-    {{ form.jmeno }}
-    <label for="id_datum" class="form-label ms-3">Datum</label>
-    {{ form.datum }}
+  <div class="row g-3">
+    <div class="col-md-4">
+      <label for="id_jmeno" class="form-label">Jméno klienta</label>
+      {{ form.jmeno }}
+    </div>
+    <div class="col-md-4">
+      <label for="id_datum" class="form-label">Datum</label>
+      {{ form.datum }}
+    </div>
   </div>
-  <div class="mb-3">
-    <label for="id_co_financuje" class="form-label">Co chce klient financovat</label>
-    {{ form.co_financuje }}
-    <label for="id_cena" class="form-label ms-3">Cena</label>
-    {{ form.cena }}
-    <label for="id_deadline_co_financuje" class="form-label ms-3">Deadline</label>
-    {{ form.deadline_co_financuje }}
-    <label for="id_splneno_co_financuje" class="form-label ms-3">Datum splnění</label>
-    {{ form.splneno_co_financuje }}
+  <hr>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <label for="id_co_financuje" class="form-label">Co chce klient financovat</label>
+      {{ form.co_financuje }}
+    </div>
+    <div class="col-md-4">
+      <label for="id_cena" class="form-label">Cena</label>
+      {{ form.cena }}
+    </div>
+    <div class="col-md-4">
+      <label for="id_deadline_co_financuje" class="form-label">Deadline</label>
+      {{ form.deadline_co_financuje }}
+    </div>
+    <div class="col-md-4">
+      <label for="id_splneno_co_financuje" class="form-label">Datum splnění</label>
+      {{ form.splneno_co_financuje }}
+    </div>
   </div>
-  <div class="mb-3">
-    <label for="id_navrh_financovani" class="form-label">Návrh financování</label>
-    {{ form.navrh_financovani }}
-    <label for="id_navrh_financovani_procento" class="form-label ms-3">v&nbsp;% hypotečního úvěru</label>
-    {{ form.navrh_financovani_procento }}
-    <span class="ms-3 text-success">Hypoteční úvěr: <strong id="hypo-castka-vysledek">
-      {% if form.instance.navrh_financovani_castka %}{{ form.instance.navrh_financovani_castka|floatformat:0 }} Kč{% endif %}
-    </strong></span>
-    <label for="id_deadline_navrh_financovani" class="form-label ms-3">Deadline</label>
-    {{ form.deadline_navrh_financovani }}
-    <label for="id_splneno_navrh_financovani" class="form-label ms-3">Datum splnění</label>
-    {{ form.splneno_navrh_financovani }}
+  <hr>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <label for="id_navrh_financovani" class="form-label">Návrh financování</label>
+      {{ form.navrh_financovani }}
+    </div>
+    <div class="col-md-4">
+      <label for="id_navrh_financovani_procento" class="form-label">v&nbsp;% hypotečního úvěru</label>
+      {{ form.navrh_financovani_procento }}
+    </div>
+    <div class="col-md-4">
+      <span class="text-success">Hypoteční úvěr: <strong id="hypo-castka-vysledek">
+        {% if form.instance.navrh_financovani_castka %}{{ form.instance.navrh_financovani_castka|floatformat:0 }} Kč{% endif %}
+      </strong></span>
+    </div>
+    <div class="col-md-4">
+      <label for="id_deadline_navrh_financovani" class="form-label">Deadline</label>
+      {{ form.deadline_navrh_financovani }}
+    </div>
+    <div class="col-md-4">
+      <label for="id_splneno_navrh_financovani" class="form-label">Datum splnění</label>
+      {{ form.splneno_navrh_financovani }}
+    </div>
   </div>
-  <div class="mb-3">
-    <label for="id_vyber_banky" class="form-label">Výběr banky</label>
-    {{ form.vyber_banky }}
-    <label for="id_deadline_vyber_banky" class="form-label ms-3">Deadline</label>
-    {{ form.deadline_vyber_banky }}
-    <label for="id_splneno_vyber_banky" class="form-label ms-3">Datum splnění</label>
-    {{ form.splneno_vyber_banky }}
+  <hr>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <label for="id_vyber_banky" class="form-label">Výběr banky</label>
+      {{ form.vyber_banky }}
+    </div>
+    <div class="col-md-4">
+      <label for="id_deadline_vyber_banky" class="form-label">Deadline</label>
+      {{ form.deadline_vyber_banky }}
+    </div>
+    <div class="col-md-4">
+      <label for="id_splneno_vyber_banky" class="form-label">Datum splnění</label>
+      {{ form.splneno_vyber_banky }}
+    </div>
   </div>
-  <div class="mb-3">
-    <label for="id_priprava_zadosti" class="form-label">Příprava žádosti</label>
-    {{ form.priprava_zadosti }}
-    <label for="id_deadline_priprava_zadosti" class="form-label ms-3">Deadline</label>
-    {{ form.deadline_priprava_zadosti }}
-    <label for="id_splneno_priprava_zadosti" class="form-label ms-3">Datum splnění</label>
-    {{ form.splneno_priprava_zadosti }}
+  <hr>
+  {# 5. Příprava žádosti #}
+  <div class="row g-3">
+    <div class="col-md-3">
+      <label for="id_priprava_zadosti" class="form-label">Příprava žádosti</label>
+    </div>
+    <div class="col-md-3">
+      <label for="id_deadline_priprava_zadosti" class="form-label">Deadline</label>
+      {{ form.deadline_priprava_zadosti }}
+    </div>
+    <div class="col-md-3">
+      <label for="id_splneno_priprava_zadosti" class="form-label">Datum splnění</label>
+      {{ form.splneno_priprava_zadosti }}
+    </div>
+    <div class="col-md-3">
+      {{ form.priprava_zadosti }}
+    </div>
   </div>
-  <div class="mb-3">
-    <label for="id_kompletace_podkladu" class="form-label">Kompletace podkladů</label>
-    {{ form.kompletace_podkladu }}
-    <label for="id_deadline_kompletace_podkladu" class="form-label ms-3">Deadline</label>
-    {{ form.deadline_kompletace_podkladu }}
-    <label for="id_splneno_kompletace_podkladu" class="form-label ms-3">Datum splnění</label>
-    {{ form.splneno_kompletace_podkladu }}
+  <hr>
+  {# 6. Kompletace podkladů #}
+  <div class="row g-3">
+    <div class="col-md-3">
+      <label for="id_kompletace_podkladu" class="form-label">Kompletace podkladů</label>
+    </div>
+    <div class="col-md-3">
+      <label for="id_deadline_kompletace_podkladu" class="form-label">Deadline</label>
+      {{ form.deadline_kompletace_podkladu }}
+    </div>
+    <div class="col-md-3">
+      <label for="id_splneno_kompletace_podkladu" class="form-label">Datum splnění</label>
+      {{ form.splneno_kompletace_podkladu }}
+    </div>
+    <div class="col-md-3">
+      {{ form.kompletace_podkladu }}
+    </div>
   </div>
-  <div class="mb-3">
-    <label for="id_podani_zadosti" class="form-label">Podání žádosti</label>
-    {{ form.podani_zadosti }}
-    <label for="id_deadline_podani_zadosti" class="form-label ms-3">Deadline</label>
-    {{ form.deadline_podani_zadosti }}
-    <label for="id_splneno_podani_zadosti" class="form-label ms-3">Datum splnění</label>
-    {{ form.splneno_podani_zadosti }}
+  <hr>
+  {# 7. Podání žádosti #}
+  <div class="row g-3">
+    <div class="col-md-3">
+      <label for="id_podani_zadosti" class="form-label">Podání žádosti</label>
+    </div>
+    <div class="col-md-3">
+      <label for="id_deadline_podani_zadosti" class="form-label">Deadline</label>
+      {{ form.deadline_podani_zadosti }}
+    </div>
+    <div class="col-md-3">
+      <label for="id_splneno_podani_zadosti" class="form-label">Datum splnění</label>
+      {{ form.splneno_podani_zadosti }}
+    </div>
+    <div class="col-md-3">
+      {{ form.podani_zadosti }}
+    </div>
   </div>
-  <div class="mb-3">
-    <label for="id_odhad" class="form-label">Odhad</label>
-    {{ form.odhad }}
-    <label for="id_deadline_odhad" class="form-label ms-3">Deadline</label>
-    {{ form.deadline_odhad }}
-    <label for="id_splneno_odhad" class="form-label ms-3">Datum splnění</label>
-    {{ form.splneno_odhad }}
+  <hr>
+  {# 8. Odhad #}
+  <div class="row g-3">
+    <div class="col-md-3">
+      <label for="id_odhad" class="form-label">Odhad</label>
+    </div>
+    <div class="col-md-3">
+      <label for="id_deadline_odhad" class="form-label">Deadline</label>
+      {{ form.deadline_odhad }}
+    </div>
+    <div class="col-md-3">
+      <label for="id_splneno_odhad" class="form-label">Datum splnění</label>
+      {{ form.splneno_odhad }}
+    </div>
+    <div class="col-md-3">
+      {{ form.odhad }}
+    </div>
   </div>
-  <div class="mb-3">
-    <label for="id_schvalovani" class="form-label">Schvalování</label>
-    {{ form.schvalovani }}
-    <label for="id_deadline_schvalovani" class="form-label ms-3">Deadline</label>
-    {{ form.deadline_schvalovani }}
-    <label for="id_splneno_schvalovani" class="form-label ms-3">Datum splnění</label>
-    {{ form.splneno_schvalovani }}
+  <hr>
+  {# 9. Schvalování #}
+  <div class="row g-3">
+    <div class="col-md-3">
+      <label for="id_schvalovani" class="form-label">Schvalování</label>
+    </div>
+    <div class="col-md-3">
+      <label for="id_deadline_schvalovani" class="form-label">Deadline</label>
+      {{ form.deadline_schvalovani }}
+    </div>
+    <div class="col-md-3">
+      <label for="id_splneno_schvalovani" class="form-label">Datum splnění</label>
+      {{ form.splneno_schvalovani }}
+    </div>
+    <div class="col-md-3">
+      {{ form.schvalovani }}
+    </div>
   </div>
-  <div class="mb-3">
-    <label for="id_priprava_uverove_dokumentace" class="form-label">Příprava úvěrové dokumentace</label>
-    {{ form.priprava_uverove_dokumentace }}
-    <label for="id_deadline_priprava_uverove_dokumentace" class="form-label ms-3">Deadline</label>
-    {{ form.deadline_priprava_uverove_dokumentace }}
-    <label for="id_splneno_priprava_uverove_dokumentace" class="form-label ms-3">Datum splnění</label>
-    {{ form.splneno_priprava_uverove_dokumentace }}
+  <hr>
+  {# 10. Příprava úvěrové dokumentace #}
+  <div class="row g-3">
+    <div class="col-md-3">
+      <label for="id_priprava_uverove_dokumentace" class="form-label">Příprava úvěrové dokumentace</label>
+    </div>
+    <div class="col-md-3">
+      <label for="id_deadline_priprava_uverove_dokumentace" class="form-label">Deadline</label>
+      {{ form.deadline_priprava_uverove_dokumentace }}
+    </div>
+    <div class="col-md-3">
+      <label for="id_splneno_priprava_uverove_dokumentace" class="form-label">Datum splnění</label>
+      {{ form.splneno_priprava_uverove_dokumentace }}
+    </div>
+    <div class="col-md-3">
+      {{ form.priprava_uverove_dokumentace }}
+    </div>
   </div>
-  <div class="mb-3">
-    <label for="id_podpis_uverove_dokumentace" class="form-label">Podpis úvěrové dokumentace</label>
-    {{ form.podpis_uverove_dokumentace }}
-    <label for="id_deadline_podpis_uverove_dokumentace" class="form-label ms-3">Deadline</label>
-    {{ form.deadline_podpis_uverove_dokumentace }}
-    <label for="id_splneno_podpis_uverove_dokumentace" class="form-label ms-3">Datum splnění</label>
-    {{ form.splneno_podpis_uverove_dokumentace }}
+  <hr>
+  {# 11. Podpis úvěrové dokumentace #}
+  <div class="row g-3">
+    <div class="col-md-3">
+      <label for="id_podpis_uverove_dokumentace" class="form-label">Podpis úvěrové dokumentace</label>
+    </div>
+    <div class="col-md-3">
+      <label for="id_deadline_podpis_uverove_dokumentace" class="form-label">Deadline</label>
+      {{ form.deadline_podpis_uverove_dokumentace }}
+    </div>
+    <div class="col-md-3">
+      <label for="id_splneno_podpis_uverove_dokumentace" class="form-label">Datum splnění</label>
+      {{ form.splneno_podpis_uverove_dokumentace }}
+    </div>
+    <div class="col-md-3">
+      {{ form.podpis_uverove_dokumentace }}
+    </div>
   </div>
-  <div class="mb-3">
-    <label for="id_priprava_cerpani" class="form-label">Příprava čerpání</label>
-    {{ form.priprava_cerpani }}
-    <label for="id_deadline_priprava_cerpani" class="form-label ms-3">Deadline</label>
-    {{ form.deadline_priprava_cerpani }}
-    <label for="id_splneno_priprava_cerpani" class="form-label ms-3">Datum splnění</label>
-    {{ form.splneno_priprava_cerpani }}
+  <hr>
+  {# 12. Příprava čerpání #}
+  <div class="row g-3">
+    <div class="col-md-3">
+      <label for="id_priprava_cerpani" class="form-label">Příprava čerpání</label>
+    </div>
+    <div class="col-md-3">
+      <label for="id_deadline_priprava_cerpani" class="form-label">Deadline</label>
+      {{ form.deadline_priprava_cerpani }}
+    </div>
+    <div class="col-md-3">
+      <label for="id_splneno_priprava_cerpani" class="form-label">Datum splnění</label>
+      {{ form.splneno_priprava_cerpani }}
+    </div>
+    <div class="col-md-3">
+      {{ form.priprava_cerpani }}
+    </div>
   </div>
-  <div class="mb-3">
-    <label for="id_cerpani" class="form-label">Čerpání</label>
-    {{ form.cerpani }}
-    <label for="id_deadline_cerpani" class="form-label ms-3">Deadline</label>
-    {{ form.deadline_cerpani }}
-    <label for="id_splneno_cerpani" class="form-label ms-3">Datum splnění</label>
-    {{ form.splneno_cerpani }}
+  <hr>
+  {# 13. Čerpání #}
+  <div class="row g-3">
+    <div class="col-md-3">
+      <label for="id_cerpani" class="form-label">Čerpání</label>
+    </div>
+    <div class="col-md-3">
+      <label for="id_deadline_cerpani" class="form-label">Deadline</label>
+      {{ form.deadline_cerpani }}
+    </div>
+    <div class="col-md-3">
+      <label for="id_splneno_cerpani" class="form-label">Datum splnění</label>
+      {{ form.splneno_cerpani }}
+    </div>
+    <div class="col-md-3">
+      {{ form.cerpani }}
+    </div>
   </div>
-  <div class="mb-3">
-    <label for="id_zahajeni_splaceni" class="form-label">Zahájení splácení</label>
-    {{ form.zahajeni_splaceni }}
-    <label for="id_deadline_zahajeni_splaceni" class="form-label ms-3">Deadline</label>
-    {{ form.deadline_zahajeni_splaceni }}
-    <label for="id_splneno_zahajeni_splaceni" class="form-label ms-3">Datum splnění</label>
-    {{ form.splneno_zahajeni_splaceni }}
+  <hr>
+  {# 14. Zahájení splácení #}
+  <div class="row g-3">
+    <div class="col-md-3">
+      <label for="id_zahajeni_splaceni" class="form-label">Zahájení splácení</label>
+    </div>
+    <div class="col-md-3">
+      <label for="id_deadline_zahajeni_splaceni" class="form-label">Deadline</label>
+      {{ form.deadline_zahajeni_splaceni }}
+    </div>
+    <div class="col-md-3">
+      <label for="id_splneno_zahajeni_splaceni" class="form-label">Datum splnění</label>
+      {{ form.splneno_zahajeni_splaceni }}
+    </div>
+    <div class="col-md-3">
+      {{ form.zahajeni_splaceni }}
+    </div>
   </div>
-  <div class="mb-3">
-    <label for="id_podminky_pro_splaceni" class="form-label">Podmínky pro splacení</label>
-    {{ form.podminky_pro_splaceni }}
-    <label for="id_deadline_podminky_pro_splaceni" class="form-label ms-3">Deadline</label>
-    {{ form.deadline_podminky_pro_splaceni }}
-    <label for="id_splneno_podminky_pro_splaceni" class="form-label ms-3">Datum splnění</label>
-    {{ form.splneno_podminky_pro_splaceni }}
+  <hr>
+  {# 15. Podmínky pro splacení #}
+  <div class="row g-3">
+    <div class="col-md-3">
+      <label for="id_podminky_pro_splaceni" class="form-label">Podmínky pro splacení</label>
+    </div>
+    <div class="col-md-3">
+      <label for="id_deadline_podminky_pro_splaceni" class="form-label">Deadline</label>
+      {{ form.deadline_podminky_pro_splaceni }}
+    </div>
+    <div class="col-md-3">
+      <label for="id_splneno_podminky_pro_splaceni" class="form-label">Datum splnění</label>
+      {{ form.splneno_podminky_pro_splaceni }}
+    </div>
+    <div class="col-md-3">
+      {{ form.podminky_pro_splaceni }}
+    </div>
   </div>
-  <button type="submit" class="btn btn-primary">Uložit</button>
-  <a href="/" class="btn btn-secondary">Zpět</a>
+  <div class="mt-4">
+    <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Uložit</button>
+    <a href="/" class="btn btn-secondary"><i class="fa fa-arrow-left"></i> Zpět</a>
+  </div>
 </form>
 <script>
 function calcHypoCastka() {

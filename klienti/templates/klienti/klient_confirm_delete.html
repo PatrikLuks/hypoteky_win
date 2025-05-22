@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Potvrzení smazání klienta</h1>
+<h1 class="mb-4 text-danger"><i class="fa fa-trash"></i> Potvrzení smazání klienta</h1>
 <p>Opravdu chcete smazat klienta <strong>{{ klient.jmeno }}</strong>?</p>
-<form method="post">{% csrf_token %}
-    <button type="submit" class="btn btn-danger">Ano, smazat</button>
-    <a href="{% url 'klient_detail' klient.pk %}" class="btn btn-secondary">Zpět</a>
+<form method="post" class="mb-3">{% csrf_token %}
+    <button type="submit" class="btn btn-danger"><i class="fa fa-trash"></i> Ano, smazat</button>
+    <a href="{% url 'klient_detail' klient.pk %}" class="btn btn-secondary"><i class="fa fa-arrow-left"></i> Zpět</a>
 </form>
 {% endblock %}

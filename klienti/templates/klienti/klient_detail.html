@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 {% load l10n %}
 {% block content %}
-<h1>Detail klienta</h1>
-<table class="table table-bordered mb-4">
+<h1 class="mb-4"><i class="fa fa-user text-primary"></i> Detail klienta</h1>
+<table class="table table-bordered mb-4 table-striped">
   <tr><th>Jméno klienta</th><td>{{ klient.jmeno }}</td></tr>
   <tr><th>Datum založení</th><td>{{ klient.datum|date:"d.m.Y" }}</td></tr>
   <tr><th>Co financuje</th><td>{{ klient.co_financuje }}</td></tr>
@@ -23,9 +23,9 @@
   <tr><th>Zahájení splácení</th><td>{{ klient.zahajeni_splaceni }}</td></tr>
   <tr><th>Podmínky pro splacení</th><td>{{ klient.podminky_pro_splaceni }}</td></tr>
 </table>
-<h4>Deadliny a data splnění jednotlivých kroků</h4>
+<h4 class="mb-3"><i class="fa fa-calendar-alt text-secondary"></i> Deadliny a data splnění jednotlivých kroků</h4>
 <table class="table table-sm table-striped">
-  <thead>
+  <thead class="table-light">
     <tr>
       <th>Krok</th>
       <th>Deadline</th>
@@ -49,7 +49,9 @@
     <tr><td>Podmínky pro splacení</td><td>{{ klient.deadline_podminky_pro_splaceni|date:"d.m.Y" }}</td><td>{{ klient.splneno_podminky_pro_splaceni|date:"d.m.Y" }}</td></tr>
   </tbody>
 </table>
-<a href="{% url 'klient_edit' klient.pk %}" class="btn btn-primary">Upravit</a>
-<a href="{% url 'klient_delete' klient.pk %}" class="btn btn-danger">Smazat</a>
-<a href="{% url 'home' %}" class="btn btn-secondary">Zpět</a>
+<div class="mt-4">
+  <a href="{% url 'klient_edit' klient.pk %}" class="btn btn-primary"><i class="fa fa-edit"></i> Upravit</a>
+  <a href="{% url 'klient_delete' klient.pk %}" class="btn btn-danger"><i class="fa fa-trash"></i> Smazat</a>
+  <a href="{% url 'home' %}" class="btn btn-secondary"><i class="fa fa-arrow-left"></i> Zpět</a>
+</div>
 {% endblock %}

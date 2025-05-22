@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="mb-4"><i class="fa fa-calculator text-primary"></i> Kalkulačka hypotéky</h1>
+<form method="post" class="mb-4">
+  {% csrf_token %}
+  <div class="row g-3">
+    <div class="col-md-3">{{ form.castka.label_tag }}{{ form.castka }}</div>
+    <div class="col-md-3">{{ form.urok.label_tag }}{{ form.urok }}</div>
+    <div class="col-md-3">{{ form.doba.label_tag }}{{ form.doba }}</div>
+    <div class="col-md-3">{{ form.fixace.label_tag }}{{ form.fixace }}</div>
+    <div class="col-md-3">{{ form.mimoradne_splatky.label_tag }}{{ form.mimoradne_splatky }}</div>
+  </div>
+  <button type="submit" class="btn btn-primary mt-3"><i class="fa fa-calculator"></i> Spočítat</button>
+</form>
+{% if vysledek %}
+<div class="alert alert-success">
+  <h4><i class="fa fa-chart-line"></i> Výsledky</h4>
+  <ul>
+    <li>Měsíční splátka: <strong>{{ vysledek.splatka|floatformat:0 }} Kč</strong></li>
+    <li>Celkem zaplaceno: <strong>{{ vysledek.celkem|floatformat:0 }} Kč</strong></li>
+    <li>Celkem zaplacený úrok: <strong>{{ vysledek.urok_celkem|floatformat:0 }} Kč</strong></li>
+  </ul>
+</div>
+{% endif %}
+<a href="/" class="btn btn-secondary"><i class="fa fa-arrow-left"></i> Zpět na klienty</a>
+{% endblock %}
