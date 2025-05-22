@@ -292,7 +292,7 @@ def klient_detail(request, pk):
                 'blizi_se' if klient.deadline_podani_zadosti and klient.splneno_podani_zadosti is None and (klient.deadline_podani_zadosti - today).days <= 3 and (klient.deadline_podani_zadosti - today).days >= 0 else
                 'ok'
             ),
-            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'podani_zadosti'] if poznamky and hasattr(poznamky[0], 'krok') else []
+            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'podani_zadadosti'] if poznamky and hasattr(poznamky[0], 'krok') else []
         },
         {
             'pole': 'odhad',
@@ -437,7 +437,7 @@ def home(request):
             stav = int(stav)
             workflow_labels = [
                 'co_financuje', 'navrh_financovani', 'vyber_banky', 'priprava_zadosti',
-                'kompletace_podkladu', 'podani_zadosti', 'odhad', 'schvalovani',
+                'kompletace_podkladu', 'podani_zadadosti', 'odhad', 'schvalovani',
                 'priprava_uverove_dokumentace', 'podpis_uverove_dokumentace',
                 'priprava_cerpani', 'cerpani', 'zahajeni_splaceni', 'podminky_pro_splaceni',
             ]
@@ -556,6 +556,7 @@ def dashboard(request):
     objem_hypotek = sum([k.navrh_financovani_castka or 0 for k in klienti])
     urgent_deadlines = []
     today = date.today()
+    klienti_po_termínu = []
     for k in klienti:
         for field in [
             'deadline_co_financuje', 'deadline_navrh_financovani', 'deadline_vyber_banky',
@@ -565,8 +566,11 @@ def dashboard(request):
             'deadline_zahajeni_splaceni', 'deadline_podminky_pro_splaceni']:
             deadline = getattr(k, field)
             splneno = getattr(k, field.replace('deadline_', 'splneno_'), None)
-            if deadline and not splneno and (deadline - today).days <= 3 and (deadline - today).days >= 0:
-                urgent_deadlines.append({'klient': k, 'krok': field, 'deadline': deadline, 'days_left': (deadline-today).days})
+            if deadline and not splneno:
+                if (deadline - today).days < 0:
+                    klienti_po_termínu.append({'klient': k, 'krok': field, 'deadline': deadline, 'days_left': (deadline-today).days})
+                elif (deadline - today).days <= 3 and (deadline - today).days >= 0:
+                    urgent_deadlines.append({'klient': k, 'krok': field, 'deadline': deadline, 'days_left': (deadline-today).days})
     # Workflow rozložení
     workflow_labels = [
         'co_financuje', 'navrh_financovani', 'vyber_banky', 'priprava_zadosti',
@@ -584,12 +588,24 @@ def dashboard(request):
         else:
             stav = 14
         workflow_counts[stav] += 1
+    posledni_klienti = klienti.order_by('-datum')[:5]
+    top_hypoteky = klienti.order_by('-navrh_financovani_castka')[:5]
+    # Log posledních změn
+    from .models import Zmena
+    posledni_zmeny = Zmena.objects.select_related('klient').order_by('-created')[:5]
+    # Průměrná výše hypotéky
+    prumerna_hypoteka = objem_hypotek / pocet_klientu if pocet_klientu else 0
     return render(request, 'klienti/dashboard.html', {
         'pocet_klientu': pocet_klientu,
         'objem_hypotek': objem_hypotek,
         'urgent_deadlines': urgent_deadlines,
         'workflow_labels': workflow_labels,
         'workflow_counts': workflow_counts,
+        'posledni_klienti': posledni_klienti,
+        'top_hypoteky': top_hypoteky,
+        'klienti_po_termínu': klienti_po_termínu,
+        'posledni_zmeny': posledni_zmeny,
+        'prumerna_hypoteka': prumerna_hypoteka,
     })
 
 def smazat_poznamku(request, klient_id, poznamka_id):

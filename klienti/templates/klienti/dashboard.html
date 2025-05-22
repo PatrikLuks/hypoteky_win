@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load l10n %}
 {% block content %}
 <div class="container-fluid">
 <h1 class="mb-4"><i class="fa fa-tachometer-alt text-primary"></i> Dashboard</h1>
@@ -16,7 +17,9 @@
     <div class="card shadow-sm border-0 text-center h-100 bg-gradient" style="background:linear-gradient(135deg,#23272b 60%,#20c997 100%)">
       <div class="card-body">
         <h6 class="card-title text-secondary">Objem hypoték</h6>
-        <div class="display-4 fw-bold text-success">{{ objem_hypotek|floatformat:0 }} Kč</div>
+        <div class="display-4 fw-bold text-success" style="letter-spacing:1px;white-space:nowrap;">
+          {{ objem_hypotek|floatformat:0|localize }} Kč
+        </div>
         <a href="{% url 'klient_create' %}" class="btn btn-sm btn-outline-light mt-2"><i class="fa fa-plus"></i> Přidat klienta</a>
       </div>
     </div>
@@ -68,6 +71,133 @@
     </div>
   </div>
 {% endif %}
+
+<div class="row mb-4 g-4">
+  <div class="col-lg-6">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body">
+        <h5 class="card-title"><i class="fa fa-clock text-primary"></i> Poslední přidaní klienti</h5>
+        <div class="table-responsive">
+          <table class="table table-sm table-striped align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Jméno</th>
+                <th>Datum</th>
+                <th>Částka</th>
+                <th>Akce</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for klient in posledni_klienti %}
+              <tr>
+                <td>{{ klient.jmeno }}</td>
+                <td>{{ klient.datum|date:"d.m.Y" }}</td>
+                <td>{% if klient.navrh_financovani_castka %}{{ klient.navrh_financovani_castka|floatformat:0|localize }} Kč{% else %}-{% endif %}</td>
+                <td><a href="{% url 'klient_detail' klient.pk %}" class="btn btn-sm btn-outline-info"><i class="fa fa-eye"></i> Detail</a></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" class="text-muted">Žádní klienti</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body">
+        <h5 class="card-title"><i class="fa fa-trophy text-warning"></i> TOP 5 největších hypoték</h5>
+        <div class="table-responsive">
+          <table class="table table-sm table-striped align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Jméno</th>
+                <th>Datum</th>
+                <th>Částka</th>
+                <th>Akce</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for klient in top_hypoteky %}
+              <tr>
+                <td>{{ klient.jmeno }}</td>
+                <td>{{ klient.datum|date:"d.m.Y" }}</td>
+                <td>{% if klient.navrh_financovani_castka %}{{ klient.navrh_financovani_castka|floatformat:0|localize }} Kč{% else %}-{% endif %}</td>
+                <td><a href="{% url 'klient_detail' klient.pk %}" class="btn btn-sm btn-outline-info"><i class="fa fa-eye"></i> Detail</a></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" class="text-muted">Žádné hypotéky</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mb-4 g-4">
+  <div class="col-lg-4">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body">
+        <h5 class="card-title"><i class="fa fa-exclamation-circle text-danger"></i> Klienti po termínu</h5>
+        <div class="table-responsive">
+          <table class="table table-sm table-striped align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Jméno</th>
+                <th>Krok</th>
+                <th>Deadline</th>
+                <th>Zpoždění</th>
+                <th>Akce</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in klienti_po_termínu|slice:':5' %}
+              <tr>
+                <td>{{ item.klient.jmeno }}</td>
+                <td><span class="badge bg-dark">{{ item.krok|cut:'deadline_'|title }}</span></td>
+                <td>{{ item.deadline|date:"d.m.Y" }}</td>
+                <td><span class="text-danger fw-bold">{{ item.days_left|floatformat:0|cut:"-" }} dní</span></td>
+                <td><a href="{% url 'klient_detail' item.klient.pk %}" class="btn btn-sm btn-outline-info"><i class="fa fa-eye"></i> Detail</a></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-muted">Žádní klienti po termínu</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body">
+        <h5 class="card-title"><i class="fa fa-history text-secondary"></i> Poslední změny</h5>
+        <ul class="list-group list-group-flush small">
+          {% for z in posledni_zmeny %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span><b>{{ z.klient.jmeno }}</b>: {{ z.popis|truncatechars:40 }}</span>
+            <span class="text-muted">{{ z.created|date:"d.m.Y H:i" }}</span>
+          </li>
+          {% empty %}
+          <li class="list-group-item text-muted">Žádné změny</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body text-center">
+        <h5 class="card-title"><i class="fa fa-calculator text-success"></i> Průměrná výše hypotéky</h5>
+        <div class="display-5 fw-bold text-success mb-2">{{ prumerna_hypoteka|floatformat:0|localize }} Kč</div>
+        <div class="text-muted">(ze všech klientů)</div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
