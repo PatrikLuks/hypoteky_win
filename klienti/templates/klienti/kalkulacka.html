@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
+<div class="container-fluid">
 <h1 class="mb-4"><i class="fa fa-calculator text-primary"></i> Kalkulačka hypotéky</h1>
 <form method="post" class="mb-4">
   {% csrf_token %}
@@ -23,4 +24,5 @@
 </div>
 {% endif %}
 <a href="/" class="btn btn-secondary"><i class="fa fa-arrow-left"></i> Zpět na klienty</a>
+</div>
 {% endblock %}

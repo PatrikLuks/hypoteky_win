@@ -80,8 +80,10 @@ class KlientForm(forms.ModelForm):
 
     def clean_cena(self):
         data = self.cleaned_data['cena']
+        if data in (None, ''):
+            return None
         if isinstance(data, str):
-            data = data.replace(' ', '').replace('\xa0', '')
+            data = data.replace(' ', '').replace('\xa0', '').replace(',', '.')
         try:
             return float(data)
         except Exception:
@@ -99,6 +101,15 @@ def klient_create(request):
                 klient.navrh_financovani_castka = round(float(cena) * float(procento) / 100, 2)
             else:
                 klient.navrh_financovani_castka = None
+            # Nastavení pole user pouze pokud je role klient
+            try:
+                profile = request.user.userprofile
+                if profile.role == 'klient':
+                    klient.user = request.user
+                else:
+                    klient.user = None
+            except Exception:
+                klient.user = None
             klient.save()
             # Audit log - vytvoření klienta
             from .models import Zmena
@@ -208,79 +219,181 @@ def klient_detail(request, pk):
             )
             return redirect('klient_detail', pk=pk)
     # Definice kroků workflow pro timeline
+    from datetime import date
+    today = date.today()
     workflow_steps = [
         {
             'pole': 'co_financuje',
             'popis': 'Co chce klient financovat',
-            'deadline': klient.deadline_co_financuje
+            'deadline': klient.deadline_co_financuje,
+            'splneno': klient.splneno_co_financuje,
+            'stav_deadlinu': (
+                'po_termínu' if klient.deadline_co_financuje and klient.splneno_co_financuje is None and klient.deadline_co_financuje < today else
+                'blizi_se' if klient.deadline_co_financuje and klient.splneno_co_financuje is None and (klient.deadline_co_financuje - today).days <= 3 and (klient.deadline_co_financuje - today).days >= 0 else
+                'ok'
+            ),
+            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'co_financuje'] if poznamky and hasattr(poznamky[0], 'krok') else []
         },
         {
             'pole': 'navrh_financovani',
             'popis': 'Návrh financování',
-            'deadline': klient.deadline_navrh_financovani
+            'deadline': klient.deadline_navrh_financovani,
+            'splneno': klient.splneno_navrh_financovani,
+            'stav_deadlinu': (
+                'po_termínu' if klient.deadline_navrh_financovani and klient.splneno_navrh_financovani is None and klient.deadline_navrh_financovani < today else
+                'blizi_se' if klient.deadline_navrh_financovani and klient.splneno_navrh_financovani is None and (klient.deadline_navrh_financovani - today).days <= 3 and (klient.deadline_navrh_financovani - today).days >= 0 else
+                'ok'
+            ),
+            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'navrh_financovani'] if poznamky and hasattr(poznamky[0], 'krok') else []
         },
         {
             'pole': 'vyber_banky',
             'popis': 'Výběr banky',
-            'deadline': klient.deadline_vyber_banky
+            'deadline': klient.deadline_vyber_banky,
+            'splneno': klient.splneno_vyber_banky,
+            'stav_deadlinu': (
+                'po_termínu' if klient.deadline_vyber_banky and klient.splneno_vyber_banky is None and klient.deadline_vyber_banky < today else
+                'blizi_se' if klient.deadline_vyber_banky and klient.splneno_vyber_banky is None and (klient.deadline_vyber_banky - today).days <= 3 and (klient.deadline_vyber_banky - today).days >= 0 else
+                'ok'
+            ),
+            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'vyber_banky'] if poznamky and hasattr(poznamky[0], 'krok') else []
         },
         {
             'pole': 'priprava_zadosti',
             'popis': 'Příprava žádosti',
-            'deadline': klient.deadline_priprava_zadosti
+            'deadline': klient.deadline_priprava_zadosti,
+            'splneno': klient.splneno_priprava_zadosti,
+            'stav_deadlinu': (
+                'po_termínu' if klient.deadline_priprava_zadosti and klient.splneno_priprava_zadosti is None and klient.deadline_priprava_zadosti < today else
+                'blizi_se' if klient.deadline_priprava_zadosti and klient.splneno_priprava_zadosti is None and (klient.deadline_priprava_zadosti - today).days <= 3 and (klient.deadline_priprava_zadosti - today).days >= 0 else
+                'ok'
+            ),
+            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'priprava_zadosti'] if poznamky and hasattr(poznamky[0], 'krok') else []
         },
         {
             'pole': 'kompletace_podkladu',
             'popis': 'Kompletace podkladů',
-            'deadline': klient.deadline_kompletace_podkladu
+            'deadline': klient.deadline_kompletace_podkladu,
+            'splneno': klient.splneno_kompletace_podkladu,
+            'stav_deadlinu': (
+                'po_termínu' if klient.deadline_kompletace_podkladu and klient.splneno_kompletace_podkladu is None and klient.deadline_kompletace_podkladu < today else
+                'blizi_se' if klient.deadline_kompletace_podkladu and klient.splneno_kompletace_podkladu is None and (klient.deadline_kompletace_podkladu - today).days <= 3 and (klient.deadline_kompletace_podkladu - today).days >= 0 else
+                'ok'
+            ),
+            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'kompletace_podkladu'] if poznamky and hasattr(poznamky[0], 'krok') else []
         },
         {
             'pole': 'podani_zadosti',
             'popis': 'Podání žádosti',
-            'deadline': klient.deadline_podani_zadosti
+            'deadline': klient.deadline_podani_zadosti,
+            'splneno': klient.splneno_podani_zadosti,
+            'stav_deadlinu': (
+                'po_termínu' if klient.deadline_podani_zadosti and klient.splneno_podani_zadosti is None and klient.deadline_podani_zadosti < today else
+                'blizi_se' if klient.deadline_podani_zadosti and klient.splneno_podani_zadosti is None and (klient.deadline_podani_zadosti - today).days <= 3 and (klient.deadline_podani_zadosti - today).days >= 0 else
+                'ok'
+            ),
+            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'podani_zadosti'] if poznamky and hasattr(poznamky[0], 'krok') else []
         },
         {
             'pole': 'odhad',
             'popis': 'Odhad',
-            'deadline': klient.deadline_odhad
+            'deadline': klient.deadline_odhad,
+            'splneno': klient.splneno_odhad,
+            'stav_deadlinu': (
+                'po_termínu' if klient.deadline_odhad and klient.splneno_odhad is None and klient.deadline_odhad < today else
+                'blizi_se' if klient.deadline_odhad and klient.splneno_odhad is None and (klient.deadline_odhad - today).days <= 3 and (klient.deadline_odhad - today).days >= 0 else
+                'ok'
+            ),
+            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'odhad'] if poznamky and hasattr(poznamky[0], 'krok') else []
         },
         {
             'pole': 'schvalovani',
             'popis': 'Schvalování',
-            'deadline': klient.deadline_schvalovani
+            'deadline': klient.deadline_schvalovani,
+            'splneno': klient.splneno_schvalovani,
+            'stav_deadlinu': (
+                'po_termínu' if klient.deadline_schvalovani and klient.splneno_schvalovani is None and klient.deadline_schvalovani < today else
+                'blizi_se' if klient.deadline_schvalovani and klient.splneno_schvalovani is None and (klient.deadline_schvalovani - today).days <= 3 and (klient.deadline_schvalovani - today).days >= 0 else
+                'ok'
+            ),
+            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'schvalovani'] if poznamky and hasattr(poznamky[0], 'krok') else []
         },
         {
             'pole': 'priprava_uverove_dokumentace',
             'popis': 'Příprava úvěrové dokumentace',
-            'deadline': klient.deadline_priprava_uverove_dokumentace
+            'deadline': klient.deadline_priprava_uverove_dokumentace,
+            'splneno': klient.splneno_priprava_uverove_dokumentace,
+            'stav_deadlinu': (
+                'po_termínu' if klient.deadline_priprava_uverove_dokumentace and klient.splneno_priprava_uverove_dokumentace is None and klient.deadline_priprava_uverove_dokumentace < today else
+                'blizi_se' if klient.deadline_priprava_uverove_dokumentace and klient.splneno_priprava_uverove_dokumentace is None and (klient.deadline_priprava_uverove_dokumentace - today).days <= 3 and (klient.deadline_priprava_uverove_dokumentace - today).days >= 0 else
+                'ok'
+            ),
+            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'priprava_uverove_dokumentace'] if poznamky and hasattr(poznamky[0], 'krok') else []
         },
         {
             'pole': 'podpis_uverove_dokumentace',
             'popis': 'Podpis úvěrové dokumentace',
-            'deadline': klient.deadline_podpis_uverove_dokumentace
+            'deadline': klient.deadline_podpis_uverove_dokumentace,
+            'splneno': klient.splneno_podpis_uverove_dokumentace,
+            'stav_deadlinu': (
+                'po_termínu' if klient.deadline_podpis_uverove_dokumentace and klient.splneno_podpis_uverove_dokumentace is None and klient.deadline_podpis_uverove_dokumentace < today else
+                'blizi_se' if klient.deadline_podpis_uverove_dokumentace and klient.splneno_podpis_uverove_dokumentace is None and (klient.deadline_podpis_uverove_dokumentace - today).days <= 3 and (klient.deadline_podpis_uverove_dokumentace - today).days >= 0 else
+                'ok'
+            ),
+            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'podpis_uverove_dokumentace'] if poznamky and hasattr(poznamky[0], 'krok') else []
         },
         {
             'pole': 'priprava_cerpani',
             'popis': 'Příprava čerpání',
-            'deadline': klient.deadline_priprava_cerpani
+            'deadline': klient.deadline_priprava_cerpani,
+            'splneno': klient.splneno_priprava_cerpani,
+            'stav_deadlinu': (
+                'po_termínu' if klient.deadline_priprava_cerpani and klient.splneno_priprava_cerpani is None and klient.deadline_priprava_cerpani < today else
+                'blizi_se' if klient.deadline_priprava_cerpani and klient.splneno_priprava_cerpani is None and (klient.deadline_priprava_cerpani - today).days <= 3 and (klient.deadline_priprava_cerpani - today).days >= 0 else
+                'ok'
+            ),
+            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'priprava_cerpani'] if poznamky and hasattr(poznamky[0], 'krok') else []
         },
         {
             'pole': 'cerpani',
             'popis': 'Čerpání',
-            'deadline': klient.deadline_cerpani
+            'deadline': klient.deadline_cerpani,
+            'splneno': klient.splneno_cerpani,
+            'stav_deadlinu': (
+                'po_termínu' if klient.deadline_cerpani and klient.splneno_cerpani is None and klient.deadline_cerpani < today else
+                'blizi_se' if klient.deadline_cerpani and klient.splneno_cerpani is None and (klient.deadline_cerpani - today).days <= 3 and (klient.deadline_cerpani - today).days >= 0 else
+                'ok'
+            ),
+            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'cerpani'] if poznamky and hasattr(poznamky[0], 'krok') else []
         },
         {
             'pole': 'zahajeni_splaceni',
             'popis': 'Zahájení splácení',
-            'deadline': klient.deadline_zahajeni_splaceni
-        },
-        {
-            'pole': 'podminky_pro_splaceni',
-            'popis': 'Podmínky pro splacení',
-            'deadline': klient.deadline_podminky_pro_splaceni
+            'deadline': klient.deadline_zahajeni_splaceni,
+            'splneno': klient.splneno_zahajeni_splaceni,
+            'stav_deadlinu': (
+                'po_termínu' if klient.deadline_zahajeni_splaceni and klient.splneno_zahajeni_splaceni is None and klient.deadline_zahajeni_splaceni < today else
+                'blizi_se' if klient.deadline_zahajeni_splaceni and klient.splneno_zahajeni_splaceni is None and (klient.deadline_zahajeni_splaceni - today).days <= 3 and (klient.deadline_zahajeni_splaceni - today).days >= 0 else
+                'ok'
+            ),
+            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'zahajeni_splaceni'] if poznamky and hasattr(poznamky[0], 'krok') else []
         },
     ]
-    return render(request, 'klienti/klient_detail.html', {'klient': klient, 'poznamky': poznamky, 'zmeny': zmeny, 'workflow_steps': workflow_steps})
+    # Určení aktuálního kroku klienta pro zvýraznění v timeline
+    aktivni_krok = None
+    for idx, step in enumerate(workflow_steps):
+        if not getattr(klient, step['pole']):
+            aktivni_krok = idx
+            break
+    else:
+        aktivni_krok = len(workflow_steps) - 1  # vše splněno
+    return render(request, 'klienti/klient_detail.html', {
+        'klient': klient,
+        'poznamky': poznamky,
+        'zmeny': zmeny,
+        'workflow_steps': workflow_steps,
+        'aktivni_krok': aktivni_krok,
+    })
 
 @login_required
 def home(request):
