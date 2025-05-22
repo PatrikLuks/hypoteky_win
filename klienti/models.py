@@ -1,5 +1,26 @@
 from django.db import models
 from django.utils import timezone
+from django.conf import settings
+
+# Signály pro automatické vytváření a aktualizaci UserProfile
+try:
+    from django.db.models.signals import post_save
+    from django.dispatch import receiver
+except ImportError:
+    post_save = None
+    receiver = None
+
+if post_save:
+    @receiver(post_save, sender='auth.User')
+    def create_or_update_user_profile(sender, instance, created, **kwargs):
+        from .models import UserProfile
+        if created:
+            UserProfile.objects.create(user=instance)
+        else:
+            try:
+                instance.userprofile.save()
+            except Exception:
+                UserProfile.objects.create(user=instance)
 
 # Create your models here.
 
@@ -51,6 +72,7 @@ class Klient(models.Model):
     splneno_cerpani = models.DateField(blank=True, null=True)
     splneno_zahajeni_splaceni = models.DateField(blank=True, null=True)
     splneno_podminky_pro_splaceni = models.DateField(blank=True, null=True)
+    user = models.OneToOneField('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='klient_profile', help_text='Uživatel (klient), který má přístup ke svému záznamu')
 
 class HypotekaWorkflow(models.Model):
     klient = models.ForeignKey(Klient, on_delete=models.CASCADE, related_name='workflowy')
@@ -81,3 +103,40 @@ class HypotekaWorkflow(models.Model):
 
     def __str__(self):
         return f"{self.klient.jmeno} – {self.get_krok_display()}"
+
+class Poznamka(models.Model):
+    klient = models.ForeignKey(Klient, on_delete=models.CASCADE, related_name='poznamky')
+    text = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
+    author = models.CharField(max_length=100, blank=True)  # nebo ForeignKey na User, pokud budeš chtít
+
+    def __str__(self):
+        return f"Poznámka ke klientovi {self.klient.jmeno} ({self.created:%d.%m.%Y %H:%M})"
+
+class Zmena(models.Model):
+    klient = models.ForeignKey(Klient, on_delete=models.CASCADE, related_name='zmeny')
+    popis = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
+    author = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return f"Změna u {self.klient.jmeno} ({self.created:%d.%m.%Y %H:%M})"
+
+class UserProfile(models.Model):
+    user = models.OneToOneField('auth.User', on_delete=models.CASCADE)
+    ROLE_CHOICES = (
+        ('poradce', 'Finanční poradce'),
+        ('klient', 'Klient'),
+    )
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='klient')
+
+    def save(self, *args, **kwargs):
+        # Automaticky nastavit roli podle členství ve skupině 'jplservis'
+        if hasattr(self.user, 'groups') and self.user.groups.filter(name='jplservis').exists():
+            self.role = 'poradce'
+        else:
+            self.role = 'klient'
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user.username} ({self.get_role_display()})"

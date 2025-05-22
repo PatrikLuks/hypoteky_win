@@ -1,11 +1,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Klient
+from .models import Klient, Poznamka, Zmena, UserProfile
 from django import forms
 from datetime import timedelta, date
 from math import pow
 from collections import defaultdict
 from django.utils import timezone
 import datetime
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 
 class KlientForm(forms.ModelForm):
     class Meta:
@@ -97,6 +100,14 @@ def klient_create(request):
             else:
                 klient.navrh_financovani_castka = None
             klient.save()
+            # Audit log - vytvoření klienta
+            from .models import Zmena
+            popis = f"Vytvořen klient: {klient.jmeno} (ID {klient.pk})"
+            Zmena.objects.create(
+                klient=klient,
+                popis=popis,
+                author=request.user.username if request.user.is_authenticated else ''
+            )
             return redirect('home')
     else:
         today = date.today()
@@ -125,6 +136,10 @@ def klient_edit(request, pk):
     if request.method == 'POST':
         form = KlientForm(request.POST, instance=klient)
         if form.is_valid():
+            # Uchovej původní hodnoty
+            puvodni = {}
+            for field in form.fields:
+                puvodni[field] = getattr(klient, field)
             klient = form.save(commit=False)
             cena = form.cleaned_data.get('cena')
             procento = form.cleaned_data.get('navrh_financovani_procento')
@@ -133,6 +148,21 @@ def klient_edit(request, pk):
             else:
                 klient.navrh_financovani_castka = None
             klient.save()
+            # Audit log - detailní změny
+            from .models import Zmena
+            zmeny = []
+            for field in form.fields:
+                nova = getattr(klient, field)
+                stara = puvodni[field]
+                if stara != nova:
+                    zmeny.append(f"{field}: '{stara}' → '{nova}'")
+            if zmeny:
+                popis = "Upraven klient: " + klient.jmeno + "\n" + "\n".join(zmeny)
+                Zmena.objects.create(
+                    klient=klient,
+                    popis=popis,
+                    author=request.user.username if request.user.is_authenticated else ''
+                )
             return redirect('klient_detail', pk=klient.pk)
     else:
         form = KlientForm(instance=klient)
@@ -141,16 +171,131 @@ def klient_edit(request, pk):
 def klient_delete(request, pk):
     klient = get_object_or_404(Klient, pk=pk)
     if request.method == 'POST':
+        from .models import Zmena
+        popis = f"Smazán klient: {klient.jmeno} (ID {klient.pk})"
+        Zmena.objects.create(
+            klient=klient,
+            popis=popis,
+            author=request.user.username if request.user.is_authenticated else ''
+        )
         klient.delete()
         return redirect('home')
     return render(request, 'klienti/klient_confirm_delete.html', {'klient': klient})
 
 def klient_detail(request, pk):
     klient = get_object_or_404(Klient, pk=pk)
-    return render(request, 'klienti/klient_detail.html', {'klient': klient})
+    user = request.user
+    try:
+        profile = user.userprofile
+        role = profile.role
+    except Exception:
+        role = None
+    # Oprávnění: klient může vidět jen svůj záznam
+    if user.is_authenticated and role == 'klient' and klient.user != user:
+        return redirect('home')
+    poznamky = klient.poznamky.order_by('-created')
+    zmeny = klient.zmeny.order_by('-created')
+    if request.method == 'POST' and 'nova_poznamka' in request.POST:
+        text = request.POST.get('text', '').strip()
+        if text:
+            from .models import Poznamka, Zmena
+            Poznamka.objects.create(klient=klient, text=text, author=request.user.username if request.user.is_authenticated else '')
+            popis = f"Přidána poznámka: '{text[:50]}{'...' if len(text) > 50 else ''}'"
+            Zmena.objects.create(
+                klient=klient,
+                popis=popis,
+                author=request.user.username if request.user.is_authenticated else ''
+            )
+            return redirect('klient_detail', pk=pk)
+    # Definice kroků workflow pro timeline
+    workflow_steps = [
+        {
+            'pole': 'co_financuje',
+            'popis': 'Co chce klient financovat',
+            'deadline': klient.deadline_co_financuje
+        },
+        {
+            'pole': 'navrh_financovani',
+            'popis': 'Návrh financování',
+            'deadline': klient.deadline_navrh_financovani
+        },
+        {
+            'pole': 'vyber_banky',
+            'popis': 'Výběr banky',
+            'deadline': klient.deadline_vyber_banky
+        },
+        {
+            'pole': 'priprava_zadosti',
+            'popis': 'Příprava žádosti',
+            'deadline': klient.deadline_priprava_zadosti
+        },
+        {
+            'pole': 'kompletace_podkladu',
+            'popis': 'Kompletace podkladů',
+            'deadline': klient.deadline_kompletace_podkladu
+        },
+        {
+            'pole': 'podani_zadosti',
+            'popis': 'Podání žádosti',
+            'deadline': klient.deadline_podani_zadosti
+        },
+        {
+            'pole': 'odhad',
+            'popis': 'Odhad',
+            'deadline': klient.deadline_odhad
+        },
+        {
+            'pole': 'schvalovani',
+            'popis': 'Schvalování',
+            'deadline': klient.deadline_schvalovani
+        },
+        {
+            'pole': 'priprava_uverove_dokumentace',
+            'popis': 'Příprava úvěrové dokumentace',
+            'deadline': klient.deadline_priprava_uverove_dokumentace
+        },
+        {
+            'pole': 'podpis_uverove_dokumentace',
+            'popis': 'Podpis úvěrové dokumentace',
+            'deadline': klient.deadline_podpis_uverove_dokumentace
+        },
+        {
+            'pole': 'priprava_cerpani',
+            'popis': 'Příprava čerpání',
+            'deadline': klient.deadline_priprava_cerpani
+        },
+        {
+            'pole': 'cerpani',
+            'popis': 'Čerpání',
+            'deadline': klient.deadline_cerpani
+        },
+        {
+            'pole': 'zahajeni_splaceni',
+            'popis': 'Zahájení splácení',
+            'deadline': klient.deadline_zahajeni_splaceni
+        },
+        {
+            'pole': 'podminky_pro_splaceni',
+            'popis': 'Podmínky pro splacení',
+            'deadline': klient.deadline_podminky_pro_splaceni
+        },
+    ]
+    return render(request, 'klienti/klient_detail.html', {'klient': klient, 'poznamky': poznamky, 'zmeny': zmeny, 'workflow_steps': workflow_steps})
 
+@login_required
 def home(request):
-    klienti = Klient.objects.all().order_by('-datum')
+    user = request.user
+    try:
+        profile = user.userprofile
+        role = profile.role
+    except Exception:
+        role = None
+    if user.is_authenticated and role == 'klient':
+        klienti = Klient.objects.filter(user=user)
+    elif user.is_authenticated and role == 'poradce':
+        klienti = Klient.objects.all().order_by('-datum')
+    else:
+        klienti = Klient.objects.none()
     today = date.today()
     deadline_fields = [
         ('co_financuje', 'deadline_co_financuje', 'splneno_co_financuje'),
@@ -168,6 +313,32 @@ def home(request):
         ('zahajeni_splaceni', 'deadline_zahajeni_splaceni', 'splneno_zahajeni_splaceni'),
         ('podminky_pro_splaceni', 'deadline_podminky_pro_splaceni', 'splneno_podminky_pro_splaceni'),
     ]
+    # --- Filtrování a vyhledávání ---
+    q = request.GET.get('q', '').strip()
+    stav = request.GET.get('stav', '').strip()
+    if q:
+        klienti = klienti.filter(jmeno__icontains=q)
+    if stav:
+        # stav je číslo kroku 1-15 (string), převedeme na int
+        try:
+            stav = int(stav)
+            workflow_labels = [
+                'co_financuje', 'navrh_financovani', 'vyber_banky', 'priprava_zadosti',
+                'kompletace_podkladu', 'podani_zadosti', 'odhad', 'schvalovani',
+                'priprava_uverove_dokumentace', 'podpis_uverove_dokumentace',
+                'priprava_cerpani', 'cerpani', 'zahajeni_splaceni', 'podminky_pro_splaceni',
+            ]
+            if stav == 1:
+                klienti = klienti.filter(co_financuje__isnull=True)
+            elif stav <= len(workflow_labels):
+                predchozi = workflow_labels[stav-2] if stav > 1 else None
+                aktualni = workflow_labels[stav-1]
+                if predchozi:
+                    klienti = klienti.filter(**{predchozi+'__isnull': False, aktualni+'__isnull': True})
+                else:
+                    klienti = klienti.filter(**{aktualni+'__isnull': True})
+        except Exception:
+            pass
     klienti_deadlines = []
     for klient in klienti:
         nejblizsi_deadline = None
@@ -265,3 +436,68 @@ def kalkulacka(request):
     else:
         form = KalkulackaForm()
     return render(request, 'klienti/kalkulacka.html', {'form': form, 'vysledek': vysledek})
+
+def dashboard(request):
+    klienti = Klient.objects.all()
+    pocet_klientu = klienti.count()
+    objem_hypotek = sum([k.navrh_financovani_castka or 0 for k in klienti])
+    urgent_deadlines = []
+    today = date.today()
+    for k in klienti:
+        for field in [
+            'deadline_co_financuje', 'deadline_navrh_financovani', 'deadline_vyber_banky',
+            'deadline_priprava_zadosti', 'deadline_kompletace_podkladu', 'deadline_podani_zadosti',
+            'deadline_odhad', 'deadline_schvalovani', 'deadline_priprava_uverove_dokumentace',
+            'deadline_podpis_uverove_dokumentace', 'deadline_priprava_cerpani', 'deadline_cerpani',
+            'deadline_zahajeni_splaceni', 'deadline_podminky_pro_splaceni']:
+            deadline = getattr(k, field)
+            splneno = getattr(k, field.replace('deadline_', 'splneno_'), None)
+            if deadline and not splneno and (deadline - today).days <= 3 and (deadline - today).days >= 0:
+                urgent_deadlines.append({'klient': k, 'krok': field, 'deadline': deadline, 'days_left': (deadline-today).days})
+    # Workflow rozložení
+    workflow_labels = [
+        'co_financuje', 'navrh_financovani', 'vyber_banky', 'priprava_zadosti',
+        'kompletace_podkladu', 'podani_zadosti', 'odhad', 'schvalovani',
+        'priprava_uverove_dokumentace', 'podpis_uverove_dokumentace',
+        'priprava_cerpani', 'cerpani', 'zahajeni_splaceni', 'podminky_pro_splaceni', 'hotovo'
+    ]
+    workflow_counts = [0]*15
+    for k in klienti:
+        stav = 0
+        for idx, krok in enumerate(workflow_labels[:-1]):
+            if not getattr(k, krok):
+                stav = idx
+                break
+        else:
+            stav = 14
+        workflow_counts[stav] += 1
+    return render(request, 'klienti/dashboard.html', {
+        'pocet_klientu': pocet_klientu,
+        'objem_hypotek': objem_hypotek,
+        'urgent_deadlines': urgent_deadlines,
+        'workflow_labels': workflow_labels,
+        'workflow_counts': workflow_counts,
+    })
+
+def smazat_poznamku(request, klient_id, poznamka_id):
+    klient = get_object_or_404(Klient, pk=klient_id)
+    poznamka = get_object_or_404(Poznamka, pk=poznamka_id, klient=klient)
+    if request.method == 'POST':
+        text = poznamka.text
+        poznamka.delete()
+        popis = f"Smazána poznámka: '{text[:50]}{'...' if len(text) > 50 else ''}'"
+        Zmena.objects.create(
+            klient=klient,
+            popis=popis,
+            author=request.user.username if request.user.is_authenticated else ''
+        )
+        return redirect('klient_detail', pk=klient_id)
+    return redirect('klient_detail', pk=klient_id)
+
+def get_user_role(request):
+    if request.user.is_authenticated:
+        try:
+            return request.user.userprofile.role
+        except Exception:
+            return None
+    return None

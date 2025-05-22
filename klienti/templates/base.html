@@ -42,15 +42,21 @@
         <li class="nav-item">
           <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">Klienti</a>
         </li>
+        {% if user_role == 'poradce' %}
         <li class="nav-item">
           <a class="nav-link {% if request.path == '/klient/pridat/' %}active{% endif %}" href="{% url 'klient_create' %}"><i class="fa fa-user-plus"></i>Přidat klienta</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}" href="{% url 'dashboard' %}"><i class="fa fa-tachometer-alt"></i>Dashboard</a>
+        </li>
+        {% endif %}
         <li class="nav-item">
           <a class="nav-link {% if request.path == '/kalkulacka/' %}active{% endif %}" href="{% url 'kalkulacka' %}"><i class="fa fa-calculator"></i>Kalkulačka hypotéky</a>
         </li>
       </ul>
       <span class="navbar-text small text-muted me-2">
         <i class="fa fa-user"></i> {{ request.user.username|default:'Neregistrovaný uživatel' }}
+        {% if user_role %}<span class="badge bg-secondary ms-2">{{ user_role|title }}</span>{% endif %}
       </span>
       <ul class="navbar-nav ms-1">
         {% if request.user.is_authenticated %}

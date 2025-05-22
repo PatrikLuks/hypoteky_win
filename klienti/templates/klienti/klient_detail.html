@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load l10n %}
+{% load klient_filters %}
 {% block content %}
 <h1 class="mb-4"><i class="fa fa-user text-primary"></i> Detail klienta</h1>
 <table class="table table-bordered mb-4 table-striped">
@@ -49,6 +50,75 @@
     <tr><td>Podmínky pro splacení</td><td>{{ klient.deadline_podminky_pro_splaceni|date:"d.m.Y" }}</td><td>{{ klient.splneno_podminky_pro_splaceni|date:"d.m.Y" }}</td></tr>
   </tbody>
 </table>
+<h4 class="mt-4"><i class="fa fa-sticky-note text-secondary"></i> Poznámky ke klientovi</h4>
+<div class="mb-3">
+  <form method="post" class="mb-2">
+    {% csrf_token %}
+    <div class="input-group">
+      <textarea name="text" class="form-control" rows="2" placeholder="Přidat poznámku..." required></textarea>
+      <button type="submit" name="nova_poznamka" class="btn btn-primary"><i class="fa fa-plus"></i> Přidat</button>
+    </div>
+  </form>
+  {% if poznamky %}
+    <ul class="list-group">
+      {% for p in poznamky %}
+        <li class="list-group-item small d-flex justify-content-between align-items-start">
+          <div>
+            <span class="fw-bold">{{ p.author|default:'Uživatel' }}</span> <span class="text-muted">{{ p.created|date:"d.m.Y H:i" }}</span><br>
+            {{ p.text|linebreaksbr }}
+          </div>
+          <form method="post" action="{% url 'smazat_poznamku' klient.pk p.pk %}" style="margin-left: 10px;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Smazat poznámku"><i class="fa fa-trash"></i></button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="text-muted">Žádné poznámky.</div>
+  {% endif %}
+</div>
+<h4 class="mt-4"><i class="fa fa-history text-secondary"></i> Historie změn</h4>
+<div class="mb-3">
+  {% if zmeny %}
+    <ul class="list-group">
+      {% for z in zmeny %}
+        <li class="list-group-item small">
+          <span class="fw-bold">{{ z.author|default:'Uživatel' }}</span> <span class="text-muted">{{ z.created|date:"d.m.Y H:i" }}</span><br>
+          {{ z.popis|linebreaksbr }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="text-muted">Žádné změny.</div>
+  {% endif %}
+</div>
+<h4 class="mt-4"><i class="fa fa-route text-secondary"></i> Průběh workflow</h4>
+<div class="mb-4">
+  <div class="d-flex flex-row flex-nowrap overflow-auto" style="gap: 1.5rem;">
+    {% comment %} Timeline workflow bez bloku with, pouze for cyklus {% endcomment %}
+    {% for step in workflow_steps %}
+      <div class="text-center" style="min-width: 120px;">
+        {% if klient|attr:step.pole %}
+          <div class="rounded-circle bg-success text-white mx-auto mb-1" style="width: 36px; height: 36px; line-height: 36px; font-size: 1.2em;">
+            <i class="fa fa-check"></i>
+          </div>
+        {% else %}
+          <div class="rounded-circle bg-light border mx-auto mb-1" style="width: 36px; height: 36px; line-height: 36px; font-size: 1.2em; color: #bbb;">
+            <i class="fa fa-circle"></i>
+          </div>
+        {% endif %}
+        <div style="font-size: 0.95em;">{{ step.popis }}</div>
+        <div class="small text-muted">
+          {% if step.deadline %}Deadline: {{ step.deadline|date:"d.m.Y" }}{% endif %}
+        </div>
+      </div>
+      {% if not forloop.last %}
+        <div class="align-self-center" style="width: 32px; height: 2px; background: #bbb;"></div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
 <div class="mt-4">
   <a href="{% url 'klient_edit' klient.pk %}" class="btn btn-primary"><i class="fa fa-edit"></i> Upravit</a>
   <a href="{% url 'klient_delete' klient.pk %}" class="btn btn-danger"><i class="fa fa-trash"></i> Smazat</a>
