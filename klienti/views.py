@@ -17,6 +17,9 @@ import openpyxl
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 import csv
+from matplotlib import pyplot as plt
+import tempfile
+from reportlab.lib.utils import ImageReader
 
 class KlientForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -817,14 +820,13 @@ def reporting(request):
         klienti_banka = klienti.filter(vyber_banky=banka, podani_zadosti__isnull=False, schvalovani__isnull=False)
         doby = [ (k.schvalovani - k.podani_zadosti).days for k in klienti_banka if k.schvalovani and k.podani_zadosti ]
         prumery.append(round(sum(doby)/len(doby), 1) if doby else None)
-    # --- časové řady pro trendy ---
+    # --- trendy ---
     months = []
     schvaleneTimeline = []
     zamitnuteTimeline = []
     if klienti.exists():
         min_date = klienti.order_by('datum').first().datum
         max_date = klienti.order_by('-datum').first().datum
-        # Generuj seznam měsíců v rozsahu
         d = min_date.replace(day=1)
         while d <= max_date:
             months.append(d.strftime('%Y-%m'))
@@ -835,44 +837,69 @@ def reporting(request):
         for m in months:
             schvaleneTimeline.append(schvalene.filter(datum__strftime='%Y-%m', datum__startswith=m).count())
             zamitnuteTimeline.append(zamitnute.filter(datum__strftime='%Y-%m', datum__startswith=m).count())
-    # --- heatmapa průměrné doby schválení podle banky a měsíce ---
-    # Získat všechny měsíce v rozsahu dat klientů
-    heatmap_months = months.copy() if months else []
-    heatmap_banks = banky_labels.copy()
-    heatmap_data = []  # 2D pole: [banka][měsíc]
-    for banka in heatmap_banks:
-        row = []
-        for m in heatmap_months:
-            klienti_banka_mesic = klienti.filter(
-                vyber_banky=banka,
-                podani_zadosti__isnull=False,
-                schvalovani__isnull=False,
-                schvalovani__isnull=False,
-                podani_zadosti__isnull=False,
-                schvalovani__strftime='%Y-%m',
-            )
-            # Ručně filtrujeme podle měsíce
-            klienti_banka_mesic = [k for k in klienti_banka_mesic if k.schvalovani and k.podani_zadosti and k.schvalovani.strftime('%Y-%m') == m]
-            doby = [(k.schvalovani - k.podani_zadosti).days for k in klienti_banka_mesic]
-            prumer = round(sum(doby)/len(doby), 1) if doby else None
-            row.append(prumer)
-        heatmap_data.append(row)
-    context.update({
-        'heatmap_banks': heatmap_banks,
-        'heatmap_months': heatmap_months,
-        'heatmap_data': heatmap_data,
-    })
-    context = {
-        'form': form,
-        'banky_labels': banky_labels,
-        'schvalenost': schvalenost,
-        'zamitnutost': zamitnutost,
-        'prumery': prumery,
-        'months': months,
-        'schvalene_timeline': schvaleneTimeline,
-        'zamitnute_timeline': zamitnuteTimeline,
-    }
-    return render(request, 'klienti/reporting.html', context)
+    # --- generování grafů ---
+    tempfiles = []
+    # Bar chart úspěšnost podle banky
+    if banky_labels:
+        fig1, ax1 = plt.subplots(figsize=(6,3))
+        x = range(len(banky_labels))
+        ax1.bar(x, schvalenost, label='Schváleno', color='#198754')
+        ax1.bar(x, zamitnutost, bottom=schvalenost, label='Zamítnuto', color='#dc3545')
+        ax1.set_xticks(x)
+        ax1.set_xticklabels(banky_labels, rotation=30, ha='right')
+        ax1.set_ylabel('Počet případů')
+        ax1.set_title('Úspěšnost podle banky')
+        ax1.legend()
+        f1 = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+        fig1.tight_layout()
+        fig1.savefig(f1.name, dpi=120)
+        tempfiles.append(f1)
+        plt.close(fig1)
+    # Line chart trendy
+    if months:
+        fig2, ax2 = plt.subplots(figsize=(6,3))
+        ax2.plot(months, schvaleneTimeline, marker='o', label='Schváleno', color='#198754')
+        ax2.plot(months, zamitnuteTimeline, marker='o', label='Zamítnuto', color='#dc3545')
+        ax2.set_ylabel('Počet případů')
+        ax2.set_title('Trendy schválených a zamítnutých hypoték')
+        ax2.legend()
+        fig2.tight_layout()
+        f2 = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+        fig2.savefig(f2.name, dpi=120)
+        tempfiles.append(f2)
+        plt.close(fig2)
+    # --- PDF ---
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(40, 800, "Reporting – úspěšnost podle banky")
+    y = 770
+    # Vložit grafy
+    for tf in tempfiles:
+        p.drawImage(ImageReader(tf.name), 40, y-180, width=500, height=120)
+        y -= 200
+    p.setFont("Helvetica", 11)
+    # Tabulka
+    p.drawString(40, y, "Banka")
+    p.drawString(180, y, "Schváleno")
+    p.drawString(270, y, "Zamítnuto")
+    p.drawString(370, y, "Průměrná doba schválení (dny)")
+    y -= 20
+    for i, banka in enumerate(banky_labels):
+        p.drawString(40, y, str(banka))
+        p.drawString(180, y, str(schvalenost[i]))
+        p.drawString(270, y, str(zamitnutost[i]))
+        p.drawString(370, y, str(prumery[i]) if prumery[i] is not None else '-')
+        y -= 18
+        if y < 60:
+            p.showPage()
+            y = 800
+    p.save()
+    buffer.seek(0)
+    # Smazat temp soubory
+    for tf in tempfiles:
+        tf.close()
+    return HttpResponse(buffer, content_type='application/pdf')
 
 class ReportingFilterForm(forms.Form):
     datum_od = forms.DateField(label="Od", required=False, widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
