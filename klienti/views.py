@@ -13,6 +13,8 @@ from django.contrib.auth.models import User
 from .utils import odeslat_notifikaci_email
 from django.http import HttpResponse
 import csv
+from django.db.models import Avg, F, Q, Count, DurationField, ExpressionWrapper
+from collections import Counter
 
 class KlientForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -777,3 +779,48 @@ def export_klienti_csv(request):
             k.vyber_banky, k.duvod_zamitnuti, stav, getattr(k.user, 'username', ''), k._state.adding is False
         ])
     return response
+
+@login_required
+def reporting(request):
+    # Přehled úspěšnosti podle banky
+    from .models import Klient
+    klienti = Klient.objects.all()
+    # Úspěšnost podle banky (poměr schválených/zamítnutých)
+    banky = [k.vyber_banky for k in klienti if k.vyber_banky]
+    rozlozeni_banky = Counter(banky)
+    schvalene = klienti.filter(duvod_zamitnuti__isnull=True, vyber_banky__isnull=False)
+    zamitnute = klienti.filter(duvod_zamitnuti__isnull=False, vyber_banky__isnull=False)
+    banky_schvalene = Counter([k.vyber_banky for k in schvalene])
+    banky_zamitnute = Counter([k.vyber_banky for k in zamitnute])
+    banky_labels = list(rozlozeni_banky.keys())
+    schvalenost = [banky_schvalene.get(b, 0) for b in banky_labels]
+    zamitnutost = [banky_zamitnute.get(b, 0) for b in banky_labels]
+    # Průměrná doba schválení (od podání žádosti po schválení)
+    prumery = []
+    for banka in banky_labels:
+        klienti_banka = klienti.filter(vyber_banky=banka, podani_zadosti__isnull=False, schvalovani__isnull=False)
+        doby = [ (k.schvalovani - k.podani_zadosti).days for k in klienti_banka if k.schvalovani and k.podani_zadosti ]
+        prumery.append(round(sum(doby)/len(doby), 1) if doby else None)
+    # Trendy (počty schválených/zamítnutých za posledních 12 měsíců)
+    today = timezone.now().date()
+    months = [(today.replace(day=1) - datetime.timedelta(days=30*i)).strftime('%Y-%m') for i in range(11, -1, -1)]
+    schvalene_timeline = {m:0 for m in months}
+    zamitnute_timeline = {m:0 for m in months}
+    for k in schvalene:
+        m = k.schvalovani.strftime('%Y-%m') if k.schvalovani else None
+        if m in schvalene_timeline:
+            schvalene_timeline[m] += 1
+    for k in zamitnute:
+        m = k.datum.strftime('%Y-%m') if k.datum else None
+        if m in zamitnute_timeline:
+            zamitnute_timeline[m] += 1
+    context = {
+        'banky_labels': banky_labels,
+        'schvalenost': schvalenost,
+        'zamitnutost': zamitnutost,
+        'prumery': prumery,
+        'months': months,
+        'schvalene_timeline': list(schvalene_timeline.values()),
+        'zamitnute_timeline': list(zamitnute_timeline.values()),
+    }
+    return render(request, 'klienti/reporting.html', context)
