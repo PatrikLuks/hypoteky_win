@@ -1,0 +1,23 @@
+{% load l10n %}
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <title>Upozornění na blížící se deadliny</title>
+</head>
+<body style="font-family:Arial,sans-serif;background:#f8f9fa;color:#23272b;">
+  <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;padding:32px 24px;box-shadow:0 2px 8px #0001;">
+    <h2 style="color:#0d6efd;">Upozornění na blížící se deadliny</h2>
+    <p>Dobrý den,</p>
+    <p>U následujících klientů se blíží deadline (do 3 dnů):</p>
+    <ul style="padding-left:18px;">
+      {% for ud in urgent_klienti %}
+        <li><b>{{ ud.klient.jmeno }}</b> – <span style="color:#dc3545;">{{ ud.krok|cut:'deadline_'|title }}</span>: <b>{{ ud.deadline|date:"d.m.Y" }}</b></li>
+      {% endfor %}
+    </ul>
+    <p>Přihlaste se do systému pro detailní informace.</p>
+    <hr style="margin:24px 0;">
+    <div style="font-size:0.95em;color:#888;">Tento e-mail byl vygenerován automaticky. Neodpovídejte na něj.<br>Hypoteční aplikace</div>
+  </div>
+</body>
+</html>

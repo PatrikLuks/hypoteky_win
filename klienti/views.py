@@ -9,6 +9,8 @@ import datetime
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.contrib.auth.models import User
+from .utils import odeslat_notifikaci_email
 
 class KlientForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -589,6 +591,27 @@ def dashboard(request):
                     klienti_po_termínu.append({'klient': k, 'krok': field, 'deadline': deadline, 'days_left': (deadline-today).days})
                 elif (deadline - today).days <= 3 and (deadline - today).days >= 0:
                     urgent_deadlines.append({'klient': k, 'krok': field, 'deadline': deadline, 'days_left': (deadline-today).days})
+    # --- E-mailové notifikace pro poradce ---
+    poradci = User.objects.filter(userprofile__role='poradce')
+    for poradce in poradci:
+        if poradce.email:
+            urgent_klienti = [ud for ud in urgent_deadlines]
+            if urgent_klienti:
+                predmet = "Upozornění: Blíží se deadline u klientů"
+                zprava = "Dobrý den,\n\nU následujících klientů se blíží deadline (do 3 dnů):\n"
+                for ud in urgent_klienti:
+                    zprava += f"- {ud['klient'].jmeno} ({ud['krok'].replace('deadline_', '').replace('_', ' ').title()}): {ud['deadline'].strftime('%d.%m.%Y')}\n"
+                zprava += "\nPřihlaste se do systému pro detailní informace.\n\nTým hypoteční aplikace"
+                try:
+                    odeslat_notifikaci_email(
+                        prijemce=poradce.email,
+                        predmet=predmet,
+                        zprava=zprava,
+                        context={'urgent_klienti': urgent_klienti},
+                        template_name='email_deadline_notifikace.html'
+                    )
+                except Exception as e:
+                    print(f"Chyba při odesílání e-mailu: {e}")
     # Workflow rozložení
     workflow_labels = [
         'co_financuje', 'navrh_financovani', 'vyber_banky', 'priprava_zadosti',
