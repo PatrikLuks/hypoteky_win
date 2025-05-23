@@ -784,10 +784,27 @@ def export_klienti_csv(request):
 
 @login_required
 def reporting(request):
-    # Přehled úspěšnosti podle banky
     from .models import Klient
+    # --- Filtrování podle období ---
+    today = timezone.now().date()
+    first_day = today.replace(day=1)
+    datum_od = request.GET.get('datum_od')
+    datum_do = request.GET.get('datum_do')
+    form = ReportingFilterForm(request.GET or None, initial={'datum_od': first_day, 'datum_do': today})
     klienti = Klient.objects.all()
-    # Úspěšnost podle banky (poměr schválených/zamítnutých)
+    if datum_od:
+        try:
+            klienti = klienti.filter(datum__gte=datum_od)
+        except Exception:
+            pass
+    else:
+        klienti = klienti.filter(datum__gte=first_day)
+    if datum_do:
+        try:
+            klienti = klienti.filter(datum__lte=datum_do)
+        except Exception:
+            pass
+    # ...statistiky zůstávají stejné, jen pracují s filtrovanými klienty...
     banky = [k.vyber_banky for k in klienti if k.vyber_banky]
     rozlozeni_banky = Counter(banky)
     schvalene = klienti.filter(duvod_zamitnuti__isnull=True, vyber_banky__isnull=False)
@@ -800,54 +817,36 @@ def reporting(request):
         klienti_banka = klienti.filter(vyber_banky=banka, podani_zadosti__isnull=False, schvalovani__isnull=False)
         doby = [ (k.schvalovani - k.podani_zadosti).days for k in klienti_banka if k.schvalovani and k.podani_zadosti ]
         prumery.append(round(sum(doby)/len(doby), 1) if doby else None)
-    # PDF generace
-    buffer = io.BytesIO()
-    p = canvas.Canvas(buffer, pagesize=A4)
-    p.setFont("Helvetica-Bold", 16)
-    p.drawString(40, 800, "Reporting – úspěšnost podle banky")
-    p.setFont("Helvetica", 11)
-    y = 770
-    p.drawString(40, y, "Banka")
-    p.drawString(180, y, "Schváleno")
-    p.drawString(270, y, "Zamítnuto")
-    p.drawString(370, y, "Průměrná doba schválení (dny)")
-    y -= 20
-    for i, banka in enumerate(banky_labels):
-        p.drawString(40, y, str(banka))
-        p.drawString(180, y, str(schvalenost[i]))
-        p.drawString(270, y, str(zamitnutost[i]))
-        p.drawString(370, y, str(prumery[i]) if prumery[i] is not None else '-')
-        y -= 18
-        if y < 60:
-            p.showPage()
-            y = 800
-    p.save()
-    buffer.seek(0)
-    return HttpResponse(buffer, content_type='application/pdf')
+    # --- časové řady pro trendy ---
+    months = []
+    schvaleneTimeline = []
+    zamitnuteTimeline = []
+    if klienti.exists():
+        min_date = klienti.order_by('datum').first().datum
+        max_date = klienti.order_by('-datum').first().datum
+        # Generuj seznam měsíců v rozsahu
+        d = min_date.replace(day=1)
+        while d <= max_date:
+            months.append(d.strftime('%Y-%m'))
+            if d.month == 12:
+                d = d.replace(year=d.year+1, month=1)
+            else:
+                d = d.replace(month=d.month+1)
+        for m in months:
+            schvaleneTimeline.append(schvalene.filter(datum__strftime='%Y-%m', datum__startswith=m).count())
+            zamitnuteTimeline.append(zamitnute.filter(datum__strftime='%Y-%m', datum__startswith=m).count())
+    context = {
+        'form': form,
+        'banky_labels': banky_labels,
+        'schvalenost': schvalenost,
+        'zamitnutost': zamitnutost,
+        'prumery': prumery,
+        'months': months,
+        'schvalene_timeline': schvaleneTimeline,
+        'zamitnute_timeline': zamitnuteTimeline,
+    }
+    return render(request, 'klienti/reporting.html', context)
 
-@login_required
-def reporting_export_xlsx(request):
-    from .models import Klient
-    klienti = Klient.objects.all()
-    banky = [k.vyber_banky for k in klienti if k.vyber_banky]
-    rozlozeni_banky = Counter(banky)
-    schvalene = klienti.filter(duvod_zamitnuti__isnull=True, vyber_banky__isnull=False)
-    zamitnute = klienti.filter(duvod_zamitnuti__isnull=False, vyber_banky__isnull=False)
-    banky_labels = list(rozlozeni_banky.keys())
-    schvalenost = [schvalene.filter(vyber_banky=b).count() for b in banky_labels]
-    zamitnutost = [zamitnute.filter(vyber_banky=b).count() for b in banky_labels]
-    prumery = []
-    for banka in banky_labels:
-        klienti_banka = klienti.filter(vyber_banky=banka, podani_zadosti__isnull=False, schvalovani__isnull=False)
-        doby = [ (k.schvalovani - k.podani_zadosti).days for k in klienti_banka if k.schvalovani and k.podani_zadosti ]
-        prumery.append(round(sum(doby)/len(doby), 1) if doby else None)
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Reporting"
-    ws.append(["Banka", "Schváleno", "Zamítnuto", "Průměrná doba schválení (dny)"])
-    for i, banka in enumerate(banky_labels):
-        ws.append([banka, schvalenost[i], zamitnutost[i], prumery[i] if prumery[i] is not None else '-'])
-    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename=reporting.xlsx'
-    wb.save(response)
-    return response
+class ReportingFilterForm(forms.Form):
+    datum_od = forms.DateField(label="Od", required=False, widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
+    datum_do = forms.DateField(label="Do", required=False, widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
