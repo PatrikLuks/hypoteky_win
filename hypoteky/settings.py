@@ -138,9 +138,9 @@ LOGOUT_REDIRECT_URL = '/'
 
 # Nastavení e-mailu pro notifikace
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  # Změňte dle poskytovatele
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'vas.email@gmail.com'  # Zadejte svůj e-mail
-EMAIL_HOST_PASSWORD = 'heslo'  # Zadejte své heslo nebo použijte app password
+EMAIL_HOST_USER = 'pluks120@gmail.com'
+EMAIL_HOST_PASSWORD = 'kpgf qsxu adpl ypjw'
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

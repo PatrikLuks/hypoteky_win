@@ -223,6 +223,39 @@
     <div class="col-md-2">
       <a href="?" class="btn btn-outline-secondary w-100"><i class="fa fa-times"></i> Zrušit filtr</a>
     </div>
+    <div class="col-md-2">
+      <label for="banka" class="form-label">Banka</label>
+      <select id="banka" name="banka" class="form-select">
+        <option value="">Všechny banky</option>
+        {% for banka in banky_vyber %}
+          <option value="{{ banka }}" {% if request.GET.banka == banka %}selected{% endif %}>{{ banka }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label for="castka_od" class="form-label">Částka od</label>
+      <input type="number" id="castka_od" name="castka_od" value="{{ request.GET.castka_od|default:'' }}" class="form-control" placeholder="od">
+    </div>
+    <div class="col-md-2">
+      <label for="castka_do" class="form-label">Částka do</label>
+      <input type="number" id="castka_do" name="castka_do" value="{{ request.GET.castka_do|default:'' }}" class="form-control" placeholder="do">
+    </div>
+    <div class="col-md-2">
+      <label for="datum_od" class="form-label">Datum od</label>
+      <input type="date" id="datum_od" name="datum_od" value="{{ request.GET.datum_od|default:'' }}" class="form-control">
+    </div>
+    <div class="col-md-2">
+      <label for="datum_do" class="form-label">Datum do</label>
+      <input type="date" id="datum_do" name="datum_do" value="{{ request.GET.datum_do|default:'' }}" class="form-control">
+    </div>
+    <div class="col-md-2">
+      <label for="zamitnuti" class="form-label">Zamítnutí</label>
+      <select id="zamitnuti" name="zamitnuti" class="form-select">
+        <option value="">Vše</option>
+        <option value="ano" {% if request.GET.zamitnuti == 'ano' %}selected{% endif %}>Pouze zamítnuté</option>
+        <option value="ne" {% if request.GET.zamitnuti == 'ne' %}selected{% endif %}>Pouze schválené</option>
+      </select>
+    </div>
   </form>
   <div class="table-responsive">
   <table class="table table-bordered table-striped align-middle">
