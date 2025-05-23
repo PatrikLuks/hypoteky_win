@@ -141,3 +141,19 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.username} ({self.get_role_display()})"
+
+class NotifikaceLog(models.Model):
+    NOTIF_TYPE_CHOICES = (
+        ('deadline', 'Blížící se deadline'),
+        ('stav', 'Změna stavu'),
+        ('zamítnutí', 'Zamítnutí hypotéky'),
+    )
+    prijemce = models.EmailField()
+    typ = models.CharField(max_length=30, choices=NOTIF_TYPE_CHOICES)
+    klient = models.ForeignKey(Klient, on_delete=models.SET_NULL, null=True, blank=True)
+    datum = models.DateTimeField(auto_now_add=True)
+    obsah = models.TextField(blank=True)
+    uspesne = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.get_typ_display()} – {self.prijemce} ({self.datum:%d.%m.%Y %H:%M})"

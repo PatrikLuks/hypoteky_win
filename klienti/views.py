@@ -593,25 +593,34 @@ def dashboard(request):
                     urgent_deadlines.append({'klient': k, 'krok': field, 'deadline': deadline, 'days_left': (deadline-today).days})
     # --- E-mailové notifikace pro poradce ---
     poradci = User.objects.filter(userprofile__role='poradce')
+    from .models import NotifikaceLog
     for poradce in poradci:
         if poradce.email:
             urgent_klienti = [ud for ud in urgent_deadlines]
-            if urgent_klienti:
-                predmet = "Upozornění: Blíží se deadline u klientů"
-                zprava = "Dobrý den,\n\nU následujících klientů se blíží deadline (do 3 dnů):\n"
-                for ud in urgent_klienti:
-                    zprava += f"- {ud['klient'].jmeno} ({ud['krok'].replace('deadline_', '').replace('_', ' ').title()}): {ud['deadline'].strftime('%d.%m.%Y')}\n"
-                zprava += "\nPřihlaste se do systému pro detailní informace.\n\nTým hypoteční aplikace"
-                try:
-                    odeslat_notifikaci_email(
-                        prijemce=poradce.email,
-                        predmet=predmet,
-                        zprava=zprava,
-                        context={'urgent_klienti': urgent_klienti},
-                        template_name='email_deadline_notifikace.html'
-                    )
-                except Exception as e:
-                    print(f"Chyba při odesílání e-mailu: {e}")
+            for ud in urgent_klienti:
+                # Kontrola, zda už dnes byla notifikace pro tohoto poradce a klienta odeslána
+                existuje = NotifikaceLog.objects.filter(
+                    prijemce=poradce.email,
+                    typ='deadline',
+                    klient=ud['klient'],
+                    datum__date=timezone.now().date()
+                ).exists()
+                if not existuje:
+                    predmet = "Upozornění: Blíží se deadline u klientů"
+                    zprava = f"Dobrý den,\n\nU klienta {ud['klient'].jmeno} se blíží deadline ({ud['krok'].replace('deadline_', '').replace('_', ' ').title()}): {ud['deadline'].strftime('%d.%m.%Y')}\n\nPřihlaste se do systému pro detailní informace.\n\nTým hypoteční aplikace"
+                    try:
+                        odeslat_notifikaci_email(
+                            prijemce=poradce.email,
+                            predmet=predmet,
+                            zprava=zprava,
+                            context={'urgent_klienti': [ud]},
+                            template_name='email_deadline_notifikace.html',
+                            typ='deadline',
+                            klient=ud['klient']
+                        )
+                    except Exception as e:
+                        print(f"Chyba při odesílání e-mailu: {e}")
+    # ...existing code...
     # Workflow rozložení
     workflow_labels = [
         'co_financuje', 'navrh_financovani', 'vyber_banky', 'priprava_zadosti',
