@@ -50,6 +50,39 @@
       </div>
     </div>
   </div>
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="card-title"><i class="fa fa-th text-warning"></i> Heatmapa průměrné doby schválení podle banky a měsíce</h5>
+          <div class="table-responsive">
+            <table class="table table-bordered text-center align-middle" style="min-width: 600px;">
+              <thead class="table-light">
+                <tr>
+                  <th>Banka / Měsíc</th>
+                  {% for m in heatmap_months %}
+                  <th>{{ m }}</th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for banka, row in heatmap_banks|zip:heatmap_data %}
+                <tr>
+                  <th class="text-start">{{ banka }}</th>
+                  {% for val in row %}
+                  <td style="background: {% if val %}rgba(220,53,69,{{ val|floatformat:0|divisibleby:30|yesno:'0.15,0.7' }}); color: {% if val and val > 20 %}#fff{% else %}#222{% endif %}{% else %}#f8f9fa{% endif %}; min-width: 60px;">
+                    {% if val %}{{ val }}{% else %}-{% endif %}
+                  </td>
+                  {% endfor %}
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>

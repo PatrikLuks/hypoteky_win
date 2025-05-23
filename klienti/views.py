@@ -835,6 +835,33 @@ def reporting(request):
         for m in months:
             schvaleneTimeline.append(schvalene.filter(datum__strftime='%Y-%m', datum__startswith=m).count())
             zamitnuteTimeline.append(zamitnute.filter(datum__strftime='%Y-%m', datum__startswith=m).count())
+    # --- heatmapa průměrné doby schválení podle banky a měsíce ---
+    # Získat všechny měsíce v rozsahu dat klientů
+    heatmap_months = months.copy() if months else []
+    heatmap_banks = banky_labels.copy()
+    heatmap_data = []  # 2D pole: [banka][měsíc]
+    for banka in heatmap_banks:
+        row = []
+        for m in heatmap_months:
+            klienti_banka_mesic = klienti.filter(
+                vyber_banky=banka,
+                podani_zadosti__isnull=False,
+                schvalovani__isnull=False,
+                schvalovani__isnull=False,
+                podani_zadosti__isnull=False,
+                schvalovani__strftime='%Y-%m',
+            )
+            # Ručně filtrujeme podle měsíce
+            klienti_banka_mesic = [k for k in klienti_banka_mesic if k.schvalovani and k.podani_zadosti and k.schvalovani.strftime('%Y-%m') == m]
+            doby = [(k.schvalovani - k.podani_zadosti).days for k in klienti_banka_mesic]
+            prumer = round(sum(doby)/len(doby), 1) if doby else None
+            row.append(prumer)
+        heatmap_data.append(row)
+    context.update({
+        'heatmap_banks': heatmap_banks,
+        'heatmap_months': heatmap_months,
+        'heatmap_data': heatmap_data,
+    })
     context = {
         'form': form,
         'banky_labels': banky_labels,
