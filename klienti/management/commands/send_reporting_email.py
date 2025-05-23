@@ -74,4 +74,12 @@ class Command(BaseCommand):
         email.attach('reporting.pdf', pdf_data, 'application/pdf')
         email.attach('reporting.xlsx', xlsx_data, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         email.send()
+        # Audit logování odeslání reportu
+        from klienti.models import Zmena
+        popis = f"Automatizovaný reporting odeslán na: {', '.join(prijemci)} (PDF a XLSX v příloze)"
+        Zmena.objects.create(
+            klient=None,
+            popis=popis,
+            author="automatizace"
+        )
         self.stdout.write(self.style.SUCCESS(f'Report byl úspěšně odeslán na: {", ".join(prijemci)}'))
