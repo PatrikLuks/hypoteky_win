@@ -313,9 +313,11 @@
             {% endif %}
           </td>
           <td>
-            <a href="{% url 'klient_detail' klient.pk %}" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Zobrazit detail"><i class="fa fa-eye"></i> Detail</a>
-            <a href="{% url 'klient_edit' klient.pk %}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Upravit klienta"><i class="fa fa-edit"></i> Upravit</a>
-            <a href="{% url 'klient_delete' klient.pk %}" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Smazat klienta"><i class="fa fa-trash"></i> Smazat</a>
+            <div class="d-flex gap-2 w-100">
+              <a href="{% url 'klient_detail' klient.pk %}" class="btn btn-sm btn-outline-info flex-fill" data-bs-toggle="tooltip" title="Zobrazit detail"><i class="fa fa-eye"></i> Detail</a>
+              <a href="{% url 'klient_edit' klient.pk %}" class="btn btn-sm btn-outline-primary flex-fill" data-bs-toggle="tooltip" title="Upravit klienta"><i class="fa fa-edit"></i> Upravit</a>
+              <a href="{% url 'klient_delete' klient.pk %}" class="btn btn-sm btn-outline-danger flex-fill" data-bs-toggle="tooltip" title="Smazat klienta"><i class="fa fa-trash"></i> Smazat</a>
+            </div>
           </td>
         </tr>
         <tr>

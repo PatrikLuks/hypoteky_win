@@ -11,6 +11,24 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 
 class KlientForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk and self.instance.cena is not None:
+            # Zobrazit cenu jako celé číslo (bez .00)
+            self.initial['cena'] = int(self.instance.cena)
+        # Přidat text-white ke všem deadline polím
+        deadline_fields = [
+            'deadline_co_financuje', 'deadline_navrh_financovani', 'deadline_vyber_banky',
+            'deadline_priprava_zadosti', 'deadline_kompletace_podkladu', 'deadline_podani_zadosti',
+            'deadline_odhad', 'deadline_schvalovani', 'deadline_priprava_uverove_dokumentace',
+            'deadline_podpis_uverove_dokumentace', 'deadline_priprava_cerpani', 'deadline_cerpani',
+            'deadline_zahajeni_splaceni', 'deadline_podminky_pro_splaceni'
+        ]
+        for field in deadline_fields:
+            if field in self.fields:
+                css = self.fields[field].widget.attrs.get('class', '')
+                self.fields[field].widget.attrs['class'] = f'{css} text-white'.strip()
+
     class Meta:
         model = Klient
         fields = [

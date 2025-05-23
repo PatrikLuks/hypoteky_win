@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load l10n %}
+{% load klient_filters %}
 {% block content %}
 <div class="container-fluid">
 <h1 class="mb-4"><i class="fa fa-tachometer-alt text-primary"></i> Dashboard</h1>
@@ -18,7 +19,7 @@
       <div class="card-body">
         <h6 class="card-title text-secondary">Objem hypoték</h6>
         <div class="display-4 fw-bold text-success" style="letter-spacing:1px;white-space:nowrap;">
-          {{ objem_hypotek|floatformat:0|localize }} Kč
+          {{ objem_hypotek|floatformat:0|thousands_separator }} Kč
         </div>
         <a href="{% url 'klient_create' %}" class="btn btn-sm btn-outline-light mt-2"><i class="fa fa-plus"></i> Přidat klienta</a>
       </div>
@@ -53,7 +54,7 @@
             <th>Krok</th>
             <th>Termín</th>
             <th>Zbývá dní</th>
-            <th>Akce</th>
+            <th class="text-center">Akce</th>
           </tr>
         </thead>
         <tbody>
@@ -63,7 +64,11 @@
             <td><span class="badge bg-dark" style="color:#fff;">{{ item.krok|cut:'deadline_'|title }}</span></td>
             <td>{{ item.deadline|date:"d.m.Y" }}</td>
             <td>{% if item.days_left < 0 %}<span class="badge badge-urgent">Po termínu</span>{% else %}{{ item.days_left }}{% endif %}</td>
-            <td><a href="{% url 'klient_detail' item.klient.pk %}" class="btn btn-sm btn-outline-info"><i class="fa fa-eye"></i> Detail</a></td>
+            <td class="text-center">
+              <div class="d-flex justify-content-center gap-2 w-100">
+                <a href="{% url 'klient_detail' item.klient.pk %}" class="btn btn-sm btn-outline-info flex-fill"><i class="fa fa-eye"></i> Detail</a>
+              </div>
+            </td>
           </tr>
           {% endfor %}
         </tbody>
@@ -84,7 +89,7 @@
                 <th>Jméno</th>
                 <th>Datum</th>
                 <th>Částka</th>
-                <th>Akce</th>
+                <th class="text-center">Akce</th>
               </tr>
             </thead>
             <tbody>
@@ -93,7 +98,11 @@
                 <td>{{ klient.jmeno }}</td>
                 <td>{{ klient.datum|date:"d.m.Y" }}</td>
                 <td>{% if klient.navrh_financovani_castka %}{{ klient.navrh_financovani_castka|floatformat:0|localize }} Kč{% else %}-{% endif %}</td>
-                <td><a href="{% url 'klient_detail' klient.pk %}" class="btn btn-sm btn-outline-info"><i class="fa fa-eye"></i> Detail</a></td>
+                <td class="text-center">
+                  <div class="d-flex justify-content-center gap-2 w-100">
+                    <a href="{% url 'klient_detail' klient.pk %}" class="btn btn-sm btn-outline-info flex-fill"><i class="fa fa-eye"></i> Detail</a>
+                  </div>
+                </td>
               </tr>
               {% empty %}
               <tr><td colspan="4" class="text-muted">Žádní klienti</td></tr>
@@ -115,7 +124,7 @@
                 <th>Jméno</th>
                 <th>Datum</th>
                 <th>Částka</th>
-                <th>Akce</th>
+                <th class="text-center">Akce</th>
               </tr>
             </thead>
             <tbody>
@@ -124,7 +133,11 @@
                 <td>{{ klient.jmeno }}</td>
                 <td>{{ klient.datum|date:"d.m.Y" }}</td>
                 <td>{% if klient.navrh_financovani_castka %}{{ klient.navrh_financovani_castka|floatformat:0|localize }} Kč{% else %}-{% endif %}</td>
-                <td><a href="{% url 'klient_detail' klient.pk %}" class="btn btn-sm btn-outline-info"><i class="fa fa-eye"></i> Detail</a></td>
+                <td class="text-center">
+                  <div class="d-flex justify-content-center gap-2 w-100">
+                    <a href="{% url 'klient_detail' klient.pk %}" class="btn btn-sm btn-outline-info flex-fill"><i class="fa fa-eye"></i> Detail</a>
+                  </div>
+                </td>
               </tr>
               {% empty %}
               <tr><td colspan="4" class="text-muted">Žádné hypotéky</td></tr>
@@ -150,17 +163,21 @@
                 <th>Krok</th>
                 <th>Deadline</th>
                 <th>Zpoždění</th>
-                <th>Akce</th>
+                <th class="text-center">Akce</th>
               </tr>
             </thead>
             <tbody>
               {% for item in klienti_po_termínu|slice:':5' %}
               <tr>
                 <td>{{ item.klient.jmeno }}</td>
-                <td><span class="badge bg-dark">{{ item.krok|cut:'deadline_'|title }}</span></td>
+                <td><span class="badge bg-dark text-white">{{ item.krok|cut:'deadline_'|title }}</span></td>
                 <td>{{ item.deadline|date:"d.m.Y" }}</td>
                 <td><span class="text-danger fw-bold">{{ item.days_left|floatformat:0|cut:"-" }} dní</span></td>
-                <td><a href="{% url 'klient_detail' item.klient.pk %}" class="btn btn-sm btn-outline-info"><i class="fa fa-eye"></i> Detail</a></td>
+                <td class="text-center">
+                  <div class="d-flex justify-content-center gap-2 w-100">
+                    <a href="{% url 'klient_detail' item.klient.pk %}" class="btn btn-sm btn-outline-info flex-fill"><i class="fa fa-eye"></i> Detail</a>
+                  </div>
+                </td>
               </tr>
               {% empty %}
               <tr><td colspan="5" class="text-muted">Žádní klienti po termínu</td></tr>
