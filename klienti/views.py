@@ -904,3 +904,123 @@ def reporting(request):
 class ReportingFilterForm(forms.Form):
     datum_od = forms.DateField(label="Od", required=False, widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
     datum_do = forms.DateField(label="Do", required=False, widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
+
+@login_required
+def reporting_export_pdf(request):
+    """
+    View pro export reportingu do PDF včetně grafů a tabulky.
+    Využívá matplotlib pro generování grafů a reportlab pro PDF.
+    """
+    from .models import Klient
+    import io, tempfile
+    from matplotlib import pyplot as plt
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.utils import ImageReader
+    from collections import Counter
+    from django.utils import timezone
+    # --- Filtrování podle období ---
+    today = timezone.now().date()
+    first_day = today.replace(day=1)
+    datum_od = request.GET.get('datum_od')
+    datum_do = request.GET.get('datum_do')
+    klienti = Klient.objects.all()
+    if datum_od:
+        klienti = klienti.filter(datum__gte=datum_od)
+    else:
+        klienti = klienti.filter(datum__gte=first_day)
+    if datum_do:
+        klienti = klienti.filter(datum__lte=datum_do)
+    # --- Statistika podle banky ---
+    banky = [k.vyber_banky for k in klienti if k.vyber_banky]
+    rozlozeni_banky = Counter(banky)
+    schvalene = klienti.filter(duvod_zamitnuti__isnull=True, vyber_banky__isnull=False)
+    zamitnute = klienti.filter(duvod_zamitnuti__isnull=False, vyber_banky__isnull=False)
+    banky_labels = list(rozlozeni_banky.keys())
+    schvalenost = [schvalene.filter(vyber_banky=b).count() for b in banky_labels]
+    zamitnutost = [zamitnute.filter(vyber_banky=b).count() for b in banky_labels]
+    prumery = []
+    for banka in banky_labels:
+        klienti_banka = klienti.filter(vyber_banky=banka, podani_zadosti__isnull=False, schvalovani__isnull=False)
+        doby = [ (k.schvalovani - k.podani_zadosti).days for k in klienti_banka if k.schvalovani and k.podani_zadosti ]
+        prumery.append(round(sum(doby)/len(doby), 1) if doby else None)
+    # --- trendy ---
+    months = []
+    schvaleneTimeline = []
+    zamitnuteTimeline = []
+    if klienti.exists():
+        min_date = klienti.order_by('datum').first().datum
+        max_date = klienti.order_by('-datum').first().datum
+        d = min_date.replace(day=1)
+        while d <= max_date:
+            months.append(d.strftime('%Y-%m'))
+            if d.month == 12:
+                d = d.replace(year=d.year+1, month=1)
+            else:
+                d = d.replace(month=d.month+1)
+        for m in months:
+            schvaleneTimeline.append(schvalene.filter(datum__strftime='%Y-%m', datum__startswith=m).count())
+            zamitnuteTimeline.append(zamitnute.filter(datum__strftime='%Y-%m', datum__startswith=m).count())
+    # --- generování grafů ---
+    tempfiles = []
+    # Bar chart úspěšnost podle banky
+    if banky_labels:
+        fig1, ax1 = plt.subplots(figsize=(6,3))
+        x = range(len(banky_labels))
+        ax1.bar(x, schvalenost, label='Schváleno', color='#198754')
+        ax1.bar(x, zamitnutost, bottom=schvalenost, label='Zamítnuto', color='#dc3545')
+        ax1.set_xticks(x)
+        ax1.set_xticklabels(banky_labels, rotation=30, ha='right')
+        ax1.set_ylabel('Počet případů')
+        ax1.set_title('Úspěšnost podle banky')
+        ax1.legend()
+        f1 = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+        fig1.tight_layout()
+        fig1.savefig(f1.name, dpi=120)
+        tempfiles.append(f1)
+        plt.close(fig1)
+    # Line chart trendy
+    if months:
+        fig2, ax2 = plt.subplots(figsize=(6,3))
+        ax2.plot(months, schvaleneTimeline, marker='o', label='Schváleno', color='#198754')
+        ax2.plot(months, zamitnuteTimeline, marker='o', label='Zamítnuto', color='#dc3545')
+        ax2.set_ylabel('Počet případů')
+        ax2.set_title('Trendy schválených a zamítnutých hypoték')
+        ax2.legend()
+        fig2.tight_layout()
+        f2 = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+        fig2.savefig(f2.name, dpi=120)
+        tempfiles.append(f2)
+        plt.close(fig2)
+    # --- PDF ---
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(40, 800, "Reporting – úspěšnost podle banky")
+    y = 770
+    # Vložit grafy
+    for tf in tempfiles:
+        p.drawImage(ImageReader(tf.name), 40, y-180, width=500, height=120)
+        y -= 200
+    p.setFont("Helvetica", 11)
+    # Tabulka
+    p.drawString(40, y, "Banka")
+    p.drawString(180, y, "Schváleno")
+    p.drawString(270, y, "Zamítnuto")
+    p.drawString(370, y, "Průměrná doba schválení (dny)")
+    y -= 20
+    for i, banka in enumerate(banky_labels):
+        p.drawString(40, y, str(banka))
+        p.drawString(180, y, str(schvalenost[i]))
+        p.drawString(270, y, str(zamitnutost[i]))
+        p.drawString(370, y, str(prumery[i]) if prumery[i] is not None else '-')
+        y -= 18
+        if y < 60:
+            p.showPage()
+            y = 800
+    p.save()
+    buffer.seek(0)
+    # Smazat temp soubory
+    for tf in tempfiles:
+        tf.close()
+    return HttpResponse(buffer, content_type='application/pdf')
