@@ -431,6 +431,9 @@
         <li class="nav-item">
           <a class="nav-link {% if request.path == '/kalkulacka/' %}active{% endif %}" href="{% url 'kalkulacka' %}"><i class="fa fa-calculator"></i>Kalkulačka hypotéky</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'reporting' %}"><i class="fa fa-chart-bar"></i> Reporting</a>
+        </li>
       </ul>
       <span class="navbar-text small text-muted me-2">
         <i class="fa fa-user"></i> {{ request.user.username|default:'Neregistrovaný uživatel' }}
