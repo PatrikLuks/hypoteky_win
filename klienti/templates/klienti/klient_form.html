@@ -286,6 +286,14 @@
       {{ form.podminky_pro_splaceni }}
     </div>
   </div>
+  <hr>
+  <div class="row g-3">
+    <div class="col-md-6">
+      <label for="id_duvod_zamitnuti" class="form-label">Důvod zamítnutí hypotéky</label>
+      {{ form.duvod_zamitnuti }}
+      <div class="form-text">Vyplňte pouze v případě zamítnuté hypotéky.</div>
+    </div>
+  </div>
   <div class="mt-4">
     <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Uložit</button>
     <a href="/" class="btn btn-secondary"><i class="fa fa-arrow-left"></i> Zpět</a>

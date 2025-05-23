@@ -33,6 +33,7 @@ class Klient(models.Model):
     navrh_financovani_castka = models.DecimalField("Návrh financování částka", max_digits=12, decimal_places=2, blank=True, null=True)
     navrh_financovani_procento = models.DecimalField("Návrh financování v %", max_digits=5, decimal_places=2, blank=True, null=True)
     vyber_banky = models.CharField(max_length=255, blank=True)
+    duvod_zamitnuti = models.CharField("Důvod zamítnutí", max_length=255, blank=True, null=True, help_text="Vyplňte pouze v případě zamítnuté hypotéky")
     priprava_zadosti = models.TextField(blank=True)
     kompletace_podkladu = models.TextField(blank=True)
     podani_zadosti = models.TextField(blank=True)

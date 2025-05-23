@@ -613,6 +613,25 @@ def dashboard(request):
     posledni_zmeny = Zmena.objects.select_related('klient').order_by('-created')[:5]
     # Průměrná výše hypotéky
     prumerna_hypoteka = objem_hypotek / pocet_klientu if pocet_klientu else 0
+
+    # --- NOVÉ AGREGACE ---
+    # Rozložení podle bank
+    from collections import Counter
+    banky = [k.vyber_banky for k in klienti if k.vyber_banky]
+    rozlozeni_banky = Counter(banky)
+    banky_labels = list(rozlozeni_banky.keys())
+    banky_counts = list(rozlozeni_banky.values())
+    # Nejčastější důvody zamítnutí
+    duvody = [k.duvod_zamitnuti for k in klienti if k.duvod_zamitnuti]
+    duvody_zamitnuti = Counter(duvody).most_common(5)
+    # Notifikace (např. klienti po termínu, urgentní deadliny)
+    notifikace = []
+    if urgent_deadlines:
+        notifikace.append(f"{len(urgent_deadlines)} urgentních deadline během 3 dnů")
+    if klienti_po_termínu:
+        notifikace.append(f"{len(klienti_po_termínu)} klientů po termínu")
+    # ...další notifikace lze přidat zde...
+
     return render(request, 'klienti/dashboard.html', {
         'pocet_klientu': pocet_klientu,
         'objem_hypotek': objem_hypotek,
@@ -624,6 +643,11 @@ def dashboard(request):
         'klienti_po_termínu': klienti_po_termínu,
         'posledni_zmeny': posledni_zmeny,
         'prumerna_hypoteka': prumerna_hypoteka,
+        'rozlozeni_banky': dict(rozlozeni_banky),
+        'banky_labels': banky_labels,
+        'banky_counts': banky_counts,
+        'duvody_zamitnuti': duvody_zamitnuti,
+        'notifikace': notifikace,
     })
 
 def smazat_poznamku(request, klient_id, poznamka_id):
