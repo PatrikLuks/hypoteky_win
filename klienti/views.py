@@ -11,6 +11,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import User
 from .utils import odeslat_notifikaci_email
+from django.http import HttpResponse
+import csv
 
 class KlientForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -620,7 +622,6 @@ def dashboard(request):
                         )
                     except Exception as e:
                         print(f"Chyba při odesílání e-mailu: {e}")
-    # ...existing code...
     # Workflow rozložení
     workflow_labels = [
         'co_financuje', 'navrh_financovani', 'vyber_banky', 'priprava_zadosti',
@@ -704,3 +705,75 @@ def get_user_role(request):
         except Exception:
             return None
     return None
+
+def export_klient_ical(request, pk):
+    klient = get_object_or_404(Klient, pk=pk)
+    # Sestavení iCal souboru s deadliny workflow
+    ical_lines = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Hypoteky//CZ',
+        f'X-WR-CALNAME:Deadliny klienta {klient.jmeno}',
+    ]
+    workflow_kroky = [
+        ('Co chce klient financovat', klient.deadline_co_financuje),
+        ('Návrh financování', klient.deadline_navrh_financovani),
+        ('Výběr banky', klient.deadline_vyber_banky),
+        ('Příprava žádosti', klient.deadline_priprava_zadosti),
+        ('Kompletace podkladů', klient.deadline_kompletace_podkladu),
+        ('Podání žádosti', klient.deadline_podani_zadosti),
+        ('Odhad', klient.deadline_odhad),
+        ('Schvalování', klient.deadline_schvalovani),
+        ('Příprava úvěrové dokumentace', klient.deadline_priprava_uverove_dokumentace),
+        ('Podpis úvěrové dokumentace', klient.deadline_podpis_uverove_dokumentace),
+        ('Příprava čerpání', klient.deadline_priprava_cerpani),
+        ('Čerpání', klient.deadline_cerpani),
+        ('Zahájení splácení', klient.deadline_zahajeni_splaceni),
+        ('Podmínky pro splacení', klient.deadline_podminky_pro_splaceni),
+    ]
+    for krok, deadline in workflow_kroky:
+        if deadline:
+            dt = deadline.strftime('%Y%m%d')
+            ical_lines += [
+                'BEGIN:VEVENT',
+                f'SUMMARY:{krok} – {klient.jmeno}',
+                f'DTSTART;VALUE=DATE:{dt}',
+                f'DTEND;VALUE=DATE:{dt}',
+                f'DESCRIPTION:Deadline pro krok {krok} klienta {klient.jmeno}',
+                f'UID:{pk}-{krok.replace(" ", "_")}@hypoteky.cz',
+                'END:VEVENT',
+            ]
+    ical_lines.append('END:VCALENDAR')
+    ical_content = '\r\n'.join(ical_lines)
+    response = HttpResponse(ical_content, content_type='text/calendar')
+    response['Content-Disposition'] = f'attachment; filename=klient_{pk}_deadliny.ics'
+    return response
+
+def export_klienti_csv(request):
+    # Filtrování podle parametrů (volitelně)
+    klienti = Klient.objects.all()
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=klienti_export.csv'
+    writer = csv.writer(response)
+    writer.writerow([
+        'ID', 'Jméno', 'Datum', 'Co financuje', 'Návrh financování (částka)', 'Návrh financování (%)',
+        'Výběr banky', 'Důvod zamítnutí', 'Stav workflow', 'Poradce', 'Vytvořeno'
+    ])
+    for k in klienti:
+        # Určení aktuálního kroku
+        workflow_kroky = [
+            'co_financuje', 'navrh_financovani', 'vyber_banky', 'priprava_zadosti',
+            'kompletace_podkladu', 'podani_zadosti', 'odhad', 'schvalovani',
+            'priprava_uverove_dokumentace', 'podpis_uverove_dokumentace',
+            'priprava_cerpani', 'cerpani', 'zahajeni_splaceni', 'podminky_pro_splaceni'
+        ]
+        stav = 'hotovo'
+        for idx, krok in enumerate(workflow_kroky):
+            if not getattr(k, krok):
+                stav = krok
+                break
+        writer.writerow([
+            k.id, k.jmeno, k.datum, k.co_financuje, k.navrh_financovani_castka, k.navrh_financovani_procento,
+            k.vyber_banky, k.duvod_zamitnuti, stav, getattr(k.user, 'username', ''), k._state.adding is False
+        ])
+    return response

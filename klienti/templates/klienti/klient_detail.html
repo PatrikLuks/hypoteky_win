@@ -200,6 +200,7 @@
 <div class="mt-4">
   <a href="{% url 'klient_edit' klient.pk %}" class="btn btn-primary"><i class="fa fa-edit"></i> Upravit</a>
   <a href="{% url 'klient_delete' klient.pk %}" class="btn btn-danger"><i class="fa fa-trash"></i> Smazat</a>
+  <a href="{% url 'export_klient_ical' klient.pk %}" class="btn btn-success"><i class="fa fa-calendar-plus"></i> Export deadlinů do kalendáře</a>
   <a href="{% url 'home' %}" class="btn btn-secondary"><i class="fa fa-arrow-left"></i> Zpět</a>
 </div>
 </div>

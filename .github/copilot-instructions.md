@@ -68,6 +68,16 @@ Každý klient prochází těmito kroky. Krok je vždy jednoznačně identifikov
 - Piš testy pro klíčové části logiky (unit/integration).
 - Respektuj bezpečnostní zásady (ochrana dat, autentizace, autorizace).
 - Kód piš v češtině, pokud je to vhodné (např. názvy modelů, proměnných, komentáře).
+- zálohuj na github https://github.com/PatrikLuks/hypoteky_django - git add, commit, update.
+
+---
+
+# Instrukce pro Copilot ohledně vedení uživatele
+
+- Uživatel je velmi nadějný student na prestižní škole a nemusí vždy znát následující krok.
+- Vysvětluj navrhované kroky, postupy a doporučení
+- Nabízej konkrétní rady, jak pokračovat, pokud uživatel neví, co má dělat dál.
+- Pokud je to vhodné, přidej krátké vysvětlení, proč je daný krok důležitý.
 
 ---
 
