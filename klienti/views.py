@@ -19,6 +19,7 @@ from reportlab.pdfgen import canvas
 from matplotlib import pyplot as plt
 import tempfile
 from reportlab.lib.utils import ImageReader
+from datetime import datetime
 
 class KlientForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -787,7 +788,23 @@ def reporting(request):
     prumery = []
     for banka in banky_labels:
         klienti_banka = klienti.filter(vyber_banky=banka, podani_zadosti__isnull=False, schvalovani__isnull=False)
-        doby = [ (k.schvalovani - k.podani_zadosti).days for k in klienti_banka if k.schvalovani and k.podani_zadosti ]
+        doby = []
+        for k in klienti_banka:
+            schv = k.schvalovani
+            pod = k.podani_zadosti
+            # Pokud je hodnota typu str, převedeme na date
+            if isinstance(schv, str):
+                try:
+                    schv = datetime.strptime(schv, "%Y-%m-%d").date()
+                except Exception:
+                    continue
+            if isinstance(pod, str):
+                try:
+                    pod = datetime.strptime(pod, "%Y-%m-%d").date()
+                except Exception:
+                    continue
+            if schv and pod:
+                doby.append((schv - pod).days)
         prumery.append(round(sum(doby)/len(doby), 1) if doby else None)
     # --- trendy ---
     months = []
@@ -911,7 +928,23 @@ def reporting_export_pdf(request):
     prumery = []
     for banka in banky_labels:
         klienti_banka = klienti.filter(vyber_banky=banka, podani_zadosti__isnull=False, schvalovani__isnull=False)
-        doby = [ (k.schvalovani - k.podani_zadosti).days for k in klienti_banka if k.schvalovani and k.podani_zadosti ]
+        doby = []
+        for k in klienti_banka:
+            schv = k.schvalovani
+            pod = k.podani_zadosti
+            # Pokud je hodnota typu str, převedeme na date
+            if isinstance(schv, str):
+                try:
+                    schv = datetime.strptime(schv, "%Y-%m-%d").date()
+                except Exception:
+                    continue
+            if isinstance(pod, str):
+                try:
+                    pod = datetime.strptime(pod, "%Y-%m-%d").date()
+                except Exception:
+                    continue
+            if schv and pod:
+                doby.append((schv - pod).days)
         prumery.append(round(sum(doby)/len(doby), 1) if doby else None)
     # --- trendy ---
     months = []
