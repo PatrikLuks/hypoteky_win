@@ -821,8 +821,8 @@ def reporting(request):
             else:
                 d = d.replace(month=d.month+1)
         for m in months:
-            schvaleneTimeline.append(schvalene.filter(datum__strftime='%Y-%m', datum__startswith=m).count())
-            zamitnuteTimeline.append(zamitnute.filter(datum__strftime='%Y-%m', datum__startswith=m).count())
+            schvaleneTimeline.append(len([k for k in schvalene if k.datum and k.datum.strftime('%Y-%m') == m]))
+            zamitnuteTimeline.append(len([k for k in zamitnute if k.datum and k.datum.strftime('%Y-%m') == m]))
     # --- generování grafů ---
     tempfiles = []
     # Bar chart úspěšnost podle banky
@@ -961,8 +961,8 @@ def reporting_export_pdf(request):
             else:
                 d = d.replace(month=d.month+1)
         for m in months:
-            schvaleneTimeline.append(schvalene.filter(datum__strftime='%Y-%m', datum__startswith=m).count())
-            zamitnuteTimeline.append(zamitnute.filter(datum__strftime='%Y-%m', datum__startswith=m).count())
+            schvaleneTimeline.append(len([k for k in schvalene if k.datum and k.datum.strftime('%Y-%m') == m]))
+            zamitnuteTimeline.append(len([k for k in zamitnute if k.datum and k.datum.strftime('%Y-%m') == m]))
     # --- generování grafů ---
     tempfiles = []
     # Bar chart úspěšnost podle banky
