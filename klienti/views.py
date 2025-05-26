@@ -16,6 +16,8 @@ import io
 import openpyxl
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 import tempfile
 from reportlab.lib.utils import ImageReader
