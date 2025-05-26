@@ -16,7 +16,6 @@ import io
 import openpyxl
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
-import csv
 from matplotlib import pyplot as plt
 import tempfile
 from reportlab.lib.utils import ImageReader
@@ -756,36 +755,6 @@ def export_klient_ical(request, pk):
     response['Content-Disposition'] = f'attachment; filename=klient_{pk}_deadliny.ics'
     return response
 
-def export_klienti_csv(request):
-    # Filtrování podle parametrů (volitelně)
-    klienti = Klient.objects.all()
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=klienti_export.csv'
-    writer = csv.writer(response)
-    writer.writerow([
-        'ID', 'Jméno', 'Datum', 'Co financuje', 'Návrh financování (částka)', 'Návrh financování (%)',
-        'Výběr banky', 'Důvod zamítnutí', 'Stav workflow', 'Poradce', 'Vytvořeno'
-    ])
-    for k in klienti:
-        # Určení aktuálního kroku
-        workflow_kroky = [
-            'co_financuje', 'navrh_financovani', 'vyber_banky', 'priprava_zadosti',
-            'kompletace_podkladu', 'podani_zadosti', 'odhad', 'schvalovani',
-            'priprava_uverove_dokumentace', 'podpis_uverove_dokumentace',
-            'priprava_cerpani', 'cerpani', 'zahajeni_splaceni', 'podminky_pro_splaceni'
-        ]
-        stav = 'hotovo'
-        for idx, krok in enumerate(workflow_kroky):
-            if not getattr(k, krok):
-                stav = krok
-                break
-        writer.writerow([
-            k.id, k.jmeno, k.datum, k.co_financuje, k.navrh_financovani_castka, k.navrh_financovani_procento,
-            k.vyber_banky, k.duvod_zamitnuti, stav, getattr(k.user, 'username', ''), k._state.adding is False
-        ])
-    return response
-
-@login_required
 def reporting(request):
     from .models import Klient
     # --- Filtrování podle období ---

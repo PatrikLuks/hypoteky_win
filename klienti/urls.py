@@ -16,7 +16,6 @@ urlpatterns = [
     path('klient/<int:klient_id>/poznamka/<int:poznamka_id>/smazat/', views.smazat_poznamku, name='smazat_poznamku'),
     path('klienti/', views.home, name='klient_list'),
     path('klient/<int:pk>/ical/', views.export_klient_ical, name='export_klient_ical'),
-    path('klienti/export/csv/', views.export_klienti_csv, name='export_klienti_csv'),
 ]
 
 urlpatterns += [
