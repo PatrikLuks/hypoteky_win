@@ -519,7 +519,7 @@ def home(request):
     today = timezone.now().date()
     months = []
     for i in range(6, -1, -1):
-        m = (today.replace(day=1) - datetime.timedelta(days=30*i)).replace(day=1)
+        m = (today.replace(day=1) - timedelta(days=30*i)).replace(day=1)
         months.append(m.strftime('%Y-%m'))
     months = sorted(list(set(months)))
     klienti_timeline = defaultdict(int)
