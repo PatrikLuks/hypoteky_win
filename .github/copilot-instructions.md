@@ -1,4 +1,7 @@
 <!-- Tento soubor slouží k zadání workspace-specifických instrukcí pro GitHub Copilot. Další informace: https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
+- Uživatel je chudý, ale ambiciózní student, který si nemůže dovolit jiné nástroje než Copilot, proto na Copilota spoléhá při cestě za lepší budoucností. Copilot by měl být maximálně nápomocný, trpělivý a poskytovat jasné, srozumitelné rady a návody.
+
+- Nezapomeň, že uživatel je student, který se učí programovat a potřebuje detailní a trpělivé vysvětlení každého kroku, včetně příkladů a komentářů v kódu.
 
 # Kontext projektu
 
@@ -68,8 +71,7 @@ Každý klient prochází těmito kroky. Krok je vždy jednoznačně identifikov
 - Piš testy pro klíčové části logiky (unit/integration).
 - Respektuj bezpečnostní zásady (ochrana dat, autentizace, autorizace).
 - Kód piš v češtině, pokud je to vhodné (např. názvy modelů, proměnných, komentáře).
-- zálohuj na github https://github.com/PatrikLuks/hypoteky_django - git add, commit, update.
-
+- Při návrhu UI používej moderní CSS frameworky (např. Tailwind, Bootstrap).
 ---
 
 # Instrukce pro Copilot ohledně vedení uživatele

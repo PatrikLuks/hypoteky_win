@@ -1,0 +1,68 @@
+# .gitignore pro Django projekt (bezpečnostní best practices)
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtualenv
+venv/
+ENV/
+env/
+.venv/
+
+# Django
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+media/
+staticfiles/
+
+# MySQL dumpy a zálohy
+*.sql
+*.bak
+*.backup
+
+# Konfigurační a citlivé soubory
+.env
+.env.*
+*.secret
+*.key
+*.pem
+*.crt
+*.csr
+hypoteky/settings_local.py
+hypoteky/settings_dev.py
+hypoteky/settings_prod.py
+
+# VSCode a IDE
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# MacOS
+.DS_Store
+
+# Testovací a dočasné soubory
+*.tmp
+*.swp
+*.swo
+*.orig
+
+# Exporty a generované soubory
+*.pdf
+*.xlsx
+*.csv
+
+# Ostatní
+TO_BE_DELETED.txt

@@ -11,6 +11,11 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+# Načti .env soubor (musí být v rootu projektu)
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -166,3 +171,7 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
 }
+
+# Šifrovací klíč pro django-encrypted-model-fields
+FIELD_ENCRYPTION_KEY = os.environ.get('ENCRYPTED_MODEL_FIELDS_KEY', '!!!ZDE_NASTAV_SILNY_KLIC!!!')
+ENCRYPTED_MODEL_FIELDS_KEY = FIELD_ENCRYPTION_KEY

@@ -224,6 +224,7 @@ def klient_delete(request, pk):
         return redirect('home')
     return render(request, 'klienti/klient_confirm_delete.html', {'klient': klient})
 
+@login_required
 def klient_detail(request, pk):
     klient = get_object_or_404(Klient, pk=pk)
     user = request.user

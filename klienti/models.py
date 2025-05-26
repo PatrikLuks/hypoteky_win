@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
+from encrypted_model_fields.fields import EncryptedCharField, EncryptedTextField
 
 # Signály pro automatické vytváření a aktualizaci UserProfile
 try:
@@ -25,26 +26,26 @@ if post_save:
 # Create your models here.
 
 class Klient(models.Model):
-    jmeno = models.CharField(max_length=100)
+    jmeno = EncryptedCharField(max_length=100)
     datum = models.DateField(default=timezone.now)
-    co_financuje = models.CharField(max_length=255, blank=True)
+    co_financuje = EncryptedCharField(max_length=255, blank=True)
     cena = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
     navrh_financovani = models.CharField(max_length=255, blank=True)
     navrh_financovani_castka = models.DecimalField("Návrh financování částka", max_digits=12, decimal_places=2, blank=True, null=True)
     navrh_financovani_procento = models.DecimalField("Návrh financování v %", max_digits=5, decimal_places=2, blank=True, null=True)
     vyber_banky = models.CharField(max_length=255, blank=True)
-    duvod_zamitnuti = models.CharField("Důvod zamítnutí", max_length=255, blank=True, null=True, help_text="Vyplňte pouze v případě zamítnuté hypotéky")
-    priprava_zadosti = models.TextField(blank=True)
-    kompletace_podkladu = models.TextField(blank=True)
-    podani_zadosti = models.TextField(blank=True)
-    odhad = models.TextField(blank=True)
-    schvalovani = models.TextField(blank=True)
-    priprava_uverove_dokumentace = models.TextField(blank=True)
-    podpis_uverove_dokumentace = models.TextField(blank=True)
-    priprava_cerpani = models.TextField(blank=True)
-    cerpani = models.TextField(blank=True)
-    zahajeni_splaceni = models.TextField(blank=True)
-    podminky_pro_splaceni = models.TextField(blank=True)
+    duvod_zamitnuti = EncryptedCharField("Důvod zamítnutí", max_length=255, blank=True, null=True, help_text="Vyplňte pouze v případě zamítnuté hypotéky")
+    priprava_zadosti = EncryptedTextField(blank=True)
+    kompletace_podkladu = EncryptedTextField(blank=True)
+    podani_zadosti = EncryptedTextField(blank=True)
+    odhad = EncryptedTextField(blank=True)
+    schvalovani = EncryptedTextField(blank=True)
+    priprava_uverove_dokumentace = EncryptedTextField(blank=True)
+    podpis_uverove_dokumentace = EncryptedTextField(blank=True)
+    priprava_cerpani = EncryptedTextField(blank=True)
+    cerpani = EncryptedTextField(blank=True)
+    zahajeni_splaceni = EncryptedTextField(blank=True)
+    podminky_pro_splaceni = EncryptedTextField(blank=True)
     deadline_co_financuje = models.DateField(blank=True, null=True)
     deadline_navrh_financovani = models.DateField(blank=True, null=True)
     deadline_vyber_banky = models.DateField(blank=True, null=True)
@@ -107,7 +108,7 @@ class HypotekaWorkflow(models.Model):
 
 class Poznamka(models.Model):
     klient = models.ForeignKey(Klient, on_delete=models.CASCADE, related_name='poznamky')
-    text = models.TextField()
+    text = EncryptedTextField()
     created = models.DateTimeField(auto_now_add=True)
     author = models.CharField(max_length=100, blank=True)  # nebo ForeignKey na User, pokud budeš chtít
 
@@ -116,7 +117,7 @@ class Poznamka(models.Model):
 
 class Zmena(models.Model):
     klient = models.ForeignKey(Klient, on_delete=models.CASCADE, related_name='zmeny')
-    popis = models.TextField()
+    popis = EncryptedTextField()
     created = models.DateTimeField(auto_now_add=True)
     author = models.CharField(max_length=100, blank=True)
 
