@@ -1,18 +1,25 @@
 {% extends 'base.html' %}
+{% load klient_filters %}
 {% block content %}
-<div class="container-fluid py-4 px-2 px-md-4">
+<div class="container-fluid py-4 px-2 px-md-4" role="main" aria-label="Reporting a statistika hypoték">
   <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">
     <h1 class="mb-0 fw-bold text-primary"><i class="fa fa-chart-bar me-2"></i>Reporting & Statistika hypoték</h1>
     <a href="{% url 'reporting_export_pdf' %}" class="btn btn-danger btn-lg shadow-sm"><i class="fa fa-file-pdf me-1"></i> Export do PDF</a>
   </div>
-  <form method="get" class="row g-3 mb-4 bg-light rounded-3 p-3 shadow-sm align-items-end">
+  <form method="get" class="row g-3 mb-4 bg-light rounded-3 p-3 shadow-sm align-items-end" aria-label="Filtr reportingu">
     <div class="col-12 col-md-3">
       {{ form.datum_od.label_tag }}
-      {{ form.datum_od|add_class:'form-control form-control-lg' }}
+      {{ form.datum_od }}
+      {% if form.datum_od.errors %}
+        <div class="text-danger small">{{ form.datum_od.errors.0 }}</div>
+      {% endif %}
     </div>
     <div class="col-12 col-md-3">
       {{ form.datum_do.label_tag }}
-      {{ form.datum_do|add_class:'form-control form-control-lg' }}
+      {{ form.datum_do }}
+      {% if form.datum_do.errors %}
+        <div class="text-danger small">{{ form.datum_do.errors.0 }}</div>
+      {% endif %}
     </div>
     <div class="col-12 col-md-3">
       <button type="submit" class="btn btn-primary btn-lg w-100"><i class="fa fa-filter me-1"></i> Filtrovat</button>
@@ -52,17 +59,17 @@
       <div class="card shadow-sm border-0 h-100">
         <div class="card-body">
           <h5 class="card-title mb-3"><i class="fa fa-university text-primary"></i> Úspěšnost podle banky</h5>
-          <canvas id="bankyBarChart" height="120"></canvas>
-          <div class="table-responsive mt-3">
+          <canvas id="bankyBarChart" height="120" aria-label="Graf úspěšnosti podle banky" alt="Graf úspěšnosti podle banky"></canvas>
+          <div class="table-responsive mt-3" aria-label="Tabulka úspěšnosti podle banky">
             <table class="table table-sm table-hover align-middle mb-0">
               <thead class="table-light"><tr><th>Banka</th><th>Schváleno</th><th>Zamítnuto</th><th>Průměrná doba schválení (dny)</th></tr></thead>
               <tbody>
-                {% for banka, schv, zam, prum in banky_labels|zip:schvalenost|zip:zamitnutost|zip:prumery %}
+                {% for banka in banky_labels %}
                 <tr>
                   <td class="fw-bold">{{ banka }}</td>
-                  <td class="text-success fw-semibold">{{ schv }}</td>
-                  <td class="text-danger fw-semibold">{{ zam }}</td>
-                  <td>{% if prum %}<span class="badge bg-primary bg-opacity-75">{{ prum }}</span>{% else %}-{% endif %}</td>
+                  <td class="text-success fw-semibold">{{ schvalenost|index:forloop.counter0 }}</td>
+                  <td class="text-danger fw-semibold">{{ zamitnutost|index:forloop.counter0 }}</td>
+                  <td>{% if prumery|index:forloop.counter0 %}<span class="badge bg-primary bg-opacity-75">{{ prumery|index:forloop.counter0 }}</span>{% else %}-{% endif %}</td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -75,7 +82,7 @@
       <div class="card shadow-sm border-0 h-100">
         <div class="card-body">
           <h5 class="card-title mb-3"><i class="fa fa-chart-line text-success"></i> Trendy schválených a zamítnutých hypoték</h5>
-          <canvas id="trendyLineChart" height="120"></canvas>
+          <canvas id="trendyLineChart" height="120" aria-label="Graf trendů schválených a zamítnutých hypoték" alt="Graf trendů schválených a zamítnutých hypoték"></canvas>
         </div>
       </div>
     </div>
@@ -85,7 +92,7 @@
       <div class="card shadow-sm border-0">
         <div class="card-body">
           <h5 class="card-title mb-3"><i class="fa fa-th text-warning"></i> Heatmapa průměrné doby schválení podle banky a měsíce</h5>
-          <div class="table-responsive">
+          <div class="table-responsive" aria-label="Heatmapa průměrné doby schválení">
             <table class="table table-bordered text-center align-middle" style="min-width: 600px;">
               <thead class="table-light">
                 <tr>
@@ -96,15 +103,17 @@
                 </tr>
               </thead>
               <tbody>
-                {% for banka, row in heatmap_banks|zip:heatmap_data %}
-                <tr>
-                  <th class="text-start">{{ banka }}</th>
-                  {% for val in row %}
-                  <td style="background: {% if val %}rgba(220,53,69,{{ val|floatformat:0|divisibleby:30|yesno:'0.15,0.7' }}); color: {% if val and val > 20 %}#fff{% else %}#222{% endif %}{% else %}#f8f9fa{% endif %}; min-width: 60px; transition: background 0.2s; cursor: pointer;" title="{{ banka }} / {{ forloop.parentloop.counter0|add:1 }}. měsíc: {% if val %}{{ val }} dní{% else %}–{% endif %}">
-                    {% if val %}{{ val }}{% else %}-{% endif %}
-                  </td>
-                  {% endfor %}
-                </tr>
+                {% for banka in heatmap_banks %}
+                  {% with row=heatmap_data|index:forloop.counter0 %}
+                  <tr>
+                    <th class="text-start">{{ banka }}</th>
+                    {% for val in row %}
+                    <td style="background: {% if val %}rgba(220,53,69,{{ val|floatformat:0|divisibleby:30|yesno:'0.15,0.7' }}); color: {% if val and val > 20 %}#fff{% else %}#222{% endif %}{% else %}#f8f9fa{% endif %}; min-width: 60px; transition: background 0.2s; cursor: pointer;" title="{{ banka }} / {{ forloop.parentloop.counter0|add:1 }}. měsíc: {% if val %}{{ val }} dní{% else %}–{% endif %}">
+                      {% if val %}{{ val }}{% else %}-{% endif %}
+                    </td>
+                    {% endfor %}
+                  </tr>
+                  {% endwith %}
                 {% endfor %}
               </tbody>
             </table>

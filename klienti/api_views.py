@@ -33,7 +33,7 @@ class KlientViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
     filterset_class = KlientFilter
     ordering_fields = ['datum', 'navrh_financovani_castka']
-    search_fields = ['jmeno', 'vyber_banky', 'co_financuje']
+    search_fields = ['vyber_banky', 'co_financuje']  # 'jmeno' odstraněno, protože je šifrované a nelze jej vyhledávat
 
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:

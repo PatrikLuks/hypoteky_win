@@ -15,5 +15,13 @@ def thousands_separator(value):
     except (ValueError, TypeError):
         return value
 
+@register.filter
+def index(sequence, position):
+    """Vrátí prvek na dané pozici v sekvenci (list, tuple)."""
+    try:
+        return sequence[position]
+    except (IndexError, TypeError, KeyError):
+        return ''
+
 def user_role(request):
     return {'user_role': get_user_role(request)}

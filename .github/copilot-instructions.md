@@ -30,6 +30,36 @@ Každý klient prochází těmito kroky. Krok je vždy jednoznačně identifikov
 ---
 
 # Hlavní cíle a doporučení pro generovaný kód
+Aktuální cíle projektu – na co se má Copilot při generování kódu zaměřit:
+
+1. Pokrytí testy
+- Přidat testy pro UI a šablony – ověřit správné renderování, úplnost prvků a responsivitu (např. dashboard, reporting, detail klienta).
+- Pokrýt reporting a exporty – testovat funkčnost filtrů, grafů, heatmap a exportu do PDF.
+- Otestovat e-mailové notifikace – ověřit generování, odesílání a logování e-mailů.
+- Zajistit testy pro workflow a validace formulářů – ověřit, že klient může projít všemi 15 kroky workflow a validace funguje správně.
+- Přidat testy pro import/export do XLSX/CSV – ověřit správnost importu a exportu dat.
+- Zvážit snapshoty šablon a e2e testy (např. pomocí Selenium) pro ověření vzhledu a chování UI.
+
+2. Bezpečnost a správa
+- Rozšířit testy dvoufaktorové autentizace (2FA) – ověřit reálné přihlášení s OTP, nejen existenci zařízení.
+- Doplnit testy rolí a oprávnění – včetně hraničních případů (změna role, přístup k API podle role).
+- Otestovat auditní log – ověřit, že všechny důležité akce (např. změna workflow, smazání klienta) se správně logují.
+
+3. Uživatelská zkušenost (UX)
+- Automaticky testovat responsivitu a tmavý režim (např. snapshoty).
+- Ověřit přístupnost (a11y) – aplikace musí být použitelná i pro uživatele se znevýhodněním.
+
+4. Integrace a automatizace
+- Rozšířit testy REST API – pokrýt edge-case scénáře, chybové stavy a autorizaci.
+- Otestovat export do kalendáře (iCal) – ověřit validitu a použitelnost v Google/Outlook.
+- Přidat testy pro import klientů z CSV/XLSX.
+
+5. Dokumentace
+- Doplnit README o příklady testování UI/reportingu.
+- Přidat doporučení pro vývojáře, jak správně přidávat nové testy.
+
+Shrnutí: Zaměř se na doplnění a rozšíření testů pro UI, reporting, exporty, šablony, validace, notifikace, workflow, role, auditní log, 2FA, import/export a kalendář. Zvaž snapshot/e2e testy a zlepši dokumentaci o konkrétní příklady a best practices.
+
 
 ## Uživatelská zkušenost a UI
 

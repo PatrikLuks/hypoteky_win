@@ -1,8 +1,7 @@
 from django.test import TestCase
 from klienti.models import Klient, Poznamka, Zmena
 from django.conf import settings
-import base64
-import MySQLdb
+from django.db import connection
 
 class SifrovaniTestCase(TestCase):
     def setUp(self):
@@ -37,25 +36,41 @@ class SifrovaniTestCase(TestCase):
         """
         Data v databázi musí být fyzicky nečitelná (neuložená v otevřeném tvaru).
         """
-        # Připojíme se přímo na DB a načteme raw hodnoty
-        db = MySQLdb.connect(
-            host=settings.DATABASES['default']['HOST'],
-            user=settings.DATABASES['default']['USER'],
-            passwd=settings.DATABASES['default']['PASSWORD'],
-            db=settings.DATABASES['default']['NAME'],
-            charset='utf8mb4'
+        # Nejprve smaž závislé záznamy, pak klienty
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM klienti_poznamka")
+            cursor.execute("DELETE FROM klienti_zmena")
+            cursor.execute("DELETE FROM klienti_klient")
+        self.klient = Klient.objects.create(
+            jmeno="Testovací Klient",
+            co_financuje="Byt v Praze",
+            duvod_zamitnuti="Nedostatečný příjem"
         )
-        cursor = db.cursor()
-        cursor.execute("SELECT jmeno, co_financuje, duvod_zamitnuti FROM klienti_klient WHERE id = %s", [self.klient.pk])
-        row = cursor.fetchone()
-        for value in row:
-            self.assertNotIn("Testovací Klient", str(value))
-            self.assertNotIn("Byt v Praze", str(value))
-            self.assertNotIn("Nedostatečný příjem", str(value))
-        cursor.execute("SELECT text FROM klienti_poznamka WHERE id = %s", [self.poznamka.pk])
-        value = cursor.fetchone()[0]
-        self.assertNotIn("Toto je tajná poznámka", str(value))
-        cursor.execute("SELECT popis FROM klienti_zmena WHERE id = %s", [self.zmena.pk])
-        value = cursor.fetchone()[0]
-        self.assertNotIn("Změna workflow", str(value))
-        db.close()
+        self.poznamka = Poznamka.objects.create(
+            klient=self.klient,
+            text="Toto je tajná poznámka",
+            author="admin"
+        )
+        self.zmena = Zmena.objects.create(
+            klient=self.klient,
+            popis="Změna workflow",
+            author="admin"
+        )
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT jmeno, co_financuje, duvod_zamitnuti FROM klienti_klient WHERE id = %s", [self.klient.pk])
+            row = cursor.fetchone()
+            self.assertIsNotNone(row, "Klient nebyl nalezen v databázi (pravděpodobně nebyl uložen nebo byl smazán).")
+            for value in row:
+                self.assertNotIn("Testovací Klient", str(value))
+                self.assertNotIn("Byt v Praze", str(value))
+                self.assertNotIn("Nedostatečný příjem", str(value))
+            cursor.execute("SELECT text FROM klienti_poznamka WHERE id = %s", [self.poznamka.pk])
+            value = cursor.fetchone()
+            self.assertIsNotNone(value, "Poznámka nebyla nalezena v databázi.")
+            value = value[0]
+            self.assertNotIn("Toto je tajná poznámka", str(value))
+            cursor.execute("SELECT popis FROM klienti_zmena WHERE id = %s", [self.zmena.pk])
+            value = cursor.fetchone()
+            self.assertIsNotNone(value, "Změna nebyla nalezena v databázi.")
+            value = value[0]
+            self.assertNotIn("Změna workflow", str(value))

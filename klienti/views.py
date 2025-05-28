@@ -120,6 +120,32 @@ class KlientForm(forms.ModelForm):
         except Exception:
             raise forms.ValidationError('Zadejte částku ve správném formátu, např. 12 200 000')
 
+    def clean(self):
+        cleaned_data = super().clean()
+        # Definice pořadí workflow kroků podle zadání
+        workflow_fields = [
+            'co_financuje',
+            'navrh_financovani',
+            'vyber_banky',
+            'priprava_zadosti',
+            'kompletace_podkladu',
+            'podani_zadosti',
+            'odhad',
+            'schvalovani',
+            'priprava_uverove_dokumentace',
+            'podpis_uverove_dokumentace',
+            'priprava_cerpani',
+            'cerpani',
+            'zahajeni_splaceni',
+            'podminky_pro_splaceni',
+        ]
+        # Pro každý krok ověř, že předchozí je vyplněn
+        for idx, field in enumerate(workflow_fields[1:], start=1):
+            prev_field = workflow_fields[idx-1]
+            if cleaned_data.get(field) and not cleaned_data.get(prev_field):
+                self.add_error(field, f'Nelze vyplnit krok "{field}", dokud není vyplněn předchozí krok.')
+        return cleaned_data
+
 def klient_create(request):
     if request.method == 'POST':
         klient_form = KlientForm(request.POST)
@@ -175,13 +201,13 @@ def klient_create(request):
 
 def klient_edit(request, pk):
     klient = get_object_or_404(Klient, pk=pk)
+    # Ulož původní hodnoty z DB před inicializací formuláře
+    puvodni = {}
+    for field in KlientForm().fields:
+        puvodni[field] = getattr(klient, field)
     if request.method == 'POST':
         form = KlientForm(request.POST, instance=klient)
         if form.is_valid():
-            # Uchovej původní hodnoty
-            puvodni = {}
-            for field in form.fields:
-                puvodni[field] = getattr(klient, field)
             klient = form.save(commit=False)
             cena = form.cleaned_data.get('cena')
             procento = form.cleaned_data.get('navrh_financovani_procento')
@@ -760,8 +786,10 @@ def export_klient_ical(request, pk):
     return response
 
 def reporting(request):
-    from .models import Klient
-    # --- Filtrování podle období ---
+    """
+    View pro zobrazení reportingu v HTML (grafy, tabulky, filtry).
+    Export do PDF je řešen samostatnou view reporting_export_pdf.
+    """
     today = timezone.now().date()
     first_day = today.replace(day=1)
     datum_od = request.GET.get('datum_od')
@@ -780,7 +808,7 @@ def reporting(request):
             klienti = klienti.filter(datum__lte=datum_do)
         except Exception:
             pass
-    # ...statistiky zůstávají stejné, jen pracují s filtrovanými klienty...
+    # Statistiky
     banky = [k.vyber_banky for k in klienti if k.vyber_banky]
     rozlozeni_banky = Counter(banky)
     schvalene = klienti.filter(duvod_zamitnuti__isnull=True, vyber_banky__isnull=False)
@@ -795,21 +823,20 @@ def reporting(request):
         for k in klienti_banka:
             schv = k.schvalovani
             pod = k.podani_zadosti
-            # Pokud je hodnota typu str, převedeme na date
             if isinstance(schv, str):
                 try:
-                    schv = datetime.strptime(schv, "%Y-%m-%d").date()
+                    schv = datetime.datetime.strptime(schv, "%Y-%m-%d").date()
                 except Exception:
                     continue
             if isinstance(pod, str):
                 try:
-                    pod = datetime.strptime(pod, "%Y-%m-%d").date()
+                    pod = datetime.datetime.strptime(pod, "%Y-%m-%d").date()
                 except Exception:
                     continue
             if schv and pod:
                 doby.append((schv - pod).days)
         prumery.append(round(sum(doby)/len(doby), 1) if doby else None)
-    # --- trendy ---
+    # Trendy
     months = []
     schvaleneTimeline = []
     zamitnuteTimeline = []
@@ -826,69 +853,19 @@ def reporting(request):
         for m in months:
             schvaleneTimeline.append(len([k for k in schvalene if k.datum and k.datum.strftime('%Y-%m') == m]))
             zamitnuteTimeline.append(len([k for k in zamitnute if k.datum and k.datum.strftime('%Y-%m') == m]))
-    # --- generování grafů ---
-    tempfiles = []
-    # Bar chart úspěšnost podle banky
-    if banky_labels:
-        fig1, ax1 = plt.subplots(figsize=(6,3))
-        x = range(len(banky_labels))
-        ax1.bar(x, schvalenost, label='Schváleno', color='#198754')
-        ax1.bar(x, zamitnutost, bottom=schvalenost, label='Zamítnuto', color='#dc3545')
-        ax1.set_xticks(x)
-        ax1.set_xticklabels(banky_labels, rotation=30, ha='right')
-        ax1.set_ylabel('Počet případů')
-        ax1.set_title('Úspěšnost podle banky')
-        ax1.legend()
-        f1 = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
-        fig1.tight_layout()
-        fig1.savefig(f1.name, dpi=120)
-        tempfiles.append(f1)
-        plt.close(fig1)
-    # Line chart trendy
-    if months:
-        fig2, ax2 = plt.subplots(figsize=(6,3))
-        ax2.plot(months, schvaleneTimeline, marker='o', label='Schváleno', color='#198754')
-        ax2.plot(months, zamitnuteTimeline, marker='o', label='Zamítnuto', color='#dc3545')
-        ax2.set_ylabel('Počet případů')
-        ax2.set_title('Trendy schválených a zamítnutých hypoték')
-        ax2.legend()
-        fig2.tight_layout()
-        f2 = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
-        fig2.savefig(f2.name, dpi=120)
-        tempfiles.append(f2)
-        plt.close(fig2)
-    # --- PDF ---
-    buffer = io.BytesIO()
-    p = canvas.Canvas(buffer, pagesize=A4)
-    p.setFont("Helvetica-Bold", 16)
-    p.drawString(40, 800, "Reporting – úspěšnost podle banky")
-    y = 770
-    # Vložit grafy
-    for tf in tempfiles:
-        p.drawImage(ImageReader(tf.name), 40, y-180, width=500, height=120)
-        y -= 200
-    p.setFont("Helvetica", 11)
-    # Tabulka
-    p.drawString(40, y, "Banka")
-    p.drawString(180, y, "Schváleno")
-    p.drawString(270, y, "Zamítnuto")
-    p.drawString(370, y, "Průměrná doba schválení (dny)")
-    y -= 20
-    for i, banka in enumerate(banky_labels):
-        p.drawString(40, y, str(banka))
-        p.drawString(180, y, str(schvalenost[i]))
-        p.drawString(270, y, str(zamitnutost[i]))
-        p.drawString(370, y, str(prumery[i]) if prumery[i] is not None else '-')
-        y -= 18
-        if y < 60:
-            p.showPage()
-            y = 800
-    p.save()
-    buffer.seek(0)
-    # Smazat temp soubory
-    for tf in tempfiles:
-        tf.close()
-    return HttpResponse(buffer, content_type='application/pdf')
+    # Předání dat do šablony
+    context = {
+        'form': form,
+        'banky_labels': banky_labels,
+        'schvalenost': schvalenost,
+        'zamitnutost': zamitnutost,
+        'prumery': prumery,
+        'months': months,
+        'schvaleneTimeline': schvaleneTimeline,
+        'zamitnuteTimeline': zamitnuteTimeline,
+        'klienti': klienti,
+    }
+    return render(request, 'klienti/reporting.html', context)
 
 class ReportingFilterForm(forms.Form):
     datum_od = forms.DateField(label="Od", required=False, widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
