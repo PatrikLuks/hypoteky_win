@@ -19,9 +19,13 @@ if post_save:
             UserProfile.objects.create(user=instance)
         else:
             try:
-                instance.userprofile.save()
+                # Nepřepisuj existující profil, pouze ulož
+                if hasattr(instance, 'userprofile'):
+                    instance.userprofile.save()
+                else:
+                    UserProfile.objects.create(user=instance)
             except Exception:
-                UserProfile.objects.create(user=instance)
+                pass  # Pokud profil neexistuje, nevytvářej nový s výchozí rolí
 
 # Create your models here.
 
@@ -133,8 +137,10 @@ class UserProfile(models.Model):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='klient')
 
     def save(self, *args, **kwargs):
-        # Automaticky nastavit roli podle členství ve skupině 'jplservis'
-        if hasattr(self.user, 'groups') and self.user.groups.filter(name='jplservis').exists():
+        # Pokud je role již nastavena explicitně, neresetuj ji!
+        if self.pk is not None and self.role:
+            pass  # role již nastavena, neměň
+        elif hasattr(self.user, 'groups') and self.user.groups.filter(name='jplservis').exists():
             self.role = 'poradce'
         else:
             self.role = 'klient'

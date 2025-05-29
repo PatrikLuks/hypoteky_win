@@ -442,150 +442,227 @@
 </nav>
 <div class="container mt-4">
     
-<div class="container-fluid py-4 px-2 px-md-4" role="main" aria-label="Reporting a statistika hypoték">
-  <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">
-    <h1 class="mb-0 fw-bold text-primary"><i class="fa fa-chart-bar me-2"></i>Reporting & Statistika hypoték</h1>
-    <a href="/reporting/export/pdf/" class="btn btn-danger btn-lg shadow-sm"><i class="fa fa-file-pdf me-1"></i> Export do PDF</a>
-  </div>
-  <form method="get" class="row g-3 mb-4 bg-light rounded-3 p-3 shadow-sm align-items-end" aria-label="Filtr reportingu">
-    <div class="col-12 col-md-3">
-      <label for="id_datum_od">Od:</label>
-      <input type="date" name="datum_od" value="__DATUM__" class="form-control" id="id_datum_od">
-      
-    </div>
-    <div class="col-12 col-md-3">
-      <label for="id_datum_do">Do:</label>
-      <input type="date" name="datum_do" value="__DATUM__" class="form-control" id="id_datum_do">
-      
-    </div>
-    <div class="col-12 col-md-3">
-      <button type="submit" class="btn btn-primary btn-lg w-100"><i class="fa fa-filter me-1"></i> Filtrovat</button>
-    </div>
-    <div class="col-12 col-md-3 text-md-end text-center">
-      <span class="text-muted small">Zobrazené období: <b>–</b> až <b>–</b></span>
-    </div>
-  </form>
-  <div class="row g-4 mb-4">
-    <div class="col-12 col-lg-4">
-      <div class="card border-0 shadow-sm h-100 bg-gradient bg-primary text-white">
-        <div class="card-body d-flex flex-column align-items-center justify-content-center">
-          <div class="display-5 fw-bold mb-2"><i class="fa fa-users"></i> </div>
-          <div class="fs-5">Klientů v období</div>
-        </div>
-      </div>
-    </div>
-    <div class="col-6 col-lg-4">
-      <div class="card border-0 shadow-sm h-100 bg-success bg-gradient text-white">
-        <div class="card-body d-flex flex-column align-items-center justify-content-center">
-          <div class="display-6 fw-bold mb-2"><i class="fa fa-check-circle"></i> </div>
-          <div>Schválených hypoték</div>
-        </div>
-      </div>
-    </div>
-    <div class="col-6 col-lg-4">
-      <div class="card border-0 shadow-sm h-100 bg-danger bg-gradient text-white">
-        <div class="card-body d-flex flex-column align-items-center justify-content-center">
-          <div class="display-6 fw-bold mb-2"><i class="fa fa-times-circle"></i> </div>
-          <div>Zamítnutých hypoték</div>
-        </div>
+<div class="container-fluid" role="main">
+<h1 class="mb-4"><i class="fa fa-tachometer-alt text-primary"></i> Dashboard</h1>
+
+
+
+
+<div class="row mb-4 g-4">
+  <div class="col-lg-3 col-md-6">
+    <div class="card shadow-sm border-0 text-center h-100 bg-gradient" style="background:linear-gradient(135deg,#23272b 60%,#0d6efd 100%)">
+      <div class="card-body">
+        <h6 class="card-title text-secondary">Počet klientů<div class="display-4 fw-bold text-warning">__POCET__</div>
+        <a href="/klienti/" class="btn btn-sm btn-outline-light mt-2"><i class="fa fa-users"></i> Seznam klientů</a>
       </div>
     </div>
   </div>
-  <div class="row g-4 mb-4">
-    <div class="col-lg-6">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-body">
-          <h5 class="card-title mb-3"><i class="fa fa-university text-primary"></i> Úspěšnost podle banky</h5>
-          <canvas id="bankyBarChart" height="120" aria-label="Graf úspěšnosti podle banky" alt="Graf úspěšnosti podle banky"></canvas>
-          <div class="table-responsive mt-3" aria-label="Tabulka úspěšnosti podle banky">
-            <table class="table table-sm table-hover align-middle mb-0">
-              <thead class="table-light"><tr><th>Banka</th><th>Schváleno</th><th>Zamítnuto</th><th>Průměrná doba schválení (dny)</th></tr></thead>
-              <tbody>
-                
-              </tbody>
-            </table>
-          </div>
+  <div class="col-lg-3 col-md-6">
+    <div class="card shadow-sm border-0 text-center h-100 bg-gradient" style="background:linear-gradient(135deg,#23272b 60%,#20c997 100%)">
+      <div class="card-body">
+        <h6 class="card-title text-secondary">Objem hypoték</h6>
+        <div class="display-4 fw-bold text-success" style="letter-spacing:1px;white-space:nowrap;">
+          0 Kč
         </div>
+        <a href="/klient/pridat/" class="btn btn-sm btn-outline-light mt-2"><i class="fa fa-plus"></i> Přidat klienta</a>
       </div>
     </div>
-    <div class="col-lg-6">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-body">
-          <h5 class="card-title mb-3"><i class="fa fa-chart-line text-success"></i> Trendy schválených a zamítnutých hypoték</h5>
-          <canvas id="trendyLineChart" height="120" aria-label="Graf trendů schválených a zamítnutých hypoték" alt="Graf trendů schválených a zamítnutých hypoték"></canvas>
+  </div>
+  <div class="col-lg-3 col-md-6">
+    <div class="card shadow-sm border-0 text-center h-100 bg-gradient" style="background:linear-gradient(135deg,#23272b 60%,#ffc107 100%)">
+      <div class="card-body">
+        <h6 class="card-title text-secondary">Urgentní deadliny<div class="display-4 fw-bold text-danger">__URGENT__</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-3 col-md-6">
+    <div class="card shadow-sm border-0 text-center h-100 bg-gradient" style="background:linear-gradient(135deg,#23272b 60%,#6610f2 100%)">
+      <div class="card-body">
+        <h6 class="card-title text-secondary">Workflow rozložení</h6>
+        <canvas id="workflowPieChart" height="120"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="row mb-4 g-4">
+  <div class="col-lg-6">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body">
+        <h5 class="card-title"><i class="fa fa-university text-primary"></i> Rozložení podle bank</h5>
+        <canvas id="bankyPieChart" height="120"></canvas>
+        <ul class="list-group list-group-flush mt-3">
+          
+            <li class="list-group-item text-muted">Žádné banky</li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body">
+        <h5 class="card-title"><i class="fa fa-ban text-danger"></i> Nejčastější důvody zamítnutí</h5>
+        <ul class="list-group list-group-flush">
+          
+            <li class="list-group-item text-muted">Žádné zamítnuté hypotéky</li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="row mb-4 g-4">
+  <div class="col-lg-6">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body">
+        <h5 class="card-title"><i class="fa fa-clock text-primary"></i> Poslední přidaní klienti</h5>
+        <div class="table-responsive">
+          <table class="table table-sm table-striped align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Jméno</th>
+                <th>Datum</th>
+                <th>Částka</th>
+                <th class="text-center">Akce</th>
+              </tr>
+            </thead>
+            <tbody>
+              
+              <tr><td colspan="4" class="text-muted">Žádní klienti</td></tr>
+              
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
   </div>
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card shadow-sm border-0">
-        <div class="card-body">
-          <h5 class="card-title mb-3"><i class="fa fa-th text-warning"></i> Heatmapa průměrné doby schválení podle banky a měsíce</h5>
-          <div class="table-responsive" aria-label="Heatmapa průměrné doby schválení">
-            <table class="table table-bordered text-center align-middle" style="min-width: 600px;">
-              <thead class="table-light">
-                <tr>
-                  <th>Banka / Měsíc</th>
-                  
-                </tr>
-              </thead>
-              <tbody>
-                
-              </tbody>
-            </table>
-          </div>
+  <div class="col-lg-6">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body">
+        <h5 class="card-title"><i class="fa fa-trophy text-warning"></i> TOP 5 největších hypoték</h5>
+        <div class="table-responsive">
+          <table class="table table-sm table-striped align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Jméno</th>
+                <th>Datum</th>
+                <th>Částka</th>
+                <th class="text-center">Akce</th>
+              </tr>
+            </thead>
+            <tbody>
+              
+              <tr><td colspan="4" class="text-muted">Žádné hypotéky</td></tr>
+              
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<div class="row mb-4 g-4">
+  <div class="col-lg-4">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body">
+        <h5 class="card-title"><i class="fa fa-exclamation-circle text-danger"></i> Klienti po termínu</h5>
+        <div class="table-responsive">
+          <table class="table table-sm table-striped align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Jméno</th>
+                <th>Krok</th>
+                <th>Deadline</th>
+                <th>Zpoždění</th>
+                <th class="text-center">Akce</th>
+              </tr>
+            </thead>
+            <tbody>
+              
+              <tr><td colspan="5" class="text-muted">Žádní klienti po termínu</td></tr>
+              
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body">
+        <h5 class="card-title"><i class="fa fa-history text-secondary"></i> Poslední změny</h5>
+        <ul class="list-group list-group-flush small">
+          
+          <li class="list-group-item text-muted">Žádné změny</li>
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body text-center">
+        <h5 class="card-title"><i class="fa fa-calculator text-success"></i> Průměrná výše hypotéky</h5>
+        <div class="display-5 fw-bold text-success mb-2">0 Kč</div>
+        <div class="text-muted">(ze všech klientů)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+const workflowLabels = ['co_financuje', 'navrh_financovani', 'vyber_banky', 'priprava_zadosti', 'kompletace_podkladu', 'podani_zadosti', 'odhad', 'schvalovani', 'priprava_uverove_dokumentace', 'podpis_uverove_dokumentace', 'priprava_cerpani', 'cerpani', 'zahajeni_splaceni', 'podminky_pro_splaceni', 'hotovo'];
+const workflowCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+const ctxPie = document.getElementById('workflowPieChart').getContext('2d');
+new Chart(ctxPie, {
+  type: 'pie',
+  data: {
+    labels: workflowLabels.map(l => l.replace(/_/g, ' ').replace('hotovo', 'Hotovo').replace(/\b\w/g, c => c.toUpperCase())),
+    datasets: [{
+      data: workflowCounts,
+      backgroundColor: [
+        '#0d6efd','#6c757d','#198754','#ffc107','#dc3545','#20c997','#6610f2','#fd7e14','#6f42c1','#0dcaf0','#adb5bd','#f8d7da','#b6d4fe','#d1e7dd','#198754'
+      ],
+    }]
+  },
+  options: {
+    plugins: {
+      legend: {position: 'bottom', labels: {color: '#e0e0e0', font: {size: 13}}}
+    }
+  }
+});
+// --- Pie chart pro banky ---
 const bankyLabels = [];
-const schvalenost = [];
-const zamitnutost = [];
-const prumery = [];
-const months = [];
-const schvaleneTimeline = ;
-const zamitnuteTimeline = ;
-// Bar chart - úspěšnost podle banky
-const ctxBanky = document.getElementById('bankyBarChart').getContext('2d');
-new Chart(ctxBanky, {
-  type: 'bar',
-  data: {
-    labels: bankyLabels,
-    datasets: [
-      {label: 'Schváleno', data: schvalenost, backgroundColor: '#198754'},
-      {label: 'Zamítnuto', data: zamitnutost, backgroundColor: '#dc3545'}
-    ]
-  },
-  options: {
-    plugins: {legend: {position: 'bottom'}},
-    scales: {y: {beginAtZero: true}},
-    responsive: true,
-    animation: {duration: 900}
-  }
-});
-// Line chart - trendy
-const ctxTrendy = document.getElementById('trendyLineChart').getContext('2d');
-new Chart(ctxTrendy, {
-  type: 'line',
-  data: {
-    labels: months,
-    datasets: [
-      {label: 'Schváleno', data: schvaleneTimeline, borderColor: '#198754', backgroundColor: 'rgba(25,135,84,0.1)', tension: 0.3, fill: true},
-      {label: 'Zamítnuto', data: zamitnuteTimeline, borderColor: '#dc3545', backgroundColor: 'rgba(220,53,69,0.1)', tension: 0.3, fill: true}
-    ]
-  },
-  options: {
-    plugins: {legend: {position: 'bottom'}},
-    scales: {y: {beginAtZero: true}},
-    responsive: true,
-    animation: {duration: 900}
-  }
-});
+const bankyCounts = [];
+if (bankyLabels.length > 0) {
+  const ctxBanky = document.getElementById('bankyPieChart').getContext('2d');
+  new Chart(ctxBanky, {
+    type: 'pie',
+    data: {
+      labels: bankyLabels,
+      datasets: [{
+        data: bankyCounts,
+        backgroundColor: [
+          '#0d6efd','#6c757d','#198754','#ffc107','#dc3545','#20c997','#6610f2','#fd7e14','#6f42c1','#0dcaf0','#adb5bd','#f8d7da','#b6d4fe','#d1e7dd','#198754'
+        ],
+      }]
+    },
+    options: {
+      plugins: {
+        legend: {position: 'bottom', labels: {color: '#23272b', font: {size: 13}}}
+      }
+    }
+  });
+}
 </script>
+</div>
 
 </div>
 <div class="sticky-bottom-nav d-lg-none">

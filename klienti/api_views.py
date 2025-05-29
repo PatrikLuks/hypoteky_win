@@ -28,6 +28,7 @@ class KlientFilter(FilterSet):
             return queryset.filter(**{value+'__isnull': True})
 
 class KlientViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsPoradceOrAdmin]
     queryset = Klient.objects.all()
     serializer_class = KlientSerializer
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
@@ -35,10 +36,18 @@ class KlientViewSet(viewsets.ModelViewSet):
     ordering_fields = ['datum', 'navrh_financovani_castka']
     search_fields = ['vyber_banky', 'co_financuje']  # 'jmeno' odstraněno, protože je šifrované a nelze jej vyhledávat
 
-    def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsPoradceOrAdmin()]
-        return [permissions.IsAuthenticated()]
+    def get_object(self):
+        # Umožní poradci upravovat všechny klienty, klientovi jen své
+        obj = super().get_object()
+        user = self.request.user
+        try:
+            role = user.userprofile.role
+        except Exception:
+            role = None
+        if role == 'klient' and obj.user != user:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied('Klient může upravovat pouze své záznamy.')
+        return obj
 
     def get_queryset(self):
         user = self.request.user
@@ -49,6 +58,12 @@ class KlientViewSet(viewsets.ModelViewSet):
         if role == 'klient':
             return Klient.objects.filter(user=user)
         return Klient.objects.all()
+
+    def get_permissions(self):
+        # Pro zápisové operace (POST, PUT, PATCH, DELETE) pouze poradce/admin, pro čtení stačí přihlášení
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsPoradceOrAdmin()]
+        return [permissions.IsAuthenticated()]
 
 class PoznamkaViewSet(viewsets.ModelViewSet):
     queryset = Poznamka.objects.all()  # <-- přidáno pro DRF router

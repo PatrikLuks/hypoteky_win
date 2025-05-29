@@ -121,6 +121,53 @@ Tento projekt je moderní webová aplikace pro správu hypoték určená finanč
 
 ---
 
+## 🧪 E2E testy (Playwright) – návod a best practices
+
+Projekt obsahuje automatizované end-to-end (e2e) testy pomocí [Playwright](https://playwright.dev/python/), které ověřují hlavní workflow aplikace přes reálné UI.
+
+### Jak spustit e2e testy
+
+1. Ujisti se, že máš nainstalovaný Playwright a pytest:
+   ```sh
+   pip install pytest playwright
+   playwright install
+   ```
+2. Spusť Django server (v jiném terminálu):
+   ```sh
+   python manage.py runserver
+   ```
+3. Spusť e2e testy:
+   ```sh
+   pytest tests_e2e_playwright.py
+   ```
+
+### Co e2e testy ověřují?
+- Přihlášení uživatele
+- Vytvoření nového klienta přes UI
+- Kontrola, že klient je v seznamu i detailu
+- (Lze snadno rozšířit o další scénáře: editace, workflow, exporty, notifikace...)
+
+### Jak přidat nový e2e scénář?
+- Přidej novou funkci do `tests_e2e_playwright.py` s prefixem `test_`
+- Používej Playwright API pro interakci s UI (vyplňování formulářů, klikání, assertions)
+- Vždy ověř, že test:
+  - čeká na správné načtení stránky (`wait_for_selector`)
+  - používá unikátní testovací data (např. jméno klienta)
+  - po sobě zanechává čistý stav (volitelné: smaž testovací data)
+
+### Ladění a snapshoty
+- Pro ladění můžeš v testu použít `page.screenshot(path='soubor.png')` nebo `print(page.url)`
+- Pokud test selže, zkontroluj screenshot a logy
+- Testy jsou navrženy tak, aby byly robustní vůči duplicitám (vybírají první výskyt v tabulce)
+
+### Best practices
+- Každý test by měl být nezávislý a opakovatelný
+- Používej unikátní hodnoty (např. jméno klienta s časovým razítkem)
+- Pokud testuješ mazání, ověř i chybové stavy (např. pokus o smazání neexistujícího klienta)
+- Rozšiřuj testy podle reálných uživatelských scénářů (viz sekce „Cíle testování“ v .github/copilot-instructions.md)
+
+---
+
 ## 📂 Struktura projektu (důležité složky)
 - `klienti/` – hlavní aplikace (modely, views, API, šablony, management commands)
 - `hypoteky/` – konfigurace projektu

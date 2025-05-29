@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid" role="main">
+  <h1 class="mb-4"><i class="fa fa-users text-primary"></i> Seznam klientů</h1>
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Jméno klienta</th>
+          <th>Datum založení</th>
+          <th>Co financuje</th>
+          <th>Návrh financování (%)</th>
+          <th>Návrh financování (částka)</th>
+          <th>Stav</th>
+          <th><span class="text-primary">Další krok</span></th>
+          <th>Akce</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for klient in klienti %}
+          <tr>
+            <td>{{ klient.jmeno }}</td>
+            <td>{{ klient.datum|date:"d.m.Y" }}</td>
+            <td>{{ klient.co_financuje }}</td>
+            <td>{{ klient.navrh_financovani_procento }} %</td>
+            <td>{% if klient.navrh_financovani_castka %}{{ klient.navrh_financovani_castka|floatformat:0|localize }} Kč{% else %}-{% endif %}</td>
+            <td>{{ klient.stav|default:'-' }}</td>
+            <td><span class="badge bg-primary">{{ klient.dalsi_krok|default:'-' }}</span></td>
+            <td>
+              <a href="{% url 'klient_detail' klient.pk %}" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Zobrazit detail"><i class="fa fa-eye"></i> Detail</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="8" class="text-muted">Žádní klienti</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

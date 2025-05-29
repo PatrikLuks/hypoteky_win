@@ -1,6 +1,6 @@
 <!-- Tento soubor slouží k zadání workspace-specifických instrukcí pro GitHub Copilot. Další informace: https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
 - Uživatel je chudý, ale ambiciózní student, který si nemůže dovolit jiné nástroje než Copilot, proto na Copilota spoléhá při cestě za lepší budoucností. Copilot by měl být maximálně nápomocný, trpělivý a poskytovat jasné, srozumitelné rady a návody.
-
+- Tento soubor pravidelně aktualizuj podle vývoje projektu a potřeb uživatele.
 - Nezapomeň, že uživatel je student, který se učí programovat a potřebuje detailní a trpělivé vysvětlení každého kroku, včetně příkladů a komentářů v kódu.
 
 # Kontext projektu
@@ -32,34 +32,71 @@ Každý klient prochází těmito kroky. Krok je vždy jednoznačně identifikov
 # Hlavní cíle a doporučení pro generovaný kód
 Aktuální cíle projektu – na co se má Copilot při generování kódu zaměřit:
 
-1. Pokrytí testy
-- Přidat testy pro UI a šablony – ověřit správné renderování, úplnost prvků a responsivitu (např. dashboard, reporting, detail klienta).
-- Pokrýt reporting a exporty – testovat funkčnost filtrů, grafů, heatmap a exportu do PDF.
-- Otestovat e-mailové notifikace – ověřit generování, odesílání a logování e-mailů.
-- Zajistit testy pro workflow a validace formulářů – ověřit, že klient může projít všemi 15 kroky workflow a validace funguje správně.
-- Přidat testy pro import/export do XLSX/CSV – ověřit správnost importu a exportu dat.
-- Zvážit snapshoty šablon a e2e testy (např. pomocí Selenium) pro ověření vzhledu a chování UI.
+1. Pokrytí klíčových funkcí testy a zvýšení spolehlivosti
+- Doplň unit a integrační testy pro všechny modely, pohledy a API endpointy (včetně edge-case scénářů a chybových stavů).
+- Zaměř se na testování importu/exportu klientů a hypoték (CSV, XLSX, PDF), včetně validace dat a chybových hlášek.
+- Otestuj generování, odesílání a logování e-mailových notifikací (např. deadliny, změny stavu, zamítnutí).
+- Přidej snapshot testy pro UI (různé velikosti obrazovky, tmavý/světlý režim) a e2e testy (Selenium/Playwright) pro hlavní workflow.
+- Ověř, že různé role mají správný přístup ke všem klíčovým view a API (poradce, admin, manažer).
 
-2. Bezpečnost a správa
-- Rozšířit testy dvoufaktorové autentizace (2FA) – ověřit reálné přihlášení s OTP, nejen existenci zařízení.
-- Doplnit testy rolí a oprávnění – včetně hraničních případů (změna role, přístup k API podle role).
-- Otestovat auditní log – ověřit, že všechny důležité akce (např. změna workflow, smazání klienta) se správně logují.
+2. Pokrytí edge-case scénářů a chybových stavů
+- Doplň testy pro importy/exporty s nevalidními daty, duplicitami, chybějícími poli, špatným formátem.
+- Otestuj chování API a UI při selhání externích služeb (e-mail, export, DB).
+- Ověř robustnost notifikací (např. neexistující e-mail, špatný deadline).
 
-3. Uživatelská zkušenost (UX)
-- Automaticky testovat responsivitu a tmavý režim (např. snapshoty).
-- Ověřit přístupnost (a11y) – aplikace musí být použitelná i pro uživatele se znevýhodněním.
+3. Rozšíření e2e a a11y testů
+- Přidej e2e testy (Playwright/Selenium) pro hlavní workflow (vytvoření klienta, změna stavu, export, notifikace).
+- Rozšiř a11y testy (axe, pa11y) na všechny klíčové view (formuláře, reporting, detail klienta).
+- Ověř ovládání klávesnicí, kontrast, popisky, správné role.
 
-4. Integrace a automatizace
-- Rozšířit testy REST API – pokrýt edge-case scénáře, chybové stavy a autorizaci.
-- Otestovat export do kalendáře (iCal) – ověřit validitu a použitelnost v Google/Outlook.
-- Přidat testy pro import klientů z CSV/XLSX.
+4. Testování a dokumentace automatizovaných reportů a e-mailů
+- Otestuj generování a doručování reportů e-mailem (včetně edge-case: prázdná data, velký objem).
+- Ověř logování a auditní stopu pro všechny automatizované akce.
+- Přidej testy pro šablony e-mailů (obsah, lokalizace, přílohy).
 
-5. Dokumentace
-- Doplnit README o příklady testování UI/reportingu.
-- Přidat doporučení pro vývojáře, jak správně přidávat nové testy.
+5. Rozšíření a aktualizace dokumentace
+- Přidej konkrétní příklady testování UI, reportingu, importu/exportu, CI/CD do README.
+- Sepiš best practices pro psaní testů, validaci vstupů, rozšiřování projektu.
+- Přidej onboarding sekci pro nové vývojáře (jak spustit projekt, testy, CI/CD).
 
-Shrnutí: Zaměř se na doplnění a rozšíření testů pro UI, reporting, exporty, šablony, validace, notifikace, workflow, role, auditní log, 2FA, import/export a kalendář. Zvaž snapshot/e2e testy a zlepši dokumentaci o konkrétní příklady a best practices.
+6. Ověření a rozšíření bezpečnostních testů
+- Otestuj 2FA v reálném přihlášení (OTP, recovery).
+- Ověř šifrování citlivých polí a auditní logování všech změn.
+- Pravidelně kontroluj a testuj oprávnění a role (včetně pokusů o zneužití).
 
+7. Příprava na rozšiřitelnost a integrace
+- Otestuj export deadlinů do iCal/Google/Outlook (validita, použitelnost).
+- Ověř REST API pro integraci s externími systémy (autorizace, limity, edge-case).
+- Připrav architekturu na snadné přidávání nových modulů (modulární struktura, jasné rozhraní).
+
+8. Uživatelská zkušenost, přístupnost a moderní UI
+- Otestuj a dolaď responsivitu UI (tabulky, grafy, formuláře) pro mobily, tablety i desktop.
+- Přidej možnost přepínání tmavého/světlého režimu a ověř jeho funkčnost testy.
+- Ověř přístupnost (a11y): role, aria-label, alt popisky, kontrast, ovládání klávesnicí.
+- Přidej testy pro automatizované reporty a jejich zasílání e-mailem.
+
+9. Dokumentace, best practices a onboarding
+- Rozšiř README o konkrétní příklady testování UI, reportingu, importu/exportu a CI/CD.
+- Sepiš doporučení pro vývojáře: jak psát nové testy, jak rozšiřovat projekt, jak validovat vstupy.
+- Přidej ukázky edge-case scénářů a best practices pro bezpečnost a správu dat.
+
+10. Integrace, automatizace a rozšiřitelnost
+- Otestuj export deadlinů do iCal/Google/Outlook kalendáře (validita a použitelnost souborů).
+- Nastav a dokumentuj CI/CD pipeline (např. GitHub Actions) pro automatizované spouštění testů a kontrolu kvality.
+- Ověř REST API: autorizace, chybové stavy, limity, edge-case scénáře.
+- Připrav projekt na snadné rozšíření (modulární architektura, jasné rozhraní mezi komponentami).
+
+11. Analytika a reporting
+- Otestuj generování pokročilých statistik (trendy, úspěšnost podle banky, průměrná doba schválení, heatmapy).
+- Ověř správnost a bezpečnost automatizovaných reportů zasílaných e-mailem.
+
+12. Důraz na čistotu, čitelnost a komentáře v kódu
+- Piš kód v češtině tam, kde je to vhodné (modely, proměnné, komentáře).
+- Dodržuj best practices Django a Pythonu, používej typové anotace a pojmenované konstanty.
+- Vždy přidávej komentáře a příklady pro studenty, kteří se učí programovat.
+
+
+Tyto cíle a doporučení vycházejí z aktuálního stavu projektu a zaměřují se na zvýšení kvality, bezpečnosti, použitelnosti a rozšiřitelnosti aplikace. Pomohou ti nejen při studiu, ale i při budoucím rozvoji projektu.
 
 ## Uživatelská zkušenost a UI
 
@@ -113,4 +150,3 @@ Shrnutí: Zaměř se na doplnění a rozšíření testů pro UI, reporting, exp
 
 ---
 
-Tento soubor pravidelně aktualizuj podle vývoje projektu a potřeb týmu.

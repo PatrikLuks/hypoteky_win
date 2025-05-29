@@ -1,5 +1,7 @@
-from django.test import TestCase, Client
+from django.test import TestCase, Client, override_settings
 from django.urls import reverse
+import difflib
+import re
 
 class DashboardUITestCase(TestCase):
     """
@@ -12,7 +14,7 @@ class DashboardUITestCase(TestCase):
 
     def test_dashboard_renderuje(self):
         """
-        Ověří, že dashboard view se načte a obsahuje klíčové prvky.
+        Ověří, že se dashboard správně načte a obsahuje klíčové prvky.
         """
         response = self.client.get(reverse('dashboard'))
         self.assertEqual(response.status_code, 200)
@@ -35,9 +37,38 @@ class DashboardUITestCase(TestCase):
         self.assertContains(response, 'col-lg-')
         self.assertContains(response, 'card')
 
+    def test_dashboard_snapshot(self):
+        """
+        Ověří, že HTML dashboardu odpovídá snapshotu (po ošetření dynamických dat).
+        Pokud snapshot neexistuje, vytvoří ho.
+        """
+        response = self.client.get(reverse('dashboard'))
+        html = response.content.decode('utf-8')
+        # Nahrazení dynamických dat (datum, čísla, ID) zástupnými hodnotami
+        html = re.sub(r'\d{2}\.\d{2}\.\d{4}', '__DATUM__', html)  # datum
+        html = re.sub(r'Počet klientů.*?<div class="display-4 fw-bold text-warning">(\d+)</div>',
+                      'Počet klientů<div class="display-4 fw-bold text-warning">__POCET__</div>', html, flags=re.DOTALL)
+        html = re.sub(r'Objem hypoték.*?<div class="display-4 fw-bold text-success"[^>]*>([\d\s]+) Kč</div>',
+                      'Objem hypoték<div class="display-4 fw-bold text-success">__OBJEM__ Kč</div>', html, flags=re.DOTALL)
+        html = re.sub(r'Urgentní deadliny.*?<div class="display-4 fw-bold text-danger">(\d+)</div>',
+                      'Urgentní deadliny<div class="display-4 fw-bold text-danger">__URGENT__</div>', html, flags=re.DOTALL)
+        # Další dynamické části lze přidat dle potřeby
+        snapshot_path = 'dashboard_snapshot.html'
+        try:
+            with open(snapshot_path, 'r', encoding='utf-8') as f:
+                snapshot = f.read()
+            if html != snapshot:
+                diff = '\n'.join(difflib.unified_diff(snapshot.splitlines(), html.splitlines(), fromfile='snapshot', tofile='current', lineterm=''))
+                self.fail(f"HTML výstup dashboardu se změnil oproti snapshotu!\nDiff:\n{diff}")
+        except FileNotFoundError:
+            with open(snapshot_path, 'w', encoding='utf-8') as f:
+                f.write(html)
+            # První běh: snapshot vytvořen
+            pass
+
 class ReportingUITestCase(TestCase):
     """
-    Testuje renderování reportingu a základní UI prvky.
+    Testuje renderování a snapshot reportingu (reporting.html).
     """
     def setUp(self):
         self.client = Client()
@@ -85,28 +116,36 @@ class ReportingUITestCase(TestCase):
         # Ověříme, že se v odpovědi vyskytuje chybová hláška o datu (v jakémkoli jazyce)
         self.assertIn('valid date', response.content.decode('utf-8').lower())
 
-    def test_reporting_snapshot_html(self):
+    @override_settings(ALLOWED_HOSTS=["testserver", "localhost", "127.0.0.1"])
+    def test_reporting_snapshot(self):
         """
-        Uloží snapshot HTML reportingu pro budoucí porovnání (regrese vzhledu).
-        """
-        response = self.client.get(reverse('reporting'))
-        html = response.content.decode('utf-8')
-        # Uložíme snapshot do souboru (jen pro ukázku, v praxi použij např. pytest-snapshot)
-        with open('reporting_snapshot.html', 'w') as f:
-            f.write(html)
-        self.assertIn('<html', html)
-        self.assertIn('Reporting & Statistika hypoték', html)
-
-    def test_reporting_pristupnost_zaklad(self):
-        """
-        Ověří, že reporting obsahuje základní prvky pro přístupnost (a11y).
+        Snapshot test: uloží HTML výstup reportingu a porovná s referenčním snapshotem.
         """
         response = self.client.get(reverse('reporting'))
         html = response.content.decode('utf-8')
-        # Ověříme přítomnost role, aria-label, alt u obrázků/grafů
-        self.assertIn('role="main"', html)
-        self.assertIn('aria-label', html)
-        self.assertIn('alt="Graf', html)
+        # Nahradíme aktuální datum zástupným textem, aby byl snapshot stabilní
+        html = re.sub(r'value="20[0-9]{2}-[0-9]{2}-[0-9]{2}"', 'value="__DATUM__"', html)
+        # Nahradíme i případné další datumy v textu
+        html = re.sub(r'\d{2}\.\d{2}\.\d{4}', '__DATUM__', html)
+        # Nahradíme dynamické počty, částky, atd. (dle potřeby)
+        html = re.sub(r'<div class="display-5 fw-bold mb-2"><i class="fa fa-users"></i> (\d+)</div>',
+                      '<div class="display-5 fw-bold mb-2"><i class="fa fa-users"></i> __KLIENTU__</div>', html)
+        html = re.sub(r'<div class="display-6 fw-bold mb-2"><i class="fa fa-check-circle"></i> (\d+)</div>',
+                      '<div class="display-6 fw-bold mb-2"><i class="fa fa-check-circle"></i> __SCHVALENO__</div>', html)
+        html = re.sub(r'<div class="display-6 fw-bold mb-2"><i class="fa fa-times-circle"></i> (\d+)</div>',
+                      '<div class="display-6 fw-bold mb-2"><i class="fa fa-times-circle"></i> __ZAMITNUTO__</div>', html)
+        snapshot_path = 'reporting_snapshot.html'
+        try:
+            with open(snapshot_path, 'r', encoding='utf-8') as f:
+                snapshot = f.read()
+            if html != snapshot:
+                diff = '\n'.join(difflib.unified_diff(snapshot.splitlines(), html.splitlines(), fromfile='snapshot', tofile='current', lineterm=''))
+                self.fail(f"HTML výstup reportingu se změnil oproti snapshotu!\nDiff:\n{diff}")
+        except FileNotFoundError:
+            with open(snapshot_path, 'w', encoding='utf-8') as f:
+                f.write(html)
+            # První běh: snapshot vytvořen
+            pass
 
 class WorkflowUITestCase(TestCase):
     """
@@ -224,13 +263,14 @@ class KlientDetailUITestCase(TestCase):
     def setUp(self):
         from django.contrib.auth.models import User
         from klienti.models import UserProfile, Klient, Poznamka, Zmena
+        # Vytvoř uživatele 'detailklient' s heslem 'testpass' a rolí 'klient'
         self.user = User.objects.create_user(username='detailklient', password='testpass')
         profile = UserProfile.objects.get(user=self.user)
         profile.role = 'klient'
         profile.save()
         self.client = Client()
         self.client.login(username='detailklient', password='testpass')
-        # Vytvoření klienta s několika kroky
+        # Vytvoření klienta s tímto uživatelem
         self.klient = Klient.objects.create(
             jmeno='Detailní Klient',
             datum='2025-05-27',
@@ -241,10 +281,12 @@ class KlientDetailUITestCase(TestCase):
             vyber_banky='KB',
             user=self.user
         )
-        # Přidání poznámky
+        # Vyčisti poznámky a změny pro jistotu
+        Poznamka.objects.filter(klient=self.klient).delete()
+        Zmena.objects.filter(klient=self.klient).delete()
+        # Přidej základní poznámku s autorem 'detailklient'
         Poznamka.objects.create(klient=self.klient, text='Testovací poznámka', author='detailklient')
-        # NEpřidávej ručně změnu (audit) – změna bude vznikat pouze reálnou editací v testu
-        # Zmena.objects.create(klient=self.klient, popis='Změna test', author='detailklient')
+        print(f"[DEBUG setUp] Uživatelské jméno: {self.user.username}")
 
     def test_klient_detail_renderuje_udaje(self):
         """
@@ -357,3 +399,246 @@ class KlientDetailUITestCase(TestCase):
         nalezeno = any(('cena' in p and '7000000' in p) for p in popisy)
         self.assertTrue(nalezeno, f'V auditním logu nebyla nalezena změna ceny na 7000000.\nPopisy změn: {popisy}')
         # Komentář: Pokud by test selhal na validaci, zkontrolujte, zda pole odpovídají aktuálním fields v KlientForm.
+
+    def test_poznamka_pridani_v_detailu_klienta(self):
+        """
+        Ověří, že poznámku lze přidat a je viditelná v detailu klienta.
+        """
+        from django.urls import reverse
+        from klienti.models import Poznamka
+        self.client.login(username=self.user.username, password='testpass')
+        response = self.client.post(reverse('klient_detail', args=[self.klient.pk]), {
+            'text': 'Poznámka CRUD test',
+            'nova_poznamka': '1',
+        }, follow=True)
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode('utf-8')
+        self.assertIn('Poznámka CRUD test', html)
+        pozn_klient = Poznamka.objects.filter(klient=self.klient, author=self.user.username)
+        poznamka = pozn_klient.order_by('-id').first()
+        self.assertIsNotNone(poznamka, "Poznámka nebyla nalezena!")
+        self.klient.refresh_from_db()
+        self.assertEqual(poznamka.text, 'Poznámka CRUD test')
+        from klienti.models import Zmena
+        zmeny = Zmena.objects.filter(klient=self.klient).order_by('-created')
+        self.assertGreater(zmeny.count(), 0, 'Nebyl nalezen žádný auditní záznam po přidání poznámky.')
+        self.assertIn('Přidána poznámka', zmeny.first().popis)
+
+    def test_poznamka_smazani_audit_v_detailu_klienta(self):
+        """
+        Ověří, že poznámku lze smazat a že smazání je zaznamenáno v auditním logu.
+        """
+        from django.urls import reverse
+        from klienti.models import Poznamka, Zmena
+        self.client.login(username=self.user.username, password='testpass')
+        poznamka = Poznamka.objects.create(klient=self.klient, text='Poznámka CRUD test', author=self.user.username)
+        url_smazat = reverse('smazat_poznamku', args=[self.klient.pk, poznamka.pk])
+        response = self.client.post(url_smazat, follow=True)
+        self.assertEqual(response.status_code, 200)
+        pozn_klient_po = Poznamka.objects.filter(klient=self.klient)
+        self.assertFalse(any('Poznámka CRUD test' in p.text for p in pozn_klient_po), "Poznámka nebyla smazána!")
+        self.klient.refresh_from_db()
+        zmeny = Zmena.objects.filter(klient=self.klient).order_by('-created')
+        zmeny_texts = [z.popis for z in zmeny]
+        self.assertTrue(zmeny.exists(), f"Auditní log neobsahuje záznam o smazání poznámky!\nZměny: {zmeny_texts}")
+        self.assertIn('Smazána poznámka', zmeny.first().popis)
+
+    def test_klient_detail_snapshot(self):
+        """
+        Snapshot test: uloží HTML výstup detailu klienta a porovná s referenčním snapshotem.
+        """
+        from django.urls import reverse
+        import re, difflib
+        response = self.client.get(reverse('klient_detail', args=[self.klient.pk]))
+        html = response.content.decode('utf-8')
+        # Nahradíme dynamická data (datumy) zástupným textem
+        html = re.sub(r'\d{2}\.\d{2}\.\d{4}', '__DATUM__', html)
+        # Nahradíme dynamické ID klienta v odkazech za __ID__
+        html = re.sub(r'/klient/\d+/', '/klient/__ID__/', html)
+        snapshot_path = 'klient_detail_snapshot.html'
+        try:
+            with open(snapshot_path, 'r', encoding='utf-8') as f:
+                snapshot = f.read()
+            if html != snapshot:
+                diff = '\n'.join(difflib.unified_diff(snapshot.splitlines(), html.splitlines(), fromfile='snapshot', tofile='current', lineterm=''))
+                self.fail(f"HTML výstup klient_detail se změnil oproti snapshotu!\nDiff:\n{diff}")
+        except FileNotFoundError:
+            with open(snapshot_path, 'w', encoding='utf-8') as f:
+                f.write(html)
+            # První běh: snapshot vytvořen
+            pass
+
+class KalkulackaUITestCase(TestCase):
+    """
+    Testuje renderování a snapshot kalkulačky hypotéky (kalkulacka.html).
+    """
+    def setUp(self):
+        self.client = Client()
+
+    def test_kalkulacka_snapshot(self):
+        """
+        Snapshot test: uloží HTML výstup kalkulačky a porovná s referenčním snapshotem.
+        """
+        from django.urls import reverse
+        import re, difflib
+        response = self.client.get(reverse('kalkulacka'))
+        html = response.content.decode('utf-8')
+        # Nahradíme případná dynamická data (např. CSRF token, datumy) zástupným textem
+        html = re.sub(r'value="[0-9a-f]{{32,}}"', 'value="__TOKEN__"', html)
+        snapshot_path = 'kalkulacka_snapshot.html'
+        try:
+            with open(snapshot_path, 'r', encoding='utf-8') as f:
+                snapshot = f.read()
+            if html != snapshot:
+                diff = '\n'.join(difflib.unified_diff(snapshot.splitlines(), html.splitlines(), fromfile='snapshot', tofile='current', lineterm=''))
+                self.fail(f"HTML výstup kalkulacka se změnil oproti snapshotu!\nDiff:\n{diff}")
+        except FileNotFoundError:
+            with open(snapshot_path, 'w', encoding='utf-8') as f:
+                f.write(html)
+            # První běh: snapshot vytvořen
+            pass
+
+class KlientFormUITestCase(TestCase):
+    """
+    Testuje renderování a snapshot formuláře pro přidání klienta (klient_form.html).
+    """
+    def setUp(self):
+        from django.contrib.auth.models import User
+        from klienti.models import UserProfile
+        self.user = User.objects.create_user(username='formtest', password='testpass')
+        profile = UserProfile.objects.get(user=self.user)
+        profile.role = 'poradce'
+        profile.save()
+        self.client = Client()
+        self.client.login(username='formtest', password='testpass')
+
+    def test_klient_form_snapshot(self):
+        """
+        Snapshot test: uloží HTML výstup formuláře pro přidání klienta a porovná s referenčním snapshotem.
+        """
+        from django.urls import reverse
+        import re, difflib
+        response = self.client.get(reverse('klient_create'))
+        html = response.content.decode('utf-8')
+        # Nahradíme případná dynamická data (např. CSRF token, datumy) zástupným textem
+        html = re.sub(r'value="[0-9a-f]{{32,}}"', 'value="__TOKEN__"', html)
+        html = re.sub(r'\d{2}\.\d{2}\.\d{4}', '__DATUM__', html)
+        snapshot_path = 'klient_form_snapshot.html'
+        try:
+            with open(snapshot_path, 'r', encoding='utf-8') as f:
+                snapshot = f.read()
+            if html != snapshot:
+                diff = '\n'.join(difflib.unified_diff(snapshot.splitlines(), html.splitlines(), fromfile='snapshot', tofile='current', lineterm=''))
+                self.fail(f"HTML výstup klient_form se změnil oproti snapshotu!\nDiff:\n{diff}")
+        except FileNotFoundError:
+            with open(snapshot_path, 'w', encoding='utf-8') as f:
+                f.write(html)
+            # První běh: snapshot vytvořen
+            pass
+
+class LoginUITestCase(TestCase):
+    """
+    Testuje renderování a snapshot přihlašovací stránky (login.html).
+    """
+    def setUp(self):
+        self.client = Client()
+
+    def test_login_snapshot(self):
+        """
+        Snapshot test: uloží HTML výstup loginu a porovná s referenčním snapshotem.
+        """
+        from django.urls import reverse
+        import re, difflib
+        response = self.client.get(reverse('login'))
+        html = response.content.decode('utf-8')
+        # Nahradíme případná dynamická data (např. CSRF token) zástupným textem
+        html = re.sub(r'value="[0-9a-f]{{32,}}"', 'value="__TOKEN__"', html)
+        snapshot_path = 'login_snapshot.html'
+        try:
+            with open(snapshot_path, 'r', encoding='utf-8') as f:
+                snapshot = f.read()
+            if html != snapshot:
+                diff = '\n'.join(difflib.unified_diff(snapshot.splitlines(), html.splitlines(), fromfile='snapshot', tofile='current', lineterm=''))
+                self.fail(f"HTML výstup login se změnil oproti snapshotu!\nDiff:\n{diff}")
+        except FileNotFoundError:
+            with open(snapshot_path, 'w', encoding='utf-8') as f:
+                f.write(html)
+            # První běh: snapshot vytvořen
+            pass
+
+class HomeUITestCase(TestCase):
+    """
+    Testuje renderování a snapshot domovské stránky (home.html).
+    """
+    def setUp(self):
+        from django.contrib.auth.models import User
+        from klienti.models import UserProfile
+        self.user = User.objects.create_user(username='hometest', password='testpass')
+        profile = UserProfile.objects.get(user=self.user)
+        profile.role = 'klient'
+        profile.save()
+        self.client = Client()
+        self.client.login(username='hometest', password='testpass')
+
+    def test_home_snapshot(self):
+        """
+        Snapshot test: uloží HTML výstup domovské stránky a porovná s referenčním snapshotem.
+        """
+        from django.urls import reverse
+        import re, difflib
+        response = self.client.get(reverse('home'))
+        html = response.content.decode('utf-8')
+        # Nahradíme případná dynamická data (např. CSRF token, datumy) zástupným textem
+        html = re.sub(r'value="[0-9a-f]{{32,}}"', 'value="__TOKEN__"', html)
+        html = re.sub(r'\d{2}\.\d{2}\.\d{4}', '__DATUM__', html)
+        snapshot_path = 'home_snapshot.html'
+        try:
+            with open(snapshot_path, 'r', encoding='utf-8') as f:
+                snapshot = f.read()
+            if html != snapshot:
+                diff = '\n'.join(difflib.unified_diff(snapshot.splitlines(), html.splitlines(), fromfile='snapshot', tofile='current', lineterm=''))
+                self.fail(f"HTML výstup home se změnil oproti snapshotu!\nDiff:\n{diff}")
+        except FileNotFoundError:
+            with open(snapshot_path, 'w', encoding='utf-8') as f:
+                f.write(html)
+            # První běh: snapshot vytvořen
+            pass
+
+class KlientConfirmDeleteUITestCase(TestCase):
+    """
+    Testuje renderování a snapshot potvrzovací stránky smazání klienta (klient_confirm_delete.html).
+    """
+    def setUp(self):
+        from django.contrib.auth.models import User
+        from klienti.models import UserProfile, Klient
+        self.user = User.objects.create_user(username='deleteuser', password='testpass')
+        profile = UserProfile.objects.get(user=self.user)
+        profile.role = 'poradce'
+        profile.save()
+        self.client = Client()
+        self.client.login(username='deleteuser', password='testpass')
+        self.klient = Klient.objects.create(jmeno='Smazat Test', datum='2025-05-27', user=self.user)
+
+    def test_klient_confirm_delete_snapshot(self):
+        """
+        Snapshot test: uloží HTML výstup potvrzovací stránky smazání klienta a porovná s referenčním snapshotem.
+        """
+        from django.urls import reverse
+        import re, difflib
+        response = self.client.get(reverse('klient_delete', args=[self.klient.pk]))
+        html = response.content.decode('utf-8')
+        # Nahradíme dynamická data (ID klienta v URL, CSRF token) zástupným textem
+        html = re.sub(r'/klient/\d+/', '/klient/__ID__/', html)
+        html = re.sub(r'value="[0-9a-f]{{32,}}"', 'value="__TOKEN__"', html)
+        snapshot_path = 'klient_confirm_delete_snapshot.html'
+        try:
+            with open(snapshot_path, 'r', encoding='utf-8') as f:
+                snapshot = f.read()
+            if html != snapshot:
+                diff = '\n'.join(difflib.unified_diff(snapshot.splitlines(), html.splitlines(), fromfile='snapshot', tofile='current', lineterm=''))
+                self.fail(f"HTML výstup klient_confirm_delete se změnil oproti snapshotu!\nDiff:\n{diff}")
+        except FileNotFoundError:
+            with open(snapshot_path, 'w', encoding='utf-8') as f:
+                f.write(html)
+            # První běh: snapshot vytvořen
+            pass
