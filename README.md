@@ -73,6 +73,70 @@ Tento projekt je moderní webová aplikace pro správu hypoték určená finanč
 
 ---
 
+## ⚡ Rychlý start (Windows, macOS, Linux)
+
+### 1. Klonování repozitáře
+```sh
+git clone https://github.com/PatrikLuks/hypoteky_django.git
+cd hypoteky
+```
+
+### 2. Vytvoření a aktivace virtuálního prostředí
+- **macOS/Linux:**
+  ```sh
+  python3 -m venv .venv
+  source .venv/bin/activate
+  ```
+- **Windows:**
+  ```sh
+  python -m venv .venv
+  .venv\Scripts\activate
+  ```
+
+### 3. Instalace závislostí
+- **macOS/Linux (doporučeno):**
+  ```sh
+  pip install -r requirements.txt
+  ```
+- **Windows (pokud selže mysqlclient):**
+  ```sh
+  pip install mysql-connector-python
+  pip install -r requirements.txt
+  ```
+  (nebo odkomentuj řádek s mysql-connector-python v requirements.txt)
+
+### 4. Nastavení databáze
+- Pro MySQL je potřeba mít běžící server a vytvořenou DB (viz DB_SETUP_MYSQL.md)
+- Pro testování lze použít SQLite (úprava settings.py)
+
+### 5. Migrace a superuživatel
+```sh
+python manage.py migrate
+python manage.py createsuperuser
+```
+
+### 6. Spuštění serveru
+```sh
+python manage.py runserver
+```
+
+### 7. (Volitelné) Testy a Playwright
+```sh
+pip install pytest playwright
+playwright install
+pytest tests_e2e_playwright.py
+```
+
+---
+
+## 🛠️ Nejčastější problémy na Windows
+- Pokud selže instalace `mysqlclient`, nainstaluj Visual C++ build tools nebo použij `mysql-connector-python` (viz výše).
+- Pokud pip nenajde Python, zkontroluj, že je přidán do PATH.
+- Pokud máš problém s venv, použij `python -m venv .venv` a aktivuj `.venv\Scripts\activate`.
+- Pokud Playwright hlásí chybu, spusť `playwright install`.
+
+---
+
 ## 🏦 Workflow hypotéky (kroky)
 1. Jméno klienta
 2. Co chce klient financovat

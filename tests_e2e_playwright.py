@@ -79,6 +79,183 @@ def test_vytvoreni_klienta():
         assert page.is_visible('text=Byt v Praze')
         browser.close()
 
+@pytest.mark.e2e
+def test_editace_klienta():
+    """
+    E2E test: Editace existujícího klienta, ověření změny v detailu i seznamu.
+    """
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        # Přihlášení
+        page.goto('http://localhost:8000/login/')
+        page.fill('input[name="username"]', 'testlist')
+        page.fill('input[name="password"]', 'testpass')
+        page.click('button[type="submit"]')
+        # Počkej na přesměrování
+        try:
+            page.wait_for_selector('text=Dashboard', timeout=3000)
+        except Exception:
+            try:
+                page.wait_for_selector('text=Seznam klientů', timeout=2000)
+            except Exception:
+                page.wait_for_selector('text=Moje hypotéka', timeout=2000)
+        # Najdi klienta v seznamu
+        page.goto('http://localhost:8000/klienti/')
+        page.wait_for_selector('text=Testovací Klient E2E', timeout=3000)
+        row = page.locator('tr', has_text='Testovací Klient E2E')
+        row.locator('a:has-text("Detail")').first.click()
+        page.wait_for_selector('text=Detail klienta', timeout=3000)
+        # Klikni na tlačítko Upravit (místo Editace)
+        page.click('a:has-text("Upravit")')
+        page.wait_for_selector('input[name="co_financuje"]', timeout=3000)
+        # Změň pole "Co chce klient financovat"
+        page.fill('input[name="co_financuje"]', 'Rodinný dům')
+        page.click('button[type="submit"]')
+        # Ověř změnu v detailu
+        page.wait_for_selector('text=Detail klienta', timeout=3000)
+        assert page.is_visible('text=Rodinný dům')
+        # Ověř změnu v seznamu
+        page.goto('http://localhost:8000/klienti/')
+        page.wait_for_selector('text=Rodinný dům', timeout=3000)
+        assert page.is_visible('text=Rodinný dům')
+        browser.close()
+
+# POZOR: Tento test není robustní vůči duplicitám a slouží pouze jako ukázka edge-case selhání.
+# Doporučujeme používat pouze test_smazani_klienta_unikat pro ostré testování.
+@pytest.mark.skip(reason="Test není robustní vůči duplicitám, používej test_smazani_klienta_unikat.")
+def test_smazani_klienta():
+    """
+    E2E test: Smazání klienta přes UI, ověření že není v seznamu.
+    """
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        # Přihlášení
+        page.goto('http://localhost:8000/login/')
+        page.fill('input[name="username"]', 'testlist')
+        page.fill('input[name="password"]', 'testpass')
+        page.click('button[type="submit"]')
+        # Počkej na přesměrování
+        try:
+            page.wait_for_selector('text=Dashboard', timeout=3000)
+        except Exception:
+            try:
+                page.wait_for_selector('text=Seznam klientů', timeout=2000)
+            except Exception:
+                page.wait_for_selector('text=Moje hypotéka', timeout=2000)
+        # Najdi klienta v seznamu
+        page.goto('http://localhost:8000/klienti/')
+        page.wait_for_selector('text=Testovací Klient E2E', timeout=3000)
+        row = page.locator('tr', has_text='Testovací Klient E2E')
+        row.locator('a:has-text("Detail")').first.click()
+        page.wait_for_selector('text=Detail klienta', timeout=3000)
+        # Klikni na tlačítko Smazat
+        page.click('a:has-text("Smazat")')
+        # Po kliknutí na Smazat čekej na nadpis potvrzovací stránky
+        page.wait_for_selector('text=Potvrzení smazání klienta', timeout=3000)
+        # Potvrď smazání
+        page.click('button:has-text("Ano, smazat")')
+        # Ověř, že klient už není v seznamu
+        page.goto('http://localhost:8000/klienti/')
+        page.wait_for_timeout(1000)
+        assert not page.is_visible('text=Testovací Klient E2E')
+        browser.close()
+
+@pytest.mark.e2e
+def test_smazani_klienta_unikat():
+    """
+    E2E test: Vytvoření a smazání unikátního klienta přes UI, ověření že není v seznamu.
+    """
+    from datetime import datetime
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        # Přihlášení
+        page.goto('http://localhost:8000/login/')
+        page.fill('input[name="username"]', 'testlist')
+        page.fill('input[name="password"]', 'testpass')
+        page.click('button[type="submit"]')
+        # Počkej na přesměrování
+        try:
+            page.wait_for_selector('text=Dashboard', timeout=3000)
+        except Exception:
+            try:
+                page.wait_for_selector('text=Seznam klientů', timeout=2000)
+            except Exception:
+                page.wait_for_selector('text=Moje hypotéka', timeout=2000)
+        # Vytvoř unikátního klienta
+        unik_jmeno = f"Testovací Klient E2E {datetime.now().strftime('%Y%m%d%H%M%S')}"
+        page.goto('http://localhost:8000/klient/pridat/')
+        page.fill('input[name="jmeno"]', unik_jmeno)
+        page.fill('input[name="datum"]', datetime.now().date().isoformat())
+        page.fill('input[name="co_financuje"]', 'Byt na testování')
+        page.fill('input[name="cena"]', '1234567')
+        page.fill('input[name="navrh_financovani"]', 'Test hypotéka')
+        page.fill('input[name="navrh_financovani_procento"]', '80')
+        page.click('button[type="submit"]')
+        # Ověř, že klient je v seznamu
+        page.goto('http://localhost:8000/klienti/')
+        page.wait_for_selector(f'text={unik_jmeno}', timeout=3000)
+        assert page.is_visible(f'text={unik_jmeno}')
+        # Otevři detail a smaž klienta
+        row = page.locator('tr', has_text=unik_jmeno)
+        row.locator('a:has-text("Detail")').first.click()
+        page.wait_for_selector('text=Detail klienta', timeout=3000)
+        page.click('a:has-text("Smazat")')
+        page.wait_for_selector('text=Potvrzení smazání klienta', timeout=3000)
+        page.click('button:has-text("Ano, smazat")')
+        # Ověř, že klient už není v seznamu
+        page.goto('http://localhost:8000/klienti/')
+        page.wait_for_timeout(1000)
+        assert not page.is_visible(f'text={unik_jmeno}')
+        browser.close()
+
+@pytest.mark.e2e
+def test_export_report_pdf():
+    """
+    E2E test: Vytvoření klienta a export reportu do PDF přes UI.
+    """
+    from datetime import datetime
+    import os
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(accept_downloads=True)
+        # Přihlášení
+        page.goto('http://localhost:8000/login/')
+        page.fill('input[name="username"]', 'testlist')
+        page.fill('input[name="password"]', 'testpass')
+        page.click('button[type="submit"]')
+        # Počkej na přesměrování
+        try:
+            page.wait_for_selector('text=Dashboard', timeout=3000)
+        except Exception:
+            try:
+                page.wait_for_selector('text=Seznam klientů', timeout=2000)
+            except Exception:
+                page.wait_for_selector('text=Moje hypotéka', timeout=2000)
+        # Vytvoř unikátního klienta
+        unik_jmeno = f"Testovací Klient E2E {datetime.now().strftime('%Y%m%d%H%M%S')}"
+        page.goto('http://localhost:8000/klient/pridat/')
+        page.fill('input[name="jmeno"]', unik_jmeno)
+        page.fill('input[name="datum"]', datetime.now().date().isoformat())
+        page.fill('input[name="co_financuje"]', 'Byt na export')
+        page.fill('input[name="cena"]', '1234567')
+        page.fill('input[name="navrh_financovani"]', 'Test hypotéka')
+        page.fill('input[name="navrh_financovani_procento"]', '80')
+        page.click('button[type="submit"]')
+        # Přejdi na reporting a spusť export do PDF
+        page.goto('http://localhost:8000/reporting/')
+        page.wait_for_selector('a:has-text("Export do PDF")', timeout=3000)
+        with page.expect_download() as download_info:
+            page.click('a:has-text("Export do PDF")')
+        download = download_info.value
+        path = download.path()
+        assert path is not None and os.path.exists(path)
+        # Ověř, že PDF není prázdné
+        assert os.path.getsize(path) > 1000  # typicky několik kB
+        browser.close()
+
 # Poznámka: Pro běh testu spusťte Django server (python manage.py runserver) a Playwright musí být nainstalován:
 # pip install pytest playwright
 # playwright install

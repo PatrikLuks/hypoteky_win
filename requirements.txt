@@ -1,5 +1,8 @@
 Django>=4.2
+# Pro MySQL na macOS/Linux doporučujeme mysqlclient (rychlejší, C extension)
 mysqlclient>=2.2
+# Pro Windows lze použít pure-python mysql-connector-python (snazší instalace, pomalejší, pro vývoj OK)
+# mysql-connector-python>=8.0
 openpyxl>=3.1
 reportlab>=4.0
 matplotlib>=3.7
@@ -7,6 +10,8 @@ djangorestframework>=3.14
 django-filter>=23.5
 drf-yasg>=1.21
 django-otp>=1.2
-two-factor-auth>=1.15
+django-two-factor-auth>=1.15
 phonenumberslite>=8.13
 Faker>=24.0
+pytest>=8.0
+playwright>=1.44
