@@ -1,0 +1,70 @@
+name: CI – Django tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test_hypoteky
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent" --health-interval=10s --health-timeout=5s --health-retries=5
+    env:
+      DJANGO_SETTINGS_MODULE: hypoteky.settings
+      MYSQL_HOST: 127.0.0.1
+      MYSQL_PORT: 3306
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      MYSQL_DATABASE: test_hypoteky
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install -r requirements.txt
+      - name: Wait for MySQL
+        run: |
+          for i in {1..30}; do
+            mysqladmin ping -h 127.0.0.1 -uroot -proot && break
+            sleep 2
+          done
+      - name: Run migrations
+        run: |
+          source .venv/bin/activate
+          python manage.py migrate
+      - name: Run tests
+        run: |
+          source .venv/bin/activate
+          python manage.py test
+      - name: Run a11y batch tests (pa11y)
+        run: |
+          chmod +x ./pa11y_batch.sh
+          ./pa11y_batch.sh
+      - name: Cleanup workspace
+        run: |
+          chmod +x ./cleanup_workspace.sh
+          ./cleanup_workspace.sh
+      - name: Archive a11y and snapshot reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a11y-snapshots
+          path: |
+            pa11y_a11y_reports_*/
+            snapshot_html_*/
+            *.zip

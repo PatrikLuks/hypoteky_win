@@ -47,13 +47,16 @@ def import_klienti_from_csv(file: IO, encoding: str = 'utf-8') -> int:
         if not row.get('jmeno'):
             print(f"[IMPORT] Řádek {idx+1} přeskočen - chybí jméno")
             continue  # povinné pole
-        # Převod datových typů
+        # --- Validace povinného pole datum ---
         datum = None
         if row.get('datum'):
             try:
                 datum = datetime.datetime.strptime(row['datum'], '%Y-%m-%d').date()
             except Exception as e:
                 print(f"[IMPORT] Chyba při převodu datumu: {row['datum']} ({e})")
+        if not datum:
+            print(f"[IMPORT] Řádek {idx+1} přeskočen - chybí nebo je nevalidní datum")
+            continue  # datum je povinné pole
         castka = None
         if row.get('navrh_financovani_castka'):
             try:
@@ -123,6 +126,7 @@ def import_klienti_from_xlsx(file: IO) -> int:
         if not row_data.get('jmeno'):
             print(f"[IMPORT XLSX] Řádek {idx} přeskočen - chybí jméno")
             continue
+        # --- Validace povinného pole datum ---
         datum = None
         if row_data.get('datum'):
             try:
@@ -133,6 +137,9 @@ def import_klienti_from_xlsx(file: IO) -> int:
                     datum = datum.date()
             except Exception as e:
                 print(f"[IMPORT XLSX] Chyba při převodu datumu: {row_data['datum']} ({e})")
+        if not datum:
+            print(f"[IMPORT XLSX] Řádek {idx} přeskočen - chybí nebo je nevalidní datum")
+            continue  # datum je povinné pole
         castka = None
         if row_data.get('navrh_financovani_castka'):
             try:

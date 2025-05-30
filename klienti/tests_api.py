@@ -113,3 +113,32 @@ class KlientAPITestCase(APITestCase):
         client2.credentials(HTTP_AUTHORIZATION='Bearer ' + token2)
         response = client2.patch(url, {'vyber_banky': 'Raiffeisen'}, format='json')
         self.assertIn(response.status_code, [status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND])
+
+    def test_klient_create_unauthorized(self):
+        """
+        Ověří, že bez autentizace není možné vytvořit klienta (edge-case: neautorizovaný přístup).
+        """
+        client = APIClient()  # bez tokenu
+        url = reverse('klient-list')
+        data = {
+            'jmeno': 'Neoprávněný',
+            'datum': date.today(),
+            'vyber_banky': 'KB',
+            'navrh_financovani_castka': 1000000
+        }
+        response = client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_klient_create_invalid_data(self):
+        """
+        Ověří, že API správně odmítne nevalidní vstup (chybí povinné pole 'datum').
+        """
+        url = reverse('klient-list')
+        data = {
+            'jmeno': 'Chybí datum',
+            'vyber_banky': 'KB',
+            'navrh_financovani_castka': 1000000
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('datum', response.data)

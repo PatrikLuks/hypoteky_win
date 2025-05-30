@@ -23,7 +23,8 @@ class SifrovaniTestCase(TestCase):
 
     def test_decrypt_orm(self):
         """
-        ORM musí správně dešifrovat data uložená v šifrovaných polích.
+        Ověří, že ORM správně dešifruje data uložená v šifrovaných polích.
+        Testuje, že aplikace zůstává plně funkční i při šifrování citlivých údajů.
         """
         klient = Klient.objects.get(pk=self.klient.pk)
         self.assertEqual(klient.jmeno, "Testovací Klient")
@@ -34,7 +35,9 @@ class SifrovaniTestCase(TestCase):
 
     def test_data_in_db_are_encrypted(self):
         """
-        Data v databázi musí být fyzicky nečitelná (neuložená v otevřeném tvaru).
+        Ověří, že citlivá data jsou v DB fyzicky šifrovaná (nečitelná v otevřeném tvaru).
+        Tento test je důležitý pro bezpečnost a GDPR compliance.
+        Příklad: pokud někdo získá přímý přístup k DB, nesmí přečíst jména klientů.
         """
         # Nejprve smaž závislé záznamy, pak klienty
         with connection.cursor() as cursor:

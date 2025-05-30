@@ -57,14 +57,29 @@ class DashboardUITestCase(TestCase):
         try:
             with open(snapshot_path, 'r', encoding='utf-8') as f:
                 snapshot = f.read()
-            if html != snapshot:
-                diff = '\n'.join(difflib.unified_diff(snapshot.splitlines(), html.splitlines(), fromfile='snapshot', tofile='current', lineterm=''))
-                self.fail(f"HTML výstup dashboardu se změnil oproti snapshotu!\nDiff:\n{diff}")
+            # Porovnání snapshotu s aktuálním HTML
+            diff = list(difflib.unified_diff(snapshot.splitlines(), html.splitlines()))
+            assert not diff, f"Snapshot neodpovídá!\n{chr(10).join(diff)}"
         except FileNotFoundError:
+            # Pokud snapshot neexistuje, vytvoří ho
             with open(snapshot_path, 'w', encoding='utf-8') as f:
                 f.write(html)
-            # První běh: snapshot vytvořen
-            pass
+            print(f"Snapshot uložen do {snapshot_path}")
+
+    # ---
+    # Ukázka a11y testu pomocí Playwright a axe-core (vyžaduje Playwright a axe)
+    # Tento test je pouze ilustrační, v praxi je vhodné spouštět jej v e2e prostředí
+    #
+    # from playwright.sync_api import sync_playwright
+    # def test_dashboard_accessibility():
+    #     with sync_playwright() as p:
+    #         browser = p.chromium.launch()
+    #         page = browser.new_page()
+    #         page.goto('http://localhost:8000/dashboard/')
+    #         results = page.evaluate("axe.run()")
+    #         assert results['violations'] == []
+    #         browser.close()
+    # ---
 
 class ReportingUITestCase(TestCase):
     """

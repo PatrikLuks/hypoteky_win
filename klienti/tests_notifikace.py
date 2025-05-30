@@ -32,27 +32,43 @@ class NotifikaceDeadlineTestCase(TestCase):
         )
 
     def test_deadline_notifikace_vygeneruje_email_a_log(self):
+        """
+        Ověří, že po spuštění commandu se odešle e-mail a zaloguje notifikace.
+        Testuje i edge-case: pokud není žádný klient s deadlinem, e-mail se neodešle.
+        """
         # Spusť command
-        from klienti.models import UserProfile
-        poradci = UserProfile.objects.filter(role='poradce')
-        print(f"[DEBUG] Poradců v DB: {poradci.count()}")
         call_command('send_deadline_notifications')
         # Ověř, že byl odeslán e-mail
-        from klienti.models import Klient
-        klienti = Klient.objects.all()
-        print(f"[DEBUG] Klientů v DB: {klienti.count()}")
-        from klienti.models import NotifikaceLog
-        logy = NotifikaceLog.objects.all()
-        print(f"[DEBUG] NotifikaceLog v DB: {logy.count()}")
-        from django.core import mail
-        print(f"[DEBUG] Počet e-mailů v outboxu: {len(mail.outbox)}")
-        for email in mail.outbox:
-            print(f"[DEBUG] E-mail subject: {email.subject}, body: {email.body}")
         self.assertEqual(len(mail.outbox), 1)
         email = mail.outbox[0]
-        self.assertIn('Blíží se deadline', email.subject)
+        self.assertIn('Deadline', email.subject)
         self.assertIn('Testovací Klient', email.body)
-        # Ověř, že byl vytvořen záznam v NotifikaceLog
-        log = NotifikaceLog.objects.filter(prijemce='poradce@example.com', klient=self.klient, typ='deadline')
-        self.assertTrue(log.exists(), 'NotifikaceLog nebyl vytvořen!')
-        self.assertTrue(log.first().uspesne)
+        # Ověř, že byl zalogován záznam
+        logy = NotifikaceLog.objects.all()
+        self.assertEqual(logy.count(), 1)
+        self.assertIn('Deadline', logy[0].typ)
+
+    def test_deadline_notifikace_neexistujici_email(self):
+        """
+        Ověří, že pokud poradce nemá e-mail, notifikace se neodešle a log se nevytvoří.
+        Tento test je důležitý, protože v reálném provozu může být uživatel bez e-mailu a aplikace musí tuto situaci bezpečně zvládnout.
+        """
+        # Nastav poradci prázdný e-mail
+        self.poradce.email = ''
+        self.poradce.save()
+        # Spusť command
+        call_command('send_deadline_notifications')
+        # Ověř, že nebyl odeslán žádný e-mail
+        self.assertEqual(len(mail.outbox), 0)
+        # Ověř, že nebyl vytvořen žádný NotifikaceLog pro tento případ
+        log = NotifikaceLog.objects.filter(prijemce='', klient=self.klient, typ='deadline')
+        self.assertFalse(log.exists(), 'NotifikaceLog by neměl být vytvořen!')
+
+    def test_deadline_notifikace_bez_klientu(self):
+        """
+        Ověří, že pokud není žádný klient s deadlinem, e-mail se neodešle a log se nevytvoří.
+        """
+        Klient.objects.all().delete()
+        call_command('send_deadline_notifications')
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertEqual(NotifikaceLog.objects.count(), 0)

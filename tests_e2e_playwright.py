@@ -256,6 +256,37 @@ def test_export_report_pdf():
         assert os.path.getsize(path) > 1000  # typicky několik kB
         browser.close()
 
+@pytest.mark.e2e
+def test_a11y_dashboard():
+    """
+    Ověří přístupnost dashboardu pomocí axe-core (vyžaduje playwright-axe).
+    Pokud není playwright-axe nainstalován, test se přeskočí.
+    """
+    try:
+        import importlib
+        if importlib.util.find_spec('playwright_axe') is None:
+            import pytest
+            pytest.skip("playwright-axe není nainstalován")
+        from playwright_axe import Axe
+    except ImportError:
+        import pytest
+        pytest.skip("playwright-axe není nainstalován")
+    from playwright.sync_api import sync_playwright
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto('http://localhost:8000/login/')
+        page.fill('input[name="username"]', 'testlist')
+        page.fill('input[name="password"]', 'testpass')
+        page.click('button[type="submit"]')
+        page.wait_for_selector('text=Dashboard', timeout=3000)
+        axe = Axe(page)
+        axe.inject()
+        results = axe.run()
+        violations = [v for v in results['violations'] if v['impact'] in ('critical', 'serious')]
+        assert not violations, f"A11y chyby: {violations}"
+        browser.close()
+
 # Poznámka: Pro běh testu spusťte Django server (python manage.py runserver) a Playwright musí být nainstalován:
 # pip install pytest playwright
 # playwright install

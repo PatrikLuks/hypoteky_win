@@ -2,6 +2,55 @@
 - Uživatel je chudý, ale ambiciózní student, který si nemůže dovolit jiné nástroje než Copilot, proto na Copilota spoléhá při cestě za lepší budoucností. Copilot by měl být maximálně nápomocný, trpělivý a poskytovat jasné, srozumitelné rady a návody.
 - Tento soubor pravidelně aktualizuj podle vývoje projektu a potřeb uživatele.
 - Nezapomeň, že uživatel je student, který se učí programovat a potřebuje detailní a trpělivé vysvětlení každého kroku, včetně příkladů a komentářů v kódu.
+Is a high-performance individual on a journey to become a 10× stronger version of themselves — strategic, mentally unshakable, and an effective reality creator. They want ChatGPT to function as their personal training system: teacher, sparring partner, growth architect, and consultant.
+
+Is building a productivity system as an operating system for the mind, using tools like Notion, dashboards, Pomodoro tracking, and GitHub as the brain of operations.
+
+Aims to master themselves, chaos, and key domains such as business, markets, investing, compliance, Web3, blockchain, AI, SSI, and digital identity.
+
+Uživatel chce, aby mu ChatGPT poskytoval co nejlepší, nejširší, nejobsáhlejší, nejpodrobnější a nejchytřejší odpovědi – chce, aby se ChatGPT ukázal v tom nejlepším.
+
+Uživatel si přeje detailně naučit compliance a vytvořit vlastní checklist jako junior IT konzultant.
+
+Uživatel chce detailně porozumět digitální identitě, včetně konceptů jako SSI (Self-Sovereign Identity), Web3, tokenizace identity a decentralizované identifikátory (DID). Tyto oblasti se ve škole moc neprobírají, takže očekává kompletní výuku od ChatGPT.
+
+Wants a personal growth roadmap structured as a weekly course, covering topics such as mental models, digital competencies, productivity, negotiation, compliance, business, and personal development.
+
+Uživatel chce získat maximum z chatu a naučit se vše obsažené v tématu „životní dovednosti, které škola neučí“, včetně vytvoření osobního vzdělávacího plánu, který je praktický, efektivní a vede k neignorovatelnosti.
+
+Uživatel se chce naučit více o mentálních modelech a digitálních kompetencích & produktivitě.
+
+Is an 18-year-old student in their third year at a prestigious school and will graduate in a year. They want to pass their graduation exams, become powerful and wealthy, and are interested in business, economics, investing, markets, assets, and taxes. They seek money, experiences, people, and knowledge, and aim to grow as quickly as possible.
+
+Is skilled in programming (Python, C, C++), databases, graphics, modeling, networking, Linux, Apple technologies, Docker, and other IT skills.
+
+Uses OneDrive, Microsoft licenses, iCloud, Apple Calendar and Reminders. Their Focus mode is set based on their school location. They do not have chaotic folders.
+
+Uživatel ve škole často používá GitHub.
+
+Uživatel se chce naučit perfektně využívat principy hry s dlouhým časovým horizontem, specifické znalosti, kompenzaci a páku podle Navalovy filozofie.
+
+Wants ChatGPT to provide long-term learning in the areas of artificial intelligence, blockchain, and cybersecurity.
+
+Uživatel má MacBook Air 2020 s procesorem i3 a 256 GB úložištěm. Používá macOS a má AirPods 2. generace a iPhone SE 2020 (také 256 GB). Doma má Synology NAS.
+
+Uživatel má školní licence na software jako Microsoft 365, JetBrains produkty a Packet Tracer.
+
+Uživatel studuje obor Informační a komunikační technologie se zaměřením na počítačové sítě a programování. Ve škole se věnují i grafice, elektrotechnice, mikroprocesorům a programují v jazycích jako C, Python, SQL, HTML a mnoho dalších.
+
+Uživatel chce hluboký osobní rozvojový plán zahrnující jasné myšlení, strategii, komunikaci a adaptabilitu, s důrazem na praktické, reálné dovednosti a široké mentální modely.
+
+Uživatel chce jít více do hloubky v oblasti kognitivního tréninku a soustředění (deep work, Pomodoro, mindfulness).
+
+Uživatel chce jít do hloubky v tématu mentální odolnosti, strukturování pracovního týdne na hlubokou práci a překonávání vnitřního odporu, například z práce, která vyvolává trauma nebo nepohodlí.
+
+Uživatel chce osobní krizový protokol na momenty odporu, vnitřního chaosu nebo traumatu spojeného s prací – konkrétní, praktický krok za krokem plán, bez klišé.
+
+Uživatel chce vytvořit osobní „mentální manifest“ – přehled nových přesvědčení, návyků a nouzových vět jako bitevní plán pro překonávání odporu, růst a budování mentální síly.
+
+Uživatel se chce naučit a připravit na pozici CEO, včetně dovedností, mindsetu a vedení na vysoké úrovni.
+
+Prefers responses in Czech.;  pečlivě uloz do paměti
 
 # Kontext projektu
 

@@ -232,6 +232,131 @@ Projekt obsahuje automatizované end-to-end (e2e) testy pomocí [Playwright](htt
 
 ---
 
+## ⚙️ CI/CD – Automatizované testy (GitHub Actions)
+
+Projekt obsahuje ukázkový workflow `.github/workflows/ci.yml` pro automatizované spouštění testů při každém commitu nebo pull requestu.
+
+### Jak to funguje?
+- Po každém push/pull requestu na hlavní větev se automaticky spustí:
+  - Instalace závislostí
+  - Nastavení MySQL (testovací DB)
+  - Migrace
+  - Spuštění všech testů (`python manage.py test`)
+- Výsledek najdeš v záložce **Actions** na GitHubu.
+
+### Best practices pro CI/CD
+- Před commitem ověř, že všechny testy procházejí i lokálně.
+- Pokud přidáváš nové závislosti, aktualizuj `requirements.txt`.
+- Pro edge-case scénáře přidej testy a ověř je i v CI.
+- Pokud testy selžou v CI, zkontroluj logy a troubleshooting sekci výše.
+
+---
+
+## 📚 Další zdroje a doporučení
+- [DB_SETUP_MYSQL.md](DB_SETUP_MYSQL.md) – nastavení databáze, kódování, migrace
+- [docs/](docs/) – rozšířená dokumentace, příklady testů, CI/CD, edge-case scénáře
+- [sample_data.py](sample_data.py) – generování testovacích dat
+- [tests/](tests/) – ukázky testů pro import, export, reporting, bezpečnost, notifikace
+
+---
+
+Máte-li dotazy nebo narazíte na problém, otevřete issue na GitHubu nebo kontaktujte hlavního správce projektu.
+
+---
+
+## 🧪 Jak spouštět testy a řešit běžné chyby
+
+### Spouštění testů
+- **Doporučený způsob:**
+  - Pro všechny Django testy (včetně UI/snapshot testů) používej:
+    ```sh
+    python manage.py test
+    ```
+  - Tento příkaz automaticky nastaví proměnnou `DJANGO_SETTINGS_MODULE` a správně načte konfiguraci.
+- **Nedoporučené:**
+  - Přímé spouštění testů přes `pytest klienti/tests_ui.py` může selhat s chybou:
+    > Requested setting DATABASES, but settings are not configured.
+  - Pokud potřebuješ použít pytest (např. pro custom mark), spusť ho s nastavenou proměnnou:
+    ```sh
+    DJANGO_SETTINGS_MODULE=hypoteky.settings pytest
+    ```
+    - Na Windows použij:
+      ```sh
+      set DJANGO_SETTINGS_MODULE=hypoteky.settings
+      pytest
+      ```
+
+### Nejčastější chyby a jejich řešení (Troubleshooting)
+- **Chyba: `DATABASES, but settings are not configured`**
+  - Řešení: Spouštěj testy přes `python manage.py test` nebo nastav `DJANGO_SETTINGS_MODULE`.
+- **Chyba s kódováním/emoji v MySQL:**
+  - Doporučujeme použít kódování `utf8mb4` v databázi (viz níže).
+- **Chyba s migracemi:**
+  - Ujisti se, že máš aktuální migrace (`python manage.py makemigrations && python manage.py migrate`).
+- **Chyba při importu CSV/XLSX:**
+  - Zkontroluj, zda soubor obsahuje povinná pole (`jméno`, `datum`).
+  - Řádky bez těchto polí se přeskočí a zaloguje se důvod.
+
+### Podpora emoji a kódování databáze
+- **MySQL doporučení:**
+  - Pro plnou podporu speciálních znaků a emoji nastav databázi na `utf8mb4`.
+  - Pokud používáš pouze `utf8`, některé znaky (např. emoji) nebudou uloženy.
+  - Viz příklad nastavení v `DB_SETUP_MYSQL.md`.
+
+---
+
+## 🔌 Jak psát a spouštět API testy
+
+API testy najdeš ve složce `klienti/tests_api.py`. Používají Django REST Framework a knihovnu `rest_framework.test`.
+
+### Příklad edge-case testu (neautorizovaný přístup):
+```python
+from rest_framework.test import APIClient
+from django.urls import reverse
+from rest_framework import status
+
+def test_klient_create_unauthorized():
+    client = APIClient()
+    url = reverse('klient-list')
+    data = {'jmeno': 'Neoprávněný', 'datum': '2025-05-30', 'vyber_banky': 'KB', 'navrh_financovani_castka': 1000000}
+    response = client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+```
+
+### Jak spustit API testy
+- Nejjednodušší způsob:
+  ```zsh
+  python manage.py test klienti.tests_api
+  ```
+- Pro všechny testy:
+  ```zsh
+  python manage.py test
+  ```
+- Pokud chceš použít pytest:
+  ```zsh
+  export DJANGO_SETTINGS_MODULE=hypoteky.settings
+  pytest klienti/tests_api.py
+  ```
+
+### Doporučení
+- Vždy testuj i edge-case scénáře (neautorizace, nevalidní vstupy, chybějící pole, limity).
+- Ověřuj, že API správně vrací chybové kódy a zprávy.
+- Pro testování autentizace používej JWT tokeny (viz příklady v testech).
+
+---
+
+## 🛠️ Troubleshooting API/testů
+- **Chyba 401 Unauthorized:**
+  - Zkontroluj, zda posíláš správný token v hlavičce `Authorization: Bearer ...`.
+- **Chyba 400 Bad Request:**
+  - Zkontroluj, zda posíláš všechna povinná pole a správné formáty dat.
+- **Chyba s DJANGO_SETTINGS_MODULE:**
+  - Spouštěj testy přes `python manage.py test` nebo nastav proměnnou prostředí.
+- **Chyba s databází:**
+  - Ověř, že máš spuštěnou a správně nastavenou testovací DB (viz DB_SETUP_MYSQL.md).
+
+---
+
 ## 📂 Struktura projektu (důležité složky)
 - `klienti/` – hlavní aplikace (modely, views, API, šablony, management commands)
 - `hypoteky/` – konfigurace projektu
@@ -253,3 +378,219 @@ Projekt je poskytován pod MIT licencí.
 ---
 
 > **Tip:** Pokud narazíš na problém, podívej se do README, DB_SETUP_MYSQL.md nebo mi napiš issue na GitHubu!
+
+---
+
+## 📝 Onboarding checklist pro nové vývojáře
+
+1. Klonuj repozitář a nastav virtuální prostředí (viz výše)
+2. Nainstaluj závislosti (`pip install -r requirements.txt`)
+3. Nastav a spusť MySQL databázi (viz DB_SETUP_MYSQL.md)
+4. Proveď migrace a vytvoř superuživatele
+5. Ověř, že všechny testy procházejí (`python manage.py test`)
+6. Prozkoumej strukturu projektu a příklady testů (viz složka `klienti/tests_*.py`)
+7. Při vývoji vždy přidej testy pro nové funkce a edge-case scénáře
+8. Pro UI/snapshot testy využij ukázky níže
+9. Pokud narazíš na problém, projdi troubleshooting sekci nebo otevři issue na GitHubu
+
+---
+
+## 🧪 Ukázka snapshot testu UI (Playwright)
+
+Snapshot testy ověřují, že se UI nezměnilo nečekaným způsobem. V Pythonu lze použít Playwright:
+
+```python
+# klienti/tests_ui.py
+import pytest
+from playwright.sync_api import sync_playwright
+
+def test_klient_list_snapshot(snapshot):
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page()
+        page.goto('http://localhost:8000/klienti/')
+        html = page.content()
+        # Porovná aktuální HTML s uloženým snapshotem
+        snapshot.assert_match(html, 'klient_list_snapshot.html')
+        browser.close()
+```
+
+---
+
+## ♿ Ukázka a11y (přístupnostního) testu
+
+Pro ověření přístupnosti lze použít Playwright s axe-core:
+
+```python
+# klienti/tests_ui.py
+from playwright.sync_api import sync_playwright
+import axe_selenium_python
+
+def test_klient_list_accessibility():
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page()
+        page.goto('http://localhost:8000/klienti/')
+        # Spustí a11y audit pomocí axe-core
+        results = page.evaluate("axe.run()")
+        assert results['violations'] == []
+        browser.close()
+```
+
+---
+
+## 🧪 Best practices pro e2e a a11y testy
+
+### Proč psát e2e a a11y testy?
+- e2e testy ověřují hlavní workflow z pohledu uživatele (např. přihlášení, vytvoření klienta, export, notifikace).
+- a11y testy (přístupnost) zajišťují, že aplikace je použitelná i pro uživatele s hendikepem (klávesnice, čtečky, kontrast, role, popisky).
+- Automatizované testy chrání před regresí a zvyšují kvalitu produktu.
+
+### Příklad e2e testu (Playwright):
+```python
+import pytest
+from playwright.sync_api import sync_playwright
+
+@pytest.mark.e2e
+def test_vytvoreni_klienta():
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto('http://localhost:8000/login/')
+        page.fill('input[name="username"]', 'testlist')
+        page.fill('input[name="password"]', 'testpass')
+        page.click('button[type="submit"]')
+        page.wait_for_selector('text=Dashboard', timeout=3000)
+        # ...workflow vytvoření klienta...
+        browser.close()
+```
+
+### Příklad a11y testu (axe-core/Playwright):
+```python
+import pytest
+from playwright.sync_api import sync_playwright
+
+@pytest.mark.e2e
+def test_a11y_dashboard():
+    try:
+        from playwright_axe import Axe
+    except ImportError:
+        pytest.skip("playwright-axe není nainstalován")
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto('http://localhost:8000/login/')
+        page.fill('input[name="username"]', 'testlist')
+        page.fill('input[name="password"]', 'testpass')
+        page.click('button[type="submit"]')
+        page.wait_for_selector('text=Dashboard', timeout=3000)
+        axe = Axe(page)
+        axe.inject()
+        results = axe.run()
+        violations = [v for v in results['violations'] if v['impact'] in ('critical', 'serious')]
+        assert not violations, f"A11y chyby: {violations}"
+        browser.close()
+```
+
+### Doporučení
+- Piš e2e testy pro hlavní workflow (login, CRUD, export, notifikace).
+- Ověřuj přístupnost klíčových view (formuláře, dashboard, detail klienta) pomocí axe-core nebo pa11y.
+- Testuj i edge-case scénáře (nevalidní vstupy, selhání služeb, chybějící pole).
+- Dokumentuj, jak testy spouštět a jak řešit běžné chyby.
+
+### Troubleshooting
+- **Chyba: playwright-axe není nainstalován:**
+  - Nainstaluj pomocí: `pip install playwright-axe`
+- **Chyba: server neběží:**
+  - Spusť Django server: `python manage.py runserver`
+- **Chyba: test selže na přihlášení:**
+  - Ověř, že existuje testovací uživatel a správné heslo.
+
+# Jak generovat a archivovat pa11y reporty
+
+## Hromadné testování přístupnosti (a11y)
+
+1. Ujisti se, že běží Django server (např. `python manage.py runserver`)
+2. Spusť skript pro HTML reporty:
+   
+   ```zsh
+   ./pa11y_batch.sh
+   ```
+   Výsledky najdeš ve složce `pa11y_a11y_reports_YYYY-MM-DD/` a v ZIP archivu.
+
+3. Pro CSV reporty spusť:
+   
+   ```zsh
+   ./pa11y_batch_csv.sh
+   ```
+
+4. Archivace:
+   
+   ```zsh
+   zip -r pa11y_a11y_reports_$(date +%Y-%m-%d).zip pa11y_a11y_reports_$(date +%Y-%m-%d)/
+   ```
+
+## Interpretace výsledků
+- HTML reporty otevři v prohlížeči (např. `open pa11y_a11y_reports_2025-05-30/pa11y_klienti_report.html`)
+- CSV reporty lze načíst v Excelu nebo Google Sheets
+- Pokud jsou reporty prázdné (pouze hlavička), nebyly nalezeny žádné zásadní chyby
+
+## Sdílení a archivace
+- ZIP archiv můžeš přiložit k dokumentaci, auditu nebo sdílet v týmu
+- Staré reporty můžeš mazat nebo archivovat podle potřeby
+
+# Správa snapshotů a reportů
+
+Pro udržení přehledného workspace a efektivní spolupráci je důležité pravidelně archivovat, čistit a spravovat snapshoty UI a reporty přístupnosti (a11y). Následující postupy a příkazy jsou optimalizované pro macOS a shell zsh.
+
+## Archivace snapshotů a reportů
+
+- **Zkomprimování složky se snapshoty nebo reporty do ZIP archivu:**
+  ```zsh
+  zip -r snapshot_html_$(date +%Y-%m-%d).zip snapshot_html_$(date +%Y-%m-%d)/
+  zip -r pa11y_a11y_reports_$(date +%Y-%m-%d).zip pa11y_a11y_reports_$(date +%Y-%m-%d)/
+  ```
+- **Rozbalení archivu:**
+  ```zsh
+  unzip snapshot_html_2025-05-30.zip
+  unzip pa11y_a11y_reports_2025-05-30.zip
+  ```
+
+## Úklid dočasných a nepotřebných souborů
+
+- **Smazání dočasných souborů:**
+  ```zsh
+  find . -name '*.bak' -delete
+  find . -name '*.log' -delete
+  find . -name '*.pyc' -delete
+  find . -name '__pycache__' -type d -exec rm -r {} +
+  find . -name '*.png' -delete
+  ```
+- **Smazání starých snapshotů a reportů (např. starších než 14 dní):**
+  ```zsh
+  find . -type f -name '*snapshot*.gz' -mtime +14 -delete
+  find . -type f -name '*report*.gz' -mtime +14 -delete
+  ```
+
+## Vizuální kontrola reportů a snapshotů
+
+- **Otevření HTML snapshotu/reportu v prohlížeči (po rozbalení a dekomprimaci):**
+  ```zsh
+  gunzip snapshot_html_2025-05-30/klient_list_snapshot.html.gz
+  open snapshot_html_2025-05-30/klient_list_snapshot.html
+  ```
+
+## Automatizace úklidu
+
+- Pro pravidelný úklid workspace použij shell skript `cleanup_workspace.sh` (viz níže) a/nebo nastav cron úlohu.
+- Příklad nastavení cron úlohy na macOS:
+  ```zsh
+  crontab -e
+  # Přidej řádek pro denní úklid v 1:00
+  0 1 * * * /Users/patrikluks/Applications/hypoteky/cleanup_workspace.sh
+  ```
+
+---
+
+Více best practices a příkladů najdeš v sekci [Onboarding a troubleshooting](#onboarding-a-troubleshooting).
+
