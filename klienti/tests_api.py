@@ -142,3 +142,61 @@ class KlientAPITestCase(APITestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('datum', response.data)
+
+    def test_klient_create_extremni_hodnoty_a_formaty(self):
+        """
+        Ověří, že API správně odmítne extrémní hodnoty a špatné formáty:
+        - příliš dlouhé jméno
+        - záporná a extrémně vysoká částka
+        - špatný formát data
+        - speciální znaky a SQL injection v poli
+        """
+        url = reverse('klient-list')
+        # Příliš dlouhé jméno
+        data = {
+            'jmeno': 'A' * 300,
+            'datum': date.today(),
+            'vyber_banky': 'KB',
+            'navrh_financovani_castka': 1000000
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        # Záporná částka
+        data = {
+            'jmeno': 'Záporná částka',
+            'datum': date.today(),
+            'vyber_banky': 'KB',
+            'navrh_financovani_castka': -500000
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        # Extrémně vysoká částka
+        data = {
+            'jmeno': 'Extrémní částka',
+            'datum': date.today(),
+            'vyber_banky': 'KB',
+            'navrh_financovani_castka': 999999999999
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        # Špatný formát data
+        data = {
+            'jmeno': 'Špatné datum',
+            'datum': 'neplatné datum',
+            'vyber_banky': 'KB',
+            'navrh_financovani_castka': 1000000
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        # SQL injection v poli
+        data = {
+            'jmeno': "'; DROP TABLE klienti;--",
+            'datum': date.today(),
+            'vyber_banky': 'KB',
+            'navrh_financovani_castka': 1000000
+        }
+        response = self.client.post(url, data, format='json')
+        # Očekáváme odmítnutí nebo bezpečné uložení bez vlivu na DB
+        self.assertIn(response.status_code, [status.HTTP_201_CREATED, status.HTTP_400_BAD_REQUEST])
+        # Ověř, že DB nebyla poškozena
+        self.assertTrue(Klient.objects.exists())

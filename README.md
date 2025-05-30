@@ -395,6 +395,48 @@ Projekt je poskytován pod MIT licencí.
 
 ---
 
+# Onboarding – rychlý start pro nové vývojáře
+
+Tato sekce ti umožní rychle začít pracovat na projektu, pochopit strukturu workspace a efektivně využívat všechny automatizace a testy. Doporučeno pro každého nového člena týmu i při návratu k projektu po delší době.
+
+## Struktura projektu
+- `klienti/` – hlavní Django aplikace (modely, API, testy, import/export, notifikace)
+- `hypoteky/` – konfigurace projektu (settings, urls)
+- `tests/` – checklisty, best practices, onboarding, troubleshooting
+- `run_all_checks.sh` – spustí všechny testy a úklid workspace v jednom kroku
+- `cleanup_workspace.sh` – smaže dočasné soubory, archivuje reporty/snapshoty
+- `pa11y_batch.sh` – hromadné a11y testy
+- `snapshot_html_*/`, `pa11y_a11y_reports_*/` – snapshoty UI a a11y reporty (archivace, kontrola)
+
+## Základní příkazy (macOS, zsh)
+```zsh
+# Aktivace virtuálního prostředí
+source venv/bin/activate
+# Instalace závislostí
+pip install -r requirements.txt
+# Spuštění serveru
+python manage.py runserver
+# Spuštění všech testů a úklidu
+./run_all_checks.sh
+```
+
+## Doporučený workflow před commitem
+1. Spusť `./run_all_checks.sh` a zkontroluj výstup
+2. Pokud některý test selže, využij checklisty v `tests/` (onboarding, troubleshooting)
+3. Proveď úklid workspace (`./cleanup_workspace.sh`)
+4. Commitni a pushni změny na GitHub
+
+## Další zdroje
+- [Onboarding checklist](tests/onboarding_checklist.md)
+- [Troubleshooting checklist](tests/troubleshooting_checklist.md)
+- [Best practices & code review](tests/code_review_checklist.md)
+
+---
+
+Tuto sekci pravidelně aktualizuj podle vývoje projektu a zkušeností z provozu. Pokud narazíš na problém, začni v adresáři `tests/` nebo se ptej zkušenějších kolegů.
+
+---
+
 ## 🧪 Ukázka snapshot testu UI (Playwright)
 
 Snapshot testy ověřují, že se UI nezměnilo nečekaným způsobem. V Pythonu lze použít Playwright:
