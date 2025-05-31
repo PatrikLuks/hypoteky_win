@@ -68,3 +68,20 @@ jobs:
             pa11y_a11y_reports_*/
             snapshot_html_*/
             *.zip
+      - name: Install Playwright (pro E2E/UI testy)
+        run: |
+          source .venv/bin/activate
+          pip install playwright
+          python -m playwright install --with-deps
+      - name: Spusť E2E/UI testy (Playwright)
+        run: |
+          chmod +x ./run_e2e_with_server.sh
+          ./run_e2e_with_server.sh
+      - name: Spusť bezpečnostní kontrolu requirements
+        run: |
+          chmod +x ./check_requirements_security.sh
+          ./check_requirements_security.sh
+      - name: Spusť údržbové skripty
+        run: |
+          chmod +x ./full_workspace_maintenance.sh
+          ./full_workspace_maintenance.sh

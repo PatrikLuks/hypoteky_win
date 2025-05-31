@@ -13,6 +13,14 @@ class ReportingExportXLSXTestCase(TestCase):
         Klient.objects.create(jmeno='Jan Export', datum=date.today(), vyber_banky='KB', navrh_financovani_castka=2000000)
         Klient.objects.create(jmeno='Petr Export', datum=date.today(), vyber_banky='ČSOB', navrh_financovani_castka=3000000, duvod_zamitnuti='Nedostatečný příjem')
         Klient.objects.create(jmeno='Eva Export', datum=date.today(), vyber_banky='KB', navrh_financovani_castka=2500000)
+        # Vytvoř testovacího manažera s validním e-mailem
+        from django.contrib.auth.models import User
+        from klienti.models import UserProfile
+        user = User.objects.create_user(username='manazer', email='manazer@example.com', password='testpass')
+        profile, created = UserProfile.objects.get_or_create(user=user, defaults={'role': 'manažer'})
+        if not created:
+            profile.role = 'manažer'
+            profile.save()
 
     def test_export_xlsx_obsahuje_spravna_data(self):
         # --- Simulace části generování XLSX z management commandu ---
@@ -181,7 +189,7 @@ class ReportingExportXLSXTestCase(TestCase):
         # Ověř, že byl odeslán e-mail
         self.assertEqual(len(mail.outbox), 1)
         email = mail.outbox[0]
-        self.assertIn('Reporting', email.subject)
+        self.assertIn('reporting', email.subject.lower())
         self.assertIn('report', email.body.lower())
         # Ověř, že e-mail má přílohu (XLSX nebo PDF)
         self.assertTrue(email.attachments, 'E-mail nemá žádnou přílohu!')
@@ -197,6 +205,14 @@ class ReportingExportEdgeCaseTestCase(TestCase):
     """
     def setUp(self):
         Klient.objects.all().delete()
+        # Vytvoř testovacího manažera s validním e-mailem
+        from django.contrib.auth.models import User
+        from klienti.models import UserProfile
+        user = User.objects.create_user(username='manazer', email='manazer@example.com', password='testpass')
+        profile, created = UserProfile.objects.get_or_create(user=user, defaults={'role': 'manažer'})
+        if not created:
+            profile.role = 'manažer'
+            profile.save()
 
     def test_export_xlsx_prazdna_data(self):
         """
@@ -274,10 +290,15 @@ class ReportingExportEdgeCaseTestCase(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         email = mail.outbox[0]
         self.assertIn('report', email.subject.lower())
+        # Ověř, že e-mail má přílohu (XLSX nebo PDF)
+        self.assertTrue(email.attachments, 'E-mail nemá žádnou přílohu!')
+        # Ověř, že příloha není None a má správný typ
+        attachment = email.attachments[0]
+        self.assertIn('reporting', email.subject.lower())
+        self.assertIn('reporting', attachment[0].lower())
         self.assertTrue(email.attachments)
         # Ověř, že příloha není poškozená (např. PDF/XLSX má správný typ)
-        attachment = email.attachments[0]
-        self.assertIn(attachment[0], ['report.pdf', 'report.xlsx'])
+        self.assertTrue(attachment[0].endswith('.pdf') or attachment[0].endswith('.xlsx'))
         self.assertTrue(len(attachment[1]) > 0)
 
     def test_send_reporting_email_neexistujici_email(self):

@@ -381,59 +381,71 @@ Projekt je poskytován pod MIT licencí.
 
 ---
 
-## 📝 Onboarding checklist pro nové vývojáře
-
-1. Klonuj repozitář a nastav virtuální prostředí (viz výše)
-2. Nainstaluj závislosti (`pip install -r requirements.txt`)
-3. Nastav a spusť MySQL databázi (viz DB_SETUP_MYSQL.md)
-4. Proveď migrace a vytvoř superuživatele
-5. Ověř, že všechny testy procházejí (`python manage.py test`)
-6. Prozkoumej strukturu projektu a příklady testů (viz složka `klienti/tests_*.py`)
-7. Při vývoji vždy přidej testy pro nové funkce a edge-case scénáře
-8. Pro UI/snapshot testy využij ukázky níže
-9. Pokud narazíš na problém, projdi troubleshooting sekci nebo otevři issue na GitHubu
-
----
-
-# Onboarding – rychlý start pro nové vývojáře
+# Onboarding a rychlý start pro nové vývojáře
 
 Tato sekce ti umožní rychle začít pracovat na projektu, pochopit strukturu workspace a efektivně využívat všechny automatizace a testy. Doporučeno pro každého nového člena týmu i při návratu k projektu po delší době.
 
-## Struktura projektu
-- `klienti/` – hlavní Django aplikace (modely, API, testy, import/export, notifikace)
-- `hypoteky/` – konfigurace projektu (settings, urls)
-- `tests/` – checklisty, best practices, onboarding, troubleshooting
-- `run_all_checks.sh` – spustí všechny testy a úklid workspace v jednom kroku
-- `cleanup_workspace.sh` – smaže dočasné soubory, archivuje reporty/snapshoty
-- `pa11y_batch.sh` – hromadné a11y testy
-- `snapshot_html_*/`, `pa11y_a11y_reports_*/` – snapshoty UI a a11y reporty (archivace, kontrola)
+## 1. Požadavky
+- macOS, zsh
+- Python 3.9+ (doporučeno 3.11)
+- Node.js (pro Playwright E2E testy)
+- MySQL 8+
 
-## Základní příkazy (macOS, zsh)
+## 2. První spuštění projektu
 ```zsh
-# Aktivace virtuálního prostředí
-source venv/bin/activate
-# Instalace závislostí
+# Klonuj repozitář a přejdi do složky
+cd hypoteky
+
+# Vytvoř a aktivuj virtuální prostředí
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Nainstaluj závislosti
 pip install -r requirements.txt
-# Spuštění serveru
+pip install playwright
+python -m playwright install --with-deps
+
+# Nastav MySQL (viz DB_SETUP_MYSQL.md)
+# Proveď migrace
+python manage.py migrate
+
+# Vytvoř superuživatele (volitelné)
+python manage.py createsuperuser
+
+# Spusť server
 python manage.py runserver
-# Spuštění všech testů a úklidu
-./run_all_checks.sh
 ```
 
-## Doporučený workflow před commitem
-1. Spusť `./run_all_checks.sh` a zkontroluj výstup
-2. Pokud některý test selže, využij checklisty v `tests/` (onboarding, troubleshooting)
-3. Proveď úklid workspace (`./cleanup_workspace.sh`)
-4. Commitni a pushni změny na GitHub
+## 3. Spuštění všech testů (unit, integration, E2E, a11y)
+```zsh
+# Aktivuj venv
+source .venv/bin/activate
 
-## Další zdroje
-- [Onboarding checklist](tests/onboarding_checklist.md)
-- [Troubleshooting checklist](tests/troubleshooting_checklist.md)
-- [Best practices & code review](tests/code_review_checklist.md)
+# Spusť všechny testy a údržbu workspace
+./run_all_checks.sh
+
+# Nebo pouze E2E/UI testy s automatickým serverem:
+./run_e2e_with_server.sh
+```
+
+## 4. CI/CD a best practices
+- Každý push/pull request spouští automatizované testy a údržbu (viz `.github/workflows/ci.yml`).
+- Výsledky testů a reporty najdeš v `test-results/`, `pa11y_a11y_reports_*/`, `snapshot_html_*/`.
+- Dodržuj checklisty v `E2E_TESTING_CHECKLIST.md` a `README_snapshot_a11y_management.md`.
+
+## 5. Přidání nového testu
+- Unit/integration testy: `klienti/tests_*.py`, `tests/`
+- E2E/UI testy: `tests_e2e_playwright.py`
+- a11y/snapshot: `pa11y_batch.sh`, `compare_snapshots.sh`
+
+## 6. Troubleshooting
+- Pokud testy selžou, zkontroluj logy a výstupy v terminálu.
+- Ověř, že server běží a port 8000 není blokován.
+- Pro obnovu workspace použij `restore_archives.sh` nebo `backup_workspace.sh`.
 
 ---
 
-Tuto sekci pravidelně aktualizuj podle vývoje projektu a zkušeností z provozu. Pokud narazíš na problém, začni v adresáři `tests/` nebo se ptej zkušenějších kolegů.
+> Tento onboarding je určen pro studenty i zkušené vývojáře. Pokud narazíš na problém, začni od checklistu a logů, nebo se ptej v týmu.
 
 ---
 
@@ -635,4 +647,14 @@ Pro udržení přehledného workspace a efektivní spolupráci je důležité pr
 ---
 
 Více best practices a příkladů najdeš v sekci [Onboarding a troubleshooting](#onboarding-a-troubleshooting).
+
+---
+
+## Správa snapshotů a a11y reportů (automatizace v CI/CD)
+
+Podrobné informace najdete v souboru `README_snapshot_a11y_management.md`.
+
+- Snapshoty UI a a11y reporty jsou generovány a kontrolovány automaticky při každém commitu (viz workflow `.github/workflows/ci.yml`).
+- Výsledky najdete v artefaktech buildu na GitHubu.
+- Pro troubleshooting a správu viz doporučení v přiloženém README.
 

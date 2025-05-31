@@ -1,4 +1,7 @@
 #!/bin/zsh
+# Popis: Úklid workspace – odstranění dočasných, zálohovacích a nepotřebných souborů.
+# Autor: Patrik Luks, 2025
+# Tento skript smaže soubory typu *.pyc, *~, zálohy a další nečistoty.
 # cleanup_workspace.sh
 # Automatizovaný úklid workspace pro projekt hypoteky (macOS, zsh)
 # Smaže dočasné a nepotřebné soubory, zkomprimuje nové reporty a snapshoty

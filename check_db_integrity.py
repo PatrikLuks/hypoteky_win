@@ -1,6 +1,8 @@
 # check_db_integrity.py
 # Rychlá kontrola integrity a konzistence dat v DB (model Klient)
 # Spouštěj: source venv/bin/activate && python check_db_integrity.py
+# Popis: Kontrola integrity databáze a datových vazeb v projektu.
+# Autor: Patrik Luks, 2025
 
 import os
 import django

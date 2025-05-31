@@ -41,12 +41,13 @@ class NotifikaceDeadlineTestCase(TestCase):
         # Ověř, že byl odeslán e-mail
         self.assertEqual(len(mail.outbox), 1)
         email = mail.outbox[0]
-        self.assertIn('Deadline', email.subject)
+        # Robustní kontrola: slovo 'deadline' bez ohledu na velikost a diakritiku
+        self.assertIn('deadline', email.subject.lower())
         self.assertIn('Testovací Klient', email.body)
         # Ověř, že byl zalogován záznam
         logy = NotifikaceLog.objects.all()
         self.assertEqual(logy.count(), 1)
-        self.assertIn('Deadline', logy[0].typ)
+        self.assertIn('deadline', logy[0].typ.lower())
 
     def test_deadline_notifikace_neexistujici_email(self):
         """

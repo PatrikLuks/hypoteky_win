@@ -1,45 +1,34 @@
 #!/bin/zsh
-# backup_workspace.sh
-# Rychlá záloha klíčových souborů workspace do datovaného ZIP archivu
-# Používej před většími změnami, sdílením nebo migrací projektu
+# Záloha celého workspace do časově označené složky
+# Autor: GitHub Copilot, 2025
 
-BACKUP_NAME="hypoteky_backup_$(date +%Y-%m-%d).zip"
+BACKUP_DIR="backup_workspace_$(date +%Y%m%d_%H%M%S)"
+echo "Vytvářím zálohu do složky $BACKUP_DIR ..."
 
-if [[ -f "$BACKUP_NAME" ]]; then
-  echo "[!] Archiv $BACKUP_NAME již existuje. Přepiš nebo přejmenuj starý archiv."
-  exit 1
-fi
+mkdir "$BACKUP_DIR"
 
-zip -r "$BACKUP_NAME" \
-  README.md \
-  requirements.txt \
-  cleanup_workspace.sh \
-  run_all_checks.sh \
-  restore_archives.sh \
-  klienti/tests_*.py \
-  klienti/utils.py \
-  klienti/models.py \
-  klienti/serializers.py \
-  klienti/permissions.py \
-  klienti/views.py \
-  klienti/api_views.py \
-  klienti/api_urls.py \
-  klienti/tests/ \
-  snapshot_html_*/ \
-  pa11y_a11y_reports_*/ \
-  tests/ \
-  *.md \
-  *.sh \
-  DB_SETUP_MYSQL.md \
-  sample_data.py \
-  create_userprofiles.py \
-  pytest.ini \
-  hypoteky/ \
-  --exclude=*.pyc --exclude=__pycache__ --exclude=*.log
+# Zálohuj snapshoty
+cp *.html "$BACKUP_DIR" 2>/dev/null
+# Zálohuj reporty
+cp pa11y_*.html "$BACKUP_DIR" 2>/dev/null
+cp *.zip "$BACKUP_DIR" 2>/dev/null
+# Zálohuj testy a skripty
+cp *.py "$BACKUP_DIR" 2>/dev/null
+cp *.sh "$BACKUP_DIR" 2>/dev/null
+# Zálohuj checklisty a README
+cp *.md "$BACKUP_DIR" 2>/dev/null
+# Zálohuj důležité složky (testy, snapshoty, zálohy)
+cp -r snapshot_backups_* "$BACKUP_DIR" 2>/dev/null
+cp -r snapshot_html_* "$BACKUP_DIR" 2>/dev/null
+cp -r pa11y_a11y_reports_* "$BACKUP_DIR" 2>/dev/null
+cp -r test-results "$BACKUP_DIR" 2>/dev/null
+cp -r tests "$BACKUP_DIR" 2>/dev/null
 
-if [[ $? -eq 0 ]]; then
-  echo "\nZáloha úspěšně vytvořena: $BACKUP_NAME"
-  echo "Archiv obsahuje snapshoty, reporty, testy, checklisty, skripty a klíčové soubory projektu."
+# Výpis obsahu zálohy
+if [ -d "$BACKUP_DIR" ]; then
+  echo "\nObsah zálohy $BACKUP_DIR:"
+  ls -lh "$BACKUP_DIR"
+  echo "\n✅ Záloha workspace dokončena."
 else
-  echo "[!] Chyba při vytváření zálohy. Zkontroluj práva a volné místo na disku."
+  echo "Chyba při vytváření zálohy!"
 fi

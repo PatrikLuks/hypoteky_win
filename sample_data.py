@@ -81,3 +81,6 @@ for i in range(pocet_klientu):
     print(f"Vytvořen klient: {jmeno} ({'Zamítnutý' if 'duvod_zamitnuti' in klient_kwargs else 'Schválený'})")
 
 print("Hotovo! Vytvořeno 50 pečlivých a reálných vzorových klientů.")
+
+# Popis: Pomocný skript pro práci s ukázkovými daty v projektu.
+# Autor: Patrik Luks, 2025

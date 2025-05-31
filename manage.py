@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
+# Popis: Hlavní spouštěcí skript Django projektu (manage.py).
+# Autor: Patrik Luks, 2025
+
 import os
 import sys
 

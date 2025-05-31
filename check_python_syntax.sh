@@ -1,5 +1,7 @@
 #!/bin/zsh
-# check_python_syntax.sh
+# Popis: Kontrola syntaxe všech Python souborů ve workspace.
+# Autor: Patrik Luks, 2025
+# Tento skript projde všechny .py soubory a ověří jejich syntaxi pomocí python -m py_compile.
 # Rychlá kontrola syntaxe všech .py souborů ve workspace pomocí py_compile
 # Používej před commitem, nasazením nebo při onboardingu
 

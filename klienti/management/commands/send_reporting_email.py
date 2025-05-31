@@ -77,9 +77,15 @@ class Command(BaseCommand):
         # Audit logování odeslání reportu
         from klienti.models import Zmena
         popis = f"Automatizovaný reporting odeslán na: {', '.join(prijemci)} (PDF a XLSX v příloze)"
-        Zmena.objects.create(
-            klient=None,
-            popis=popis,
-            author="automatizace"
-        )
+        # Ověř, že existuje alespoň jeden klient, jinak nevytvářej záznam s klient=None
+        if klienti.exists():
+            for klient in klienti:
+                Zmena.objects.create(
+                    klient=klient,
+                    popis=popis,
+                    author="automatizace"
+                )
+        else:
+            # Pokud není žádný klient, zaloguj pouze do konzole nebo použij jiný mechanismus
+            self.stdout.write(self.style.WARNING('Audit log: report odeslán bez klientů – žádný záznam do Zmena.'))
         self.stdout.write(self.style.SUCCESS(f'Report byl úspěšně odeslán na: {", ".join(prijemci)}'))

@@ -66,26 +66,26 @@ class ImportKlientuXLSXTestCase(TestCase):
         Tento test je důležitý, protože v reálných datech se často vyskytují chyby a aplikace je musí umět bezpečně ignorovat nebo správně zpracovat.
         """
         rows = [
-            ['Jan Novák', '', '', '3000000', '', '', '', '', ''],  # validní
+            ['Jan Novák', '2025-05-30', '', '3000000', '', '', '', '', ''],  # validní s DATEM
             ['', '', '', '5000000', '', '', '', '', ''],           # chybí jméno
             ['Petr Dvořák', '', '', 'abc', '', '', '', '', ''],    # špatný formát částky
-            ['Jan Novák', '', '', '3000000', '', '', '', '', ''],  # duplicitní
+            ['Jan Novák', '', '', '3000000', '', '', '', '', ''],  # duplicitní (ale bez data)
             ['', '', '', '', '', '', '', '', ''],                  # prázdný řádek
         ]
         temp = self.vytvor_xlsx(rows)
         pocet = import_klienti_from_xlsx(temp.name)
-        # Očekáváme, že bude importován pouze jeden validní klient (Jan Novák)
         self.assertEqual(pocet, 1)
         klienti = list(Klient.objects.all())
         self.assertEqual(len(klienti), 1)
         jan = next((k for k in klienti if k.jmeno == 'Jan Novák'), None)
         self.assertIsNotNone(jan)
-        # Ověř, že duplicitní klient nebyl importován dvakrát
-        self.assertEqual(Klient.objects.filter(jmeno="Jan Novák").count(), 1)
+        # Ověř, že duplicitní klient nebyl importován dvakrát (porovnání podle dešifrovaného jména)
+        jan_count = len([k for k in klienti if k.jmeno == 'Jan Novák'])
+        self.assertEqual(jan_count, 1)
         # Ověř, že klient se špatnou částkou nebyl importován
-        self.assertFalse(Klient.objects.filter(jmeno="Petr Dvořák").exists())
+        self.assertFalse(any(k.jmeno == 'Petr Dvořák' for k in klienti))
         # Ověř, že klient bez jména nebyl importován
-        self.assertEqual(Klient.objects.exclude(jmeno__isnull=False).count(), 0)
+        self.assertEqual(len([k for k in klienti if not k.jmeno]), 0)
 
     def test_import_xlsx_extremni_znaky_a_hodnoty(self):
         """

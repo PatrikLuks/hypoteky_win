@@ -80,6 +80,9 @@ class Klient(models.Model):
     splneno_podminky_pro_splaceni = models.DateField(blank=True, null=True)
     user = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='klienti', help_text='Uživatel (klient), který má přístup ke svému záznamu')
 
+    class Meta:
+        pass  # odstraněn unikátní constraint, řeší se na úrovni importu
+
 class HypotekaWorkflow(models.Model):
     klient = models.ForeignKey(Klient, on_delete=models.CASCADE, related_name='workflowy')
     krok = models.PositiveSmallIntegerField(choices=[

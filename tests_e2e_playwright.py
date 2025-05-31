@@ -1,3 +1,6 @@
+# Popis: E2E testy pro Playwright – automatizované UI scénáře.
+# Autor: Patrik Luks, 2025
+
 # Základní e2e test pro Django aplikaci pomocí Playwright (Python)
 # Testuje přihlášení a zobrazení dashboardu/klientů
 # Spouštějte: pytest tests_e2e_playwright.py

@@ -13,6 +13,15 @@ else
   exit 1
 fi
 
+# --- Záloha snapshotů před testy ---
+if [ -f cleanup_snapshot_backups.sh ]; then
+  echo "\n--- Zálohuji snapshoty ---"
+  chmod +x ./cleanup_snapshot_backups.sh
+  ./cleanup_snapshot_backups.sh
+else
+  echo "\n--- Skript cleanup_snapshot_backups.sh nenalezen, záloha snapshotů přeskočena ---"
+fi
+
 echo "\n--- Spouštím unit/integration testy (pytest) ---"
 pytest || { echo "[!] Některé testy selhaly!"; }
 
@@ -26,9 +35,27 @@ chmod +x ./pa11y_batch.sh
 echo "\n--- Spouštím e2e testy (Playwright) ---"
 python tests_e2e_playwright.py || { echo "[!] Některé e2e testy selhaly!"; }
 
+# --- Validace HTML snapshotů po testech ---
+if [ -f check_html_validity.sh ]; then
+  echo "\n--- Kontroluji validitu HTML snapshotů ---"
+  chmod +x ./check_html_validity.sh
+  ./check_html_validity.sh || { echo "[!] Chyba v HTML snapshotu!"; }
+else
+  echo "\n--- Skript check_html_validity.sh nenalezen, validace HTML přeskočena ---"
+fi
+
 echo "\n--- Úklid workspace ---"
 chmod +x ./cleanup_workspace.sh
 ./cleanup_workspace.sh
+
+# --- Úklid starých záloh a archivů ---
+if [ -f cleanup_old_archives.sh ]; then
+  echo "\n--- Mažu staré zálohy a archivy ---"
+  chmod +x ./cleanup_old_archives.sh
+  ./cleanup_old_archives.sh
+else
+  echo "\n--- Skript cleanup_old_archives.sh nenalezen, úklid archivů přeskočen ---"
+fi
 
 echo "\n--- Vše hotovo! ---"
 echo "Pokud některé testy selhaly, zkontroluj výstup výše nebo použij troubleshooting checklist v tests/!"

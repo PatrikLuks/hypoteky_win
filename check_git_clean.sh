@@ -1,4 +1,7 @@
 #!/bin/zsh
+# Popis: Kontrola, zda je git workspace čistý (žádné necommitnuté změny).
+# Autor: Patrik Luks, 2025
+# Tento skript ověří stav git repozitáře a vypíše případné neuložené změny.
 # check_git_clean.sh
 # Rychlá kontrola, zda je workspace čistý a všechny důležité soubory jsou verzované v Gitu
 # Používej před commitem, pushem, zálohou nebo nasazením

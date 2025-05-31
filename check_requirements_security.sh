@@ -1,5 +1,8 @@
 #!/bin/zsh
 # check_requirements_security.sh
+# Popis: Bezpečnostní kontrola závislostí v requirements.txt pomocí safety.
+# Autor: Patrik Luks, 2025
+# Tento skript spustí safety check a vypíše případné zranitelnosti.
 # Kontrola zastaralých a potenciálně zranitelných balíčků v requirements.txt
 # Používej pravidelně, před nasazením nebo při auditu
 
