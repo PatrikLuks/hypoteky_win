@@ -231,4 +231,17 @@ Pro rychlou kontrolu stavu workspace a onboarding použijte skript `run_all_main
 
 ---
 
+## Doporučení pro rychlejší a stabilnější vývoj na MacBook Air (VS Code)
+
+- **Ignoruj snapshoty, zálohy, archivy a reporty** – jsou nyní v `.gitignore` a `.vscode/settings.json`, VS Code je nebude indexovat ani zobrazovat.
+- **Pravidelně spouštěj úklidové skripty** (`cleanup_*`, `run_all_maintenance.sh`) a archivuj staré snapshoty mimo hlavní workspace.
+- **Otevírej pouze potřebné složky** – např. `klienti`, `manage.py`, `requirements.txt`, vyhni se zálohám a velkým archivům.
+- **Omez rozšíření a background procesy ve VS Code** – vypni nepotřebné pluginy, automatické lintování a formátování na velkých souborech.
+- **Restartuj VS Code po větším úklidu nebo změně workspace** – uvolníš paměť a zrychlíš indexaci.
+- **Pravidelně zálohuj a pushuj změny na GitHub** – minimalizuješ riziko ztráty dat.
+
+> Pokud i po těchto krocích VS Code zamrzá, zvaž rozdělení workspace na menší části (např. pouze backend, pouze testy) nebo použij VS Code Remote/Dev Containers.
+
+---
+
 > Pokud narazíš na problém, začni od checklistu a logů, nebo se ptej v týmu. Hodně štěstí!

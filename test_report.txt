@@ -1,0 +1,267 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.9.6, pytest-8.3.5, pluggy-1.6.0
+django: version: 4.2.21, settings: hypoteky.settings (from ini)
+rootdir: /Users/patrikluks/Applications/hypoteky
+configfile: pytest.ini
+plugins: anyio-4.9.0, django-4.11.1, Faker-37.3.0
+collected 54 items
+
+klienti/tests/test_klient_user_overview.py ..                            [  3%]
+klienti/tests/test_klient_user_overview_csv.py .                         [  5%]
+klienti/tests/test_rozdel_klienty_mezi_uzivatele.py ..                   [  9%]
+klienti/tests/test_rozdel_klienty_mezi_uzivatele_csv.py .                [ 11%]
+klienti/tests/test_rozdel_klienty_mezi_uzivatele_dryrun.py .             [ 12%]
+tests/test_shell_scripts.py FFFF.F.F..FF..F.FF.F...........F.            [ 74%]
+tests/test_sql_scripts.py F                                              [ 75%]
+tests/test_template.py .............                                     [100%]
+
+=================================== FAILURES ===================================
+_________ test_shell_script_header_and_content[check_git_conflicts.sh] _________
+
+script_path = 'check_git_conflicts.sh'
+
+    @pytest.mark.parametrize("script_path", SCRIPTS)
+    def test_shell_script_header_and_content(script_path):
+        with open(script_path, encoding="utf-8") as f:
+            lines = f.readlines()
+        assert lines, f"Skript {script_path} je prázdný."
+        assert lines[0].strip() == SHEBANG, f"Skript {script_path} musí začínat shebangem {SHEBANG}."
+>       assert any("#" in l and "skript" in l.lower() for l in lines[:5]), f"Skript {script_path} musí mít krátký popis v komentáři v prvních 5 řádcích."
+E       AssertionError: Skript check_git_conflicts.sh musí mít krátký popis v komentáři v prvních 5 řádcích.
+E       assert False
+E        +  where False = any(<generator object test_shell_script_header_and_content.<locals>.<genexpr> at 0x1092357b0>)
+
+tests/test_shell_scripts.py:24: AssertionError
+__________ test_shell_script_header_and_content[check_large_files.sh] __________
+
+script_path = 'check_large_files.sh'
+
+    @pytest.mark.parametrize("script_path", SCRIPTS)
+    def test_shell_script_header_and_content(script_path):
+        with open(script_path, encoding="utf-8") as f:
+            lines = f.readlines()
+        assert lines, f"Skript {script_path} je prázdný."
+        assert lines[0].strip() == SHEBANG, f"Skript {script_path} musí začínat shebangem {SHEBANG}."
+>       assert any("#" in l and "skript" in l.lower() for l in lines[:5]), f"Skript {script_path} musí mít krátký popis v komentáři v prvních 5 řádcích."
+E       AssertionError: Skript check_large_files.sh musí mít krátký popis v komentáři v prvních 5 řádcích.
+E       assert False
+E        +  where False = any(<generator object test_shell_script_header_and_content.<locals>.<genexpr> at 0x1092b4120>)
+
+tests/test_shell_scripts.py:24: AssertionError
+______ test_shell_script_header_and_content[check_templates_validity.sh] _______
+
+script_path = 'check_templates_validity.sh'
+
+    @pytest.mark.parametrize("script_path", SCRIPTS)
+    def test_shell_script_header_and_content(script_path):
+        with open(script_path, encoding="utf-8") as f:
+            lines = f.readlines()
+        assert lines, f"Skript {script_path} je prázdný."
+        assert lines[0].strip() == SHEBANG, f"Skript {script_path} musí začínat shebangem {SHEBANG}."
+>       assert any("#" in l and "skript" in l.lower() for l in lines[:5]), f"Skript {script_path} musí mít krátký popis v komentáři v prvních 5 řádcích."
+E       AssertionError: Skript check_templates_validity.sh musí mít krátký popis v komentáři v prvních 5 řádcích.
+E       assert False
+E        +  where False = any(<generator object test_shell_script_header_and_content.<locals>.<genexpr> at 0x1092b4a50>)
+
+tests/test_shell_scripts.py:24: AssertionError
+________ test_shell_script_header_and_content[check_duplicate_files.sh] ________
+
+script_path = 'check_duplicate_files.sh'
+
+    @pytest.mark.parametrize("script_path", SCRIPTS)
+    def test_shell_script_header_and_content(script_path):
+        with open(script_path, encoding="utf-8") as f:
+            lines = f.readlines()
+        assert lines, f"Skript {script_path} je prázdný."
+        assert lines[0].strip() == SHEBANG, f"Skript {script_path} musí začínat shebangem {SHEBANG}."
+>       assert any("#" in l and "skript" in l.lower() for l in lines[:5]), f"Skript {script_path} musí mít krátký popis v komentáři v prvních 5 řádcích."
+E       AssertionError: Skript check_duplicate_files.sh musí mít krátký popis v komentáři v prvních 5 řádcích.
+E       assert False
+E        +  where False = any(<generator object test_shell_script_header_and_content.<locals>.<genexpr> at 0x1092b4660>)
+
+tests/test_shell_scripts.py:24: AssertionError
+____________ test_shell_script_header_and_content[check_md_utf8.sh] ____________
+
+script_path = 'check_md_utf8.sh'
+
+    @pytest.mark.parametrize("script_path", SCRIPTS)
+    def test_shell_script_header_and_content(script_path):
+        with open(script_path, encoding="utf-8") as f:
+            lines = f.readlines()
+        assert lines, f"Skript {script_path} je prázdný."
+        assert lines[0].strip() == SHEBANG, f"Skript {script_path} musí začínat shebangem {SHEBANG}."
+>       assert any("#" in l and "skript" in l.lower() for l in lines[:5]), f"Skript {script_path} musí mít krátký popis v komentáři v prvních 5 řádcích."
+E       AssertionError: Skript check_md_utf8.sh musí mít krátký popis v komentáři v prvních 5 řádcích.
+E       assert False
+E        +  where False = any(<generator object test_shell_script_header_and_content.<locals>.<genexpr> at 0x1092c3200>)
+
+tests/test_shell_scripts.py:24: AssertionError
+__________ test_shell_script_header_and_content[check_empty_files.sh] __________
+
+script_path = 'check_empty_files.sh'
+
+    @pytest.mark.parametrize("script_path", SCRIPTS)
+    def test_shell_script_header_and_content(script_path):
+        with open(script_path, encoding="utf-8") as f:
+            lines = f.readlines()
+        assert lines, f"Skript {script_path} je prázdný."
+        assert lines[0].strip() == SHEBANG, f"Skript {script_path} musí začínat shebangem {SHEBANG}."
+>       assert any("#" in l and "skript" in l.lower() for l in lines[:5]), f"Skript {script_path} musí mít krátký popis v komentáři v prvních 5 řádcích."
+E       AssertionError: Skript check_empty_files.sh musí mít krátký popis v komentáři v prvních 5 řádcích.
+E       assert False
+E        +  where False = any(<generator object test_shell_script_header_and_content.<locals>.<genexpr> at 0x1092b49e0>)
+
+tests/test_shell_scripts.py:24: AssertionError
+__________ test_shell_script_header_and_content[check_pytest_env.sh] ___________
+
+script_path = 'check_pytest_env.sh'
+
+    @pytest.mark.parametrize("script_path", SCRIPTS)
+    def test_shell_script_header_and_content(script_path):
+        with open(script_path, encoding="utf-8") as f:
+            lines = f.readlines()
+        assert lines, f"Skript {script_path} je prázdný."
+        assert lines[0].strip() == SHEBANG, f"Skript {script_path} musí začínat shebangem {SHEBANG}."
+>       assert any("#" in l and "skript" in l.lower() for l in lines[:5]), f"Skript {script_path} musí mít krátký popis v komentáři v prvních 5 řádcích."
+E       AssertionError: Skript check_pytest_env.sh musí mít krátký popis v komentáři v prvních 5 řádcích.
+E       assert False
+E        +  where False = any(<generator object test_shell_script_header_and_content.<locals>.<genexpr> at 0x1086e6820>)
+
+tests/test_shell_scripts.py:24: AssertionError
+___________ test_shell_script_header_and_content[check_html_mime.sh] ___________
+
+script_path = 'check_html_mime.sh'
+
+    @pytest.mark.parametrize("script_path", SCRIPTS)
+    def test_shell_script_header_and_content(script_path):
+        with open(script_path, encoding="utf-8") as f:
+            lines = f.readlines()
+        assert lines, f"Skript {script_path} je prázdný."
+        assert lines[0].strip() == SHEBANG, f"Skript {script_path} musí začínat shebangem {SHEBANG}."
+>       assert any("#" in l and "skript" in l.lower() for l in lines[:5]), f"Skript {script_path} musí mít krátký popis v komentáři v prvních 5 řádcích."
+E       AssertionError: Skript check_html_mime.sh musí mít krátký popis v komentáři v prvních 5 řádcích.
+E       assert False
+E        +  where False = any(<generator object test_shell_script_header_and_content.<locals>.<genexpr> at 0x1092b4270>)
+
+tests/test_shell_scripts.py:24: AssertionError
+_______ test_shell_script_header_and_content[check_current_snapshots.sh] _______
+
+script_path = 'check_current_snapshots.sh'
+
+    @pytest.mark.parametrize("script_path", SCRIPTS)
+    def test_shell_script_header_and_content(script_path):
+        with open(script_path, encoding="utf-8") as f:
+            lines = f.readlines()
+        assert lines, f"Skript {script_path} je prázdný."
+        assert lines[0].strip() == SHEBANG, f"Skript {script_path} musí začínat shebangem {SHEBANG}."
+>       assert any("#" in l and "skript" in l.lower() for l in lines[:5]), f"Skript {script_path} musí mít krátký popis v komentáři v prvních 5 řádcích."
+E       AssertionError: Skript check_current_snapshots.sh musí mít krátký popis v komentáři v prvních 5 řádcích.
+E       assert False
+E        +  where False = any(<generator object test_shell_script_header_and_content.<locals>.<genexpr> at 0x1092c33c0>)
+
+tests/test_shell_scripts.py:24: AssertionError
+___________ test_shell_script_header_and_content[check_html_utf8.sh] ___________
+
+script_path = 'check_html_utf8.sh'
+
+    @pytest.mark.parametrize("script_path", SCRIPTS)
+    def test_shell_script_header_and_content(script_path):
+        with open(script_path, encoding="utf-8") as f:
+            lines = f.readlines()
+        assert lines, f"Skript {script_path} je prázdný."
+        assert lines[0].strip() == SHEBANG, f"Skript {script_path} musí začínat shebangem {SHEBANG}."
+>       assert any("#" in l and "skript" in l.lower() for l in lines[:5]), f"Skript {script_path} musí mít krátký popis v komentáři v prvních 5 řádcích."
+E       AssertionError: Skript check_html_utf8.sh musí mít krátký popis v komentáři v prvních 5 řádcích.
+E       assert False
+E        +  where False = any(<generator object test_shell_script_header_and_content.<locals>.<genexpr> at 0x1092c3890>)
+
+tests/test_shell_scripts.py:24: AssertionError
+_________ test_shell_script_header_and_content[check_gz_snapshots.sh] __________
+
+script_path = 'check_gz_snapshots.sh'
+
+    @pytest.mark.parametrize("script_path", SCRIPTS)
+    def test_shell_script_header_and_content(script_path):
+        with open(script_path, encoding="utf-8") as f:
+            lines = f.readlines()
+        assert lines, f"Skript {script_path} je prázdný."
+        assert lines[0].strip() == SHEBANG, f"Skript {script_path} musí začínat shebangem {SHEBANG}."
+>       assert any("#" in l and "skript" in l.lower() for l in lines[:5]), f"Skript {script_path} musí mít krátký popis v komentáři v prvních 5 řádcích."
+E       AssertionError: Skript check_gz_snapshots.sh musí mít krátký popis v komentáři v prvních 5 řádcích.
+E       assert False
+E        +  where False = any(<generator object test_shell_script_header_and_content.<locals>.<genexpr> at 0x1092c3c10>)
+
+tests/test_shell_scripts.py:24: AssertionError
+______ test_shell_script_header_and_content[check_snapshot_timestamps.sh] ______
+
+script_path = 'check_snapshot_timestamps.sh'
+
+    @pytest.mark.parametrize("script_path", SCRIPTS)
+    def test_shell_script_header_and_content(script_path):
+        with open(script_path, encoding="utf-8") as f:
+            lines = f.readlines()
+        assert lines, f"Skript {script_path} je prázdný."
+        assert lines[0].strip() == SHEBANG, f"Skript {script_path} musí začínat shebangem {SHEBANG}."
+>       assert any("#" in l and "skript" in l.lower() for l in lines[:5]), f"Skript {script_path} musí mít krátký popis v komentáři v prvních 5 řádcích."
+E       AssertionError: Skript check_snapshot_timestamps.sh musí mít krátký popis v komentáři v prvních 5 řádcích.
+E       assert False
+E        +  where False = any(<generator object test_shell_script_header_and_content.<locals>.<genexpr> at 0x1086e6d60>)
+
+tests/test_shell_scripts.py:24: AssertionError
+_________ test_shell_script_header_and_content[fix_file_ownership.sh] __________
+
+script_path = 'fix_file_ownership.sh'
+
+    @pytest.mark.parametrize("script_path", SCRIPTS)
+    def test_shell_script_header_and_content(script_path):
+        with open(script_path, encoding="utf-8") as f:
+            lines = f.readlines()
+        assert lines, f"Skript {script_path} je prázdný."
+        assert lines[0].strip() == SHEBANG, f"Skript {script_path} musí začínat shebangem {SHEBANG}."
+>       assert any("#" in l and "skript" in l.lower() for l in lines[:5]), f"Skript {script_path} musí mít krátký popis v komentáři v prvních 5 řádcích."
+E       AssertionError: Skript fix_file_ownership.sh musí mít krátký popis v komentáři v prvních 5 řádcích.
+E       assert False
+E        +  where False = any(<generator object test_shell_script_header_and_content.<locals>.<genexpr> at 0x1092de580>)
+
+tests/test_shell_scripts.py:24: AssertionError
+____________ test_sql_script_header_and_safety[DB_FIX_UTF8MB4.sql] _____________
+
+sql_path = 'DB_FIX_UTF8MB4.sql'
+
+    @pytest.mark.parametrize("sql_path", SQL_SCRIPTS)
+    def test_sql_script_header_and_safety(sql_path):
+        with open(sql_path, encoding="utf-8") as f:
+            lines = [l.strip().lower() for l in f if l.strip()]
+        assert lines, f"SQL skript {sql_path} je prázdný."
+        assert lines[0].startswith("--") or lines[0].startswith("#"), f"SQL skript {sql_path} musí začínat komentářem s popisem."
+        for l in lines[:5]:
+            for danger in DANGEROUS:
+>               assert not l.startswith(danger), f"SQL skript {sql_path} začíná nebezpečným příkazem: {l}"
+E               AssertionError: SQL skript DB_FIX_UTF8MB4.sql začíná nebezpečným příkazem: alter database hypoteky character set = utf8mb4 collate = utf8mb4_unicode_ci;
+E               assert not True
+E                +  where True = <built-in method startswith of str object at 0x109288830>('alter ')
+E                +    where <built-in method startswith of str object at 0x109288830> = 'alter database hypoteky character set = utf8mb4 collate = utf8mb4_unicode_ci;'.startswith
+
+tests/test_sql_scripts.py:22: AssertionError
+=============================== warnings summary ===============================
+tests/test_template.py::test_template_can_be_loaded[/Users/patrikluks/Applications/hypoteky/tests/../klienti/templates/base.html]
+  /Users/patrikluks/Applications/hypoteky/.venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_shell_scripts.py::test_shell_script_header_and_content[check_git_conflicts.sh]
+FAILED tests/test_shell_scripts.py::test_shell_script_header_and_content[check_large_files.sh]
+FAILED tests/test_shell_scripts.py::test_shell_script_header_and_content[check_templates_validity.sh]
+FAILED tests/test_shell_scripts.py::test_shell_script_header_and_content[check_duplicate_files.sh]
+FAILED tests/test_shell_scripts.py::test_shell_script_header_and_content[check_md_utf8.sh]
+FAILED tests/test_shell_scripts.py::test_shell_script_header_and_content[check_empty_files.sh]
+FAILED tests/test_shell_scripts.py::test_shell_script_header_and_content[check_pytest_env.sh]
+FAILED tests/test_shell_scripts.py::test_shell_script_header_and_content[check_html_mime.sh]
+FAILED tests/test_shell_scripts.py::test_shell_script_header_and_content[check_current_snapshots.sh]
+FAILED tests/test_shell_scripts.py::test_shell_script_header_and_content[check_html_utf8.sh]
+FAILED tests/test_shell_scripts.py::test_shell_script_header_and_content[check_gz_snapshots.sh]
+FAILED tests/test_shell_scripts.py::test_shell_script_header_and_content[check_snapshot_timestamps.sh]
+FAILED tests/test_shell_scripts.py::test_shell_script_header_and_content[fix_file_ownership.sh]
+FAILED tests/test_sql_scripts.py::test_sql_script_header_and_safety[DB_FIX_UTF8MB4.sql]
+================== 14 failed, 40 passed, 1 warning in 48.92s ===================
