@@ -67,16 +67,15 @@ hypoteky/settings_prod.py
 # Ostatní
 TO_BE_DELETED.txt
 
-# Snapshoty, zálohy, archivy, reporty a dočasné soubory (pro rychlejší VS Code a menší workspace)
-snapshot_html_*/
-snapshot_html_backup_*/
-snapshot_backups_*/
-pa11y_a11y_reports_*/
+# Snapshoty, zálohy, archivy, reporty
+snapshot_html_*
+snapshot_html_backup_*
+snapshot_backups_*
+pa11y_a11y_reports_*
 *.zip
-*.gz
-*.bak*
-backup_workspace_*/
-test-results/
+*.bak
+*.backup
+*.report.html
 
 # Lokální nastavení VS Code
 .vscode/

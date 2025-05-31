@@ -221,6 +221,20 @@ Pro rychlou kontrolu stavu workspace a onboarding použijte skript `run_all_main
 
 ---
 
+## 🧹 Pravidelný úklid workspace (doporučeno pro MacBook Air)
+
+- Pravidelně spouštěj skript `cleanup_snapshots_archives.sh` pro smazání snapshotů, záloh, archivů a reportů:
+  ```zsh
+  ./cleanup_snapshots_archives.sh
+  ```
+- Udržuj workspace co nejmenší – snapshoty, zálohy a reporty archivuj mimo hlavní složku projektu.
+- Pracuj pouze s klíčovými složkami (`hypoteky/`, `tests/`, `klienti/` atd.), ostatní ignoruj ve VS Code.
+- Omez počet aktivních rozšíření ve VS Code, pravidelně restartuj editor.
+- Pravidelně kontroluj `.gitignore` a `.vscode/settings.json`, zda obsahují aktuální ignore vzory.
+- Pokud workspace zpomaluje, spusť i další úklidové skripty (`cleanup_*`, `shrink_workspace_for_vscode.sh`).
+
+---
+
 ## 📚 Důležité odkazy
 - [README.md](README.md) – detailní dokumentace, troubleshooting, workflow
 - [DB_SETUP_MYSQL.md](DB_SETUP_MYSQL.md) – nastavení databáze
