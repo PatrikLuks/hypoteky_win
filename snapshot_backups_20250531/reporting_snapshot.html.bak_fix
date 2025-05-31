@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;amp;display=swap" rel="stylesheet">
     <style>
       body {
         background: #181a1b;
@@ -420,7 +420,7 @@
         <li class="nav-item">
           <a class="nav-link " href="/">Klienti</a>
         </li>
-        
+
         <li class="nav-item">
           <a class="nav-link " href="/kalkulacka/"><i class="fa fa-calculator"></i>Kalkulačka hypotéky</a>
         </li>
@@ -430,18 +430,18 @@
       </ul>
       <span class="navbar-text small text-muted me-2">
         <i class="fa fa-user"></i> Neregistrovaný uživatel
-        
+
       </span>
       <ul class="navbar-nav ms-1">
-        
+
           <li class="nav-item"><a class="nav-link" href="/account/login/"><i class="fa fa-sign-in-alt"></i>Přihlásit</a></li>
-        
+
       </ul>
     </div>
   </div>
 </nav>
 <div class="container mt-4">
-    
+
 <div class="container-fluid py-4 px-2 px-md-4" role="main" aria-label="Reporting a statistika hypoték">
   <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">
     <h1 class="mb-0 fw-bold text-primary"><i class="fa fa-chart-bar me-2"></i>Reporting & Statistika hypoték</h1>
@@ -451,12 +451,12 @@
     <div class="col-12 col-md-3">
       <label for="id_datum_od">Od:</label>
       <input type="date" name="datum_od" value="__DATUM__" class="form-control" id="id_datum_od">
-      
+
     </div>
     <div class="col-12 col-md-3">
       <label for="id_datum_do">Do:</label>
       <input type="date" name="datum_do" value="__DATUM__" class="form-control" id="id_datum_do">
-      
+
     </div>
     <div class="col-12 col-md-3">
       <button type="submit" class="btn btn-primary btn-lg w-100"><i class="fa fa-filter me-1"></i> Filtrovat</button>
@@ -501,7 +501,7 @@
             <table class="table table-sm table-hover align-middle mb-0">
               <thead class="table-light"><tr><th>Banka</th><th>Schváleno</th><th>Zamítnuto</th><th>Průměrná doba schválení (dny)</th></tr></thead>
               <tbody>
-                
+
               </tbody>
             </table>
           </div>
@@ -527,11 +527,11 @@
               <thead class="table-light">
                 <tr>
                   <th>Banka / Měsíc</th>
-                  
+
                 </tr>
               </thead>
               <tbody>
-                
+
               </tbody>
             </table>
           </div>

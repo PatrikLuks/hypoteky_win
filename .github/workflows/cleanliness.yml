@@ -1,0 +1,25 @@
+# Kontrola duplicitních a prázdných souborů ve workspace (CI)
+# Spouští se při každém push a pull requestu na hlavní větve.
+# Pouze kontroluje, nemaže! Výsledek je vidět v logu CI.
+
+name: Workspace Cleanliness
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  check-duplicates-empty:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install fdupes
+        run: sudo apt-get update && sudo apt-get install -y fdupes
+      - name: Run cleanup_duplicates_and_empty.sh (kontrola)
+        run: |
+          chmod +x cleanup_duplicates_and_empty.sh
+          ./cleanup_duplicates_and_empty.sh
+        shell: bash

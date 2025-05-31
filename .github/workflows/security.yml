@@ -1,0 +1,34 @@
+name: Kontrola bezpečnosti závislostí (safety)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  safety:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout kódu
+        uses: actions/checkout@v4
+
+      - name: Nastavení Pythonu
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Instalace závislostí
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install -r requirements.txt
+          pip install safety
+
+      - name: Kontrola bezpečnosti requirements.txt
+        run: |
+          source .venv/bin/activate
+          safety scan -r requirements.txt || (echo 'Nalezeny zranitelnosti!' && exit 1)
+
+# Tento workflow spustí safety scan na všechny závislosti a selže, pokud najde zranitelnosti.
+# Pro studium: uprav requirements.txt a sleduj výstup v CI.

@@ -66,9 +66,31 @@ Po každém spuštění skriptu `./pa11y_batch.sh` najdeš v kořenovém adresá
 - Pokud přidáš novou stránku, rozšiř pole URL v `pa11y_batch.sh`.
 - Pro CI/CD je vhodné archivovat reporty a porovnávat změny v čase.
 
+## Praktický checklist pro správu snapshotů a přístupnosti (a11y)
+
+### 1. Správa snapshotů (UI, HTML, PDF)
+- [ ] Snapshoty generuj vždy po větších změnách v UI nebo šablonách.
+- [ ] Pravidelně spouštěj skripty `run_and_update_snapshots.sh` a `check_current_snapshots.sh`.
+- [ ] Po úpravách snapshotů spusť `cleanup_bak_files.sh` pro odstranění starých záloh.
+- [ ] Archivuj snapshoty před většími refaktoringy (`cleanup_snapshot_backups.sh`, `backup_workspace.sh`).
+- [ ] Ověř, že všechny snapshot testy procházejí (včetně CI).
+
+### 2. Testování přístupnosti (a11y)
+- [ ] Pravidelně spouštěj `pa11y_batch_snapshots.sh` nebo `pa11y_batch_csv.sh`.
+- [ ] Oprav všechny chyby kontrastu, chybějící labely, role a ovládání klávesnicí.
+- [ ] Ověř, že badge, tlačítka a formuláře mají správné aria-label a kontrast.
+- [ ] Výsledky testů ukládej a sdílej s týmem (`pa11y_a11y_reports_*.html`, `.zip`).
+- [ ] Aktualizuj checklisty a dokumentaci podle nových poznatků.
+
+### 3. Automatizace a CI
+- [ ] Ověř, že v CI běží workflow pro snapshoty a a11y (`.github/workflows/a11y.yml`).
+- [ ] Výsledky testů sleduj v CI a opravuj chyby před mergem.
+
 ---
 
-Tento checklist pomůže udržet vysokou úroveň přístupnosti a zrychlí onboarding nových vývojářů.
+> **Tip:** Checklist pravidelně aktualizuj podle vývoje projektu a potřeb týmu.
+
+---
 
 ## Troubleshooting
 

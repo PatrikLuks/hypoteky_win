@@ -4,7 +4,8 @@
 # Používej pro správu technického dluhu, plánování a review
 
 # Hledané klíčové slova
-KEYWORDS="TODO|FIXME|# POZNÁMKA|# NOTE|# ÚKOL|# NÁVRH|# IDEA"
+# Rozšíření hledaných klíčových slov o NOTE, HACK, XXX
+KEYWORDS="TODO|FIXME|NOTE|HACK|XXX|# POZNÁMKA|# ÚKOL|# NÁVRH|# IDEA"
 
 # Prohledání workspace
 
@@ -17,3 +18,6 @@ fi
 
 echo "\n--- Doporučení ---"
 echo "Pravidelně procházej TODO/FIXME poznámky a plánuj jejich řešení. Pro větší úkoly vytvoř issue na GitHubu."
+# Doplnění doporučení
+echo "Pokud najdeš poznámku, která už není aktuální, odstraň ji nebo ji nahraď konkrétním issue v repozitáři."
+echo "Pro onboarding nových vývojářů doporučujeme projít tento výpis a zaměřit se na klíčové TODO/FIXME."

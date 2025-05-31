@@ -1,6 +1,7 @@
 #!/bin/zsh
-# Skript pro úklid záložních snapshotů (bak, bak2, bak_fix, bak_autofix_*)
-# Všechny zálohy přesune do složky snapshot_backups_YYYYMMDD/
+# cleanup_snapshot_backups.sh
+# Popis: Skript pro úklid záložních snapshotů (bak, bak2, bak_fix, bak_autofix_*) – přesune je do složky snapshot_backups_YYYYMMDD/.
+# Autor: Patrik Luks, 2025
 # Použití: ./cleanup_snapshot_backups.sh
 
 BACKUP_DIR="snapshot_backups_$(date +%Y%m%d)"

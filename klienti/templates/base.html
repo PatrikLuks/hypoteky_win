@@ -437,7 +437,7 @@
       </ul>
       <span class="navbar-text small text-muted me-2">
         <i class="fa fa-user"></i> {{ request.user.username|default:'Neregistrovaný uživatel' }}
-        {% if user_role %}<span class="badge bg-secondary ms-2">{{ user_role|title }}</span>{% endif %}
+        {% if user_role %}<span class="badge" style="background-color: #003366; color: #fff;">{{ user_role|title }}</span>{% endif %}
       </span>
       <ul class="navbar-nav ms-1">
         {% if request.user.is_authenticated %}

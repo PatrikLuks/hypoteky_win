@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;amp;display=swap" rel="stylesheet">
     <style>
       body {
         background: #181a1b;
@@ -420,7 +420,7 @@
         <li class="nav-item">
           <a class="nav-link " href="/">Klienti</a>
         </li>
-        
+
         <li class="nav-item">
           <a class="nav-link " href="/kalkulacka/"><i class="fa fa-calculator"></i>Kalkulačka hypotéky</a>
         </li>
@@ -430,18 +430,18 @@
       </ul>
       <span class="navbar-text small text-muted me-2">
         <i class="fa fa-user"></i> Neregistrovaný uživatel
-        
+
       </span>
       <ul class="navbar-nav ms-1">
-        
+
           <li class="nav-item"><a class="nav-link" href="/account/login/"><i class="fa fa-sign-in-alt"></i>Přihlásit</a></li>
-        
+
       </ul>
     </div>
   </div>
 </nav>
 <div class="container mt-4">
-    
+
 <div class="row justify-content-center">
   <div class="col-md-4">
     <h2>Přihlášení</h2>
@@ -450,18 +450,18 @@
       <p>
     <label for="id_username">Username:</label>
     <input type="text" name="username" autofocus autocapitalize="none" autocomplete="username" maxlength="150" required id="id_username">
-    
-    
+
+
   </p>
 
-  
+
   <p>
     <label for="id_password">Password:</label>
     <input type="password" name="password" autocomplete="current-password" required id="id_password">
-    
-    
-      
-    
+
+
+
+
   </p>
       <button type="submit" class="btn btn-primary">Přihlásit se</button>
     </form>

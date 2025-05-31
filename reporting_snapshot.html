@@ -1,5 +1,3 @@
-<!-- Tento soubor byl AGRESIVN� o�išt�n od všech neplatných/control znaků skriptem clean_html_aggressive.py -->
-<!-- Tento soubor byl automaticky o�išt�n od neplatných/control znaků skriptem clean_html_control_chars.py -->
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -10,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;amp;amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
       body {
         background: #181a1b;
@@ -411,7 +409,7 @@
     </style>
 </head>
 <body>
-<div class="navbar navbar-expand-lg navbar-light bg-light mb-4 rounded">
+<nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 rounded">
   <div class="container-fluid">
     <a class="navbar-brand fw-bold" href="/">Správa hypoték</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Menu">
@@ -424,7 +422,7 @@
         </li>
 
         <li class="nav-item">
-          <a class="nav-link " href="/kalkulacka/"><i class="fa fa-calculator"></i>Kalkula�ka hypotéky</a>
+          <a class="nav-link " href="/kalkulacka/"><i class="fa fa-calculator"></i>Kalkulačka hypotéky</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="/reporting/"><i class="fa fa-chart-bar"></i> Reporting</a>
@@ -436,12 +434,12 @@
       </span>
       <ul class="navbar-nav ms-1">
 
-          <li class="nav-item"><a class="nav-link" href="/account/login/"><i class="fa fa-sign-in-alt"></i>P�ihlásit</a></li>
+          <li class="nav-item"><a class="nav-link" href="/account/login/"><i class="fa fa-sign-in-alt"></i>Přihlásit</a></li>
 
       </ul>
     </div>
   </div>
-</div>
+</nav>
 <div class="container mt-4">
 
 <div class="container-fluid py-4 px-2 px-md-4" role="main" aria-label="Reporting a statistika hypoték">
@@ -464,7 +462,7 @@
       <button type="submit" class="btn btn-primary btn-lg w-100"><i class="fa fa-filter me-1"></i> Filtrovat</button>
     </div>
     <div class="col-12 col-md-3 text-md-end text-center">
-      <span class="text-muted small">Zobrazené období: <b>�</b> až <b>�</b></span>
+      <span class="text-muted small">Zobrazené období: <b>–</b> až <b>–</b></span>
     </div>
   </form>
   <div class="row g-4 mb-4">
@@ -497,11 +495,11 @@
     <div class="col-lg-6">
       <div class="card shadow-sm border-0 h-100">
         <div class="card-body">
-          <h5 class="card-title mb-3"><i class="fa fa-university text-primary"></i> �sp�šnost podle banky</h5>
-          <div id="bankyBarChart" height="120" aria-label="Graf úsp�šnosti podle banky" alt="Graf úsp�šnosti podle banky"></div>
-          <div class="table-responsive mt-3" aria-label="Tabulka úsp�šnosti podle banky">
+          <h5 class="card-title mb-3"><i class="fa fa-university text-primary"></i> Úspěšnost podle banky</h5>
+          <canvas id="bankyBarChart" height="120" aria-label="Graf úspěšnosti podle banky" alt="Graf úspěšnosti podle banky"></canvas>
+          <div class="table-responsive mt-3" aria-label="Tabulka úspěšnosti podle banky">
             <table class="table table-sm table-hover align-middle mb-0">
-              <thead class="table-light"><tr><th>Banka</th><th>Schváleno</th><th>Zamítnuto</th><th>Prům�rná doba schválení (dny)</th></tr></thead>
+              <thead class="table-light"><tr><th>Banka</th><th>Schváleno</th><th>Zamítnuto</th><th>Průměrná doba schválení (dny)</th></tr></thead>
               <tbody>
 
               </tbody>
@@ -514,7 +512,7 @@
       <div class="card shadow-sm border-0 h-100">
         <div class="card-body">
           <h5 class="card-title mb-3"><i class="fa fa-chart-line text-success"></i> Trendy schválených a zamítnutých hypoték</h5>
-          <div id="trendyLineChart" height="120" aria-label="Graf trendů schválených a zamítnutých hypoték" alt="Graf trendů schválených a zamítnutých hypoték"></div>
+          <canvas id="trendyLineChart" height="120" aria-label="Graf trendů schválených a zamítnutých hypoték" alt="Graf trendů schválených a zamítnutých hypoték"></canvas>
         </div>
       </div>
     </div>
@@ -523,12 +521,12 @@
     <div class="col-12">
       <div class="card shadow-sm border-0">
         <div class="card-body">
-          <h5 class="card-title mb-3"><i class="fa fa-th text-warning"></i> Heatmapa prům�rné doby schválení podle banky a m�síce</h5>
-          <div class="table-responsive" aria-label="Heatmapa prům�rné doby schválení">
+          <h5 class="card-title mb-3"><i class="fa fa-th text-warning"></i> Heatmapa průměrné doby schválení podle banky a měsíce</h5>
+          <div class="table-responsive" aria-label="Heatmapa průměrné doby schválení">
             <table class="table table-bordered text-center align-middle" style="min-width: 600px;">
               <thead class="table-light">
                 <tr>
-                  <th>Banka / M�síc</th>
+                  <th>Banka / Měsíc</th>
 
                 </tr>
               </thead>
@@ -551,7 +549,7 @@ const prumery = [];
 const months = [];
 const schvaleneTimeline = ;
 const zamitnuteTimeline = ;
-// Bar chart - úsp�šnost podle banky
+// Bar chart - úspěšnost podle banky
 const ctxBanky = document.getElementById('bankyBarChart').getContext('2d');
 new Chart(ctxBanky, {
   type: 'bar',
@@ -599,12 +597,12 @@ new Chart(ctxTrendy, {
         </a>
       </div>
       <div class="col text-center">
-        <a href="/klient/pridat/" class="nav-link d-inline-block" title="P�idat klienta">
+        <a href="/klient/pridat/" class="nav-link d-inline-block" title="Přidat klienta">
           <i class="fa fa-user-plus fa-lg"></i>
         </a>
       </div>
       <div class="col text-center">
-        <a href="/kalkulacka/" class="nav-link d-inline-block" title="Kalkula�ka hypotéky">
+        <a href="/kalkulacka/" class="nav-link d-inline-block" title="Kalkulačka hypotéky">
           <i class="fa fa-calculator fa-lg"></i>
         </a>
       </div>

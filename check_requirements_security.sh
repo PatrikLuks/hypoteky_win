@@ -23,7 +23,8 @@ echo "\n--- Kontrola bezpečnostních zranitelností (safety) ---"
 if ! command -v safety &> /dev/null; then
   echo "[!] Nástroj safety není nainstalován. Instaluj ho: pip install safety"
 else
-  safety check -r requirements.txt || echo "[!] Některé balíčky mají známé zranitelnosti!"
+  # Moderní příkaz (od června 2024):
+  safety scan -r requirements.txt || echo "[!] Některé balíčky mají známé zranitelnosti!"
 fi
 
 echo "\n--- Doporučení ---"

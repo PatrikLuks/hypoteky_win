@@ -8,6 +8,9 @@
 - [ ] Testy přístupnosti (a11y) – např. pomocí pa11y nebo axe-core
 - [ ] Ověřit responsivitu a tmavý/světlý režim
 - [ ] Ověřit ovládání klávesnicí a ARIA role
+- [ ] Ověřit export/import klientů a hypoték (CSV, XLSX, PDF)
+- [ ] Ověřit e-mailové notifikace (deadliny, změny stavu, zamítnutí)
+- [ ] Ověřit oprávnění a role (poradce, admin, manažer)
 
 ## 2. Údržba workspace
 - [x] Automatizované skripty pro kontrolu a úklid (`full_workspace_maintenance.sh`)

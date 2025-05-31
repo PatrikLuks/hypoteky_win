@@ -1,5 +1,3 @@
-<!-- Tento soubor byl AGRESIVN� o�išt�n od všech neplatných/control znaků skriptem clean_html_aggressive.py -->
-<!-- Tento soubor byl automaticky o�išt�n od neplatných/control znaků skriptem clean_html_control_chars.py -->
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -10,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;amp;amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
       body {
         background: #181a1b;
@@ -411,7 +409,7 @@
     </style>
 </head>
 <body>
-<div class="navbar navbar-expand-lg navbar-light bg-light mb-4 rounded">
+<nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 rounded">
   <div class="container-fluid">
     <a class="navbar-brand fw-bold" href="/">Správa hypoték</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Menu">
@@ -424,22 +422,15 @@
         </li>
 
         <li class="nav-item">
-          <a class="nav-link " href="/klient/pridat/"><i class="fa fa-user-plus"></i>P�idat klienta</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link " href="/dashboard/"><i class="fa fa-tachometer-alt"></i>Dashboard</a>
-        </li>
-
-        <li class="nav-item">
-          <a class="nav-link " href="/kalkulacka/"><i class="fa fa-calculator"></i>Kalkula�ka hypotéky</a>
+          <a class="nav-link " href="/kalkulacka/"><i class="fa fa-calculator"></i>Kalkulačka hypotéky</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="/reporting/"><i class="fa fa-chart-bar"></i> Reporting</a>
         </li>
       </ul>
       <span class="navbar-text small text-muted me-2">
-        <i class="fa fa-user"></i> deleteuser
-        <span class="badge bg-secondary ms-2">Poradce</span>
+        <i class="fa fa-user"></i> detailklient
+        <span class="badge" style="background-color: #003366; color: #fff;">Klient</span>
       </span>
       <ul class="navbar-nav ms-1">
 
@@ -448,14 +439,14 @@
       </ul>
     </div>
   </div>
-</div>
+</nav>
 <div class="container mt-4">
 
 <h1 class="mb-4 text-danger"><i class="fa fa-trash"></i> Potvrzení smazání klienta</h1>
-<p>Opravdu chcete smazat klienta <strong>Smazat Test</strong>?</p>
+<p>Opravdu chcete smazat klienta <strong>Detailní Klient</strong>?</p>
 <form method="post" class="mb-3"><input type="hidden" name="csrfmiddlewaretoken" value="__TOKEN__">
     <button type="submit" class="btn btn-danger"><i class="fa fa-trash"></i> Ano, smazat</button>
-    <a href="/klient/__ID__/" class="btn btn-secondary"><i class="fa fa-arrow-left"></i> Zp�t</a>
+    <a href="/klient/__ID__/" class="btn btn-secondary"><i class="fa fa-arrow-left"></i> Zpět</a>
 </form>
 
 </div>
@@ -468,12 +459,12 @@
         </a>
       </div>
       <div class="col text-center">
-        <a href="/klient/pridat/" class="nav-link d-inline-block" title="P�idat klienta">
+        <a href="/klient/pridat/" class="nav-link d-inline-block" title="Přidat klienta">
           <i class="fa fa-user-plus fa-lg"></i>
         </a>
       </div>
       <div class="col text-center">
-        <a href="/kalkulacka/" class="nav-link d-inline-block" title="Kalkula�ka hypotéky">
+        <a href="/kalkulacka/" class="nav-link d-inline-block" title="Kalkulačka hypotéky">
           <i class="fa fa-calculator fa-lg"></i>
         </a>
       </div>

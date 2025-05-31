@@ -434,7 +434,7 @@ source .venv/bin/activate
 - Dodržuj checklisty v `E2E_TESTING_CHECKLIST.md` a `README_snapshot_a11y_management.md`.
 
 ## 5. Přidání nového testu
-- Unit/integration testy: `klienti/tests_*.py`, `tests/`
+- Unit/integrace testy: `klienti/tests_*.py`, `tests/`
 - E2E/UI testy: `tests_e2e_playwright.py`
 - a11y/snapshot: `pa11y_batch.sh`, `compare_snapshots.sh`
 
@@ -493,72 +493,45 @@ def test_klient_list_accessibility():
 
 ---
 
-## 🧪 Best practices pro e2e a a11y testy
+## ♿ Přístupnost (a11y) – testování a best practices
 
-### Proč psát e2e a a11y testy?
-- e2e testy ověřují hlavní workflow z pohledu uživatele (např. přihlášení, vytvoření klienta, export, notifikace).
-- a11y testy (přístupnost) zajišťují, že aplikace je použitelná i pro uživatele s hendikepem (klávesnice, čtečky, kontrast, role, popisky).
-- Automatizované testy chrání před regresí a zvyšují kvalitu produktu.
+### Jak testovat přístupnost HTML šablon a snapshotů
 
-### Příklad e2e testu (Playwright):
-```python
-import pytest
-from playwright.sync_api import sync_playwright
+1. **Spusť automatizovanou kontrolu snapshotů:**
+   ```sh
+   ./pa11y_batch_snapshots.sh
+   ```
+   Výsledky najdeš v souborech `pa11y_*_snapshot_report.html` v rootu projektu.
 
-@pytest.mark.e2e
-def test_vytvoreni_klienta():
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-        page.goto('http://localhost:8000/login/')
-        page.fill('input[name="username"]', 'testlist')
-        page.fill('input[name="password"]', 'testpass')
-        page.click('button[type="submit"]')
-        page.wait_for_selector('text=Dashboard', timeout=3000)
-        # ...workflow vytvoření klienta...
-        browser.close()
-```
+2. **Otevři reporty v prohlížeči** a projdi chyby (errors), varování (warnings) a doporučení (notices).
 
-### Příklad a11y testu (axe-core/Playwright):
-```python
-import pytest
-from playwright.sync_api import sync_playwright
+3. **Oprav chyby v šablonách** (např. kontrast, aria-label, popisky formulářů, klávesová dostupnost).
 
-@pytest.mark.e2e
-def test_a11y_dashboard():
-    try:
-        from playwright_axe import Axe
-    except ImportError:
-        pytest.skip("playwright-axe není nainstalován")
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-        page.goto('http://localhost:8000/login/')
-        page.fill('input[name="username"]', 'testlist')
-        page.fill('input[name="password"]', 'testpass')
-        page.click('button[type="submit"]')
-        page.wait_for_selector('text=Dashboard', timeout=3000)
-        axe = Axe(page)
-        axe.inject()
-        results = axe.run()
-        violations = [v for v in results['violations'] if v['impact'] in ('critical', 'serious')]
-        assert not violations, f"A11y chyby: {violations}"
-        browser.close()
-```
+4. **Po úpravě šablony vždy aktualizuj snapshot:**
+   ```sh
+   rm <název_snapshotu.html>
+   pytest klienti/tests_ui.py
+   ./pa11y_batch_snapshots.sh
+   ```
 
-### Doporučení
-- Piš e2e testy pro hlavní workflow (login, CRUD, export, notifikace).
-- Ověřuj přístupnost klíčových view (formuláře, dashboard, detail klienta) pomocí axe-core nebo pa11y.
-- Testuj i edge-case scénáře (nevalidní vstupy, selhání služeb, chybějící pole).
-- Dokumentuj, jak testy spouštět a jak řešit běžné chyby.
+### Best practices pro a11y v šablonách
+- Používej dostatečný kontrast textu a pozadí (min. 4.5:1).
+- Každé pole formuláře musí mít `<label>` nebo `aria-label`.
+- Navigační prvky označuj pomocí `role`, `aria-label` nebo skrytých popisků.
+- Ověř, že všechny akce lze provést klávesnicí.
+- Pro badge a tlačítka používej barvy s vysokým kontrastem (např. bílý text na tmavém pozadí).
+- Testuj i na slabším HW (MacBook Air, starší notebooky) – vyhýbej se zbytečným animacím a velkým obrázkům.
 
-### Troubleshooting
-- **Chyba: playwright-axe není nainstalován:**
-  - Nainstaluj pomocí: `pip install playwright-axe`
-- **Chyba: server neběží:**
-  - Spusť Django server: `python manage.py runserver`
-- **Chyba: test selže na přihlášení:**
-  - Ověř, že existuje testovací uživatel a správné heslo.
+### Checklist před commitem (a11y)
+- [ ] Všechny snapshoty prošly pa11y bez errors.
+- [ ] Formuláře mají popisky (label/aria-label).
+- [ ] Navigace je ovladatelná klávesnicí.
+- [ ] Kontrast textu a pozadí je dostatečný.
+- [ ] Žádné důležité informace nejsou dostupné pouze barvou.
+
+Více tipů a příkladů najdeš v souboru `SNAPSHOT_A11Y_WORKFLOW_CHECKLIST.md`.
+
+---
 
 # Jak generovat a archivovat pa11y reporty
 
@@ -626,6 +599,15 @@ Pro udržení přehledného workspace a efektivní spolupráci je důležité pr
   find . -type f -name '*report*.gz' -mtime +14 -delete
   ```
 
+## Úklid workspace: duplicitní a prázdné soubory
+
+Pro udržení čistoty workspace používejte skript `cleanup_duplicates_and_empty.sh`:
+- Najde a vypíše duplicitní/prázdné soubory.
+- Bezpečně umožní jejich smazání (s potvrzením).
+- Optimalizováno pro macOS a zsh.
+
+**Použití a detaily najdete v ONBOARDING.md.**
+
 ## Vizuální kontrola reportů a snapshotů
 
 - **Otevření HTML snapshotu/reportu v prohlížeči (po rozbalení a dekomprimaci):**
@@ -657,4 +639,38 @@ Podrobné informace najdete v souboru `README_snapshot_a11y_management.md`.
 - Snapshoty UI a a11y reporty jsou generovány a kontrolovány automaticky při každém commitu (viz workflow `.github/workflows/ci.yml`).
 - Výsledky najdete v artefaktech buildu na GitHubu.
 - Pro troubleshooting a správu viz doporučení v přiloženém README.
+
+---
+
+# 🧑‍💻 Onboarding – přidání nového skriptu nebo testu (best practices)
+
+Chceš přidat nový skript nebo test? Postupuj podle těchto doporučení, aby byl kód snadno udržovatelný, testovatelný a bezpečný:
+
+## 1. Vzorový skript s CLI parametry a testovatelností
+- Inspiruj se např. `klienti/scripts/klient_user_overview.py` nebo `klienti/scripts/rozdel_klienty_mezi_uzivatele.py`.
+- Hlavní logiku vždy umísti do funkce (např. `def main_func(...):`), kterou lze importovat a testovat.
+- Pro CLI použij `argparse` a umožni např. export do CSV (`--csv`), dry-run (`--dry-run`) apod.
+- Přidej komentáře a ukázku použití v docstringu.
+
+## 2. Vzorový test
+- Testy umisťuj do `klienti/tests/` nebo `tests/`.
+- Testuj přímo importovanou funkci, ne přes subprocess (viz např. `test_klient_user_overview.py`, `test_rozdel_klienty_mezi_uzivatele.py`).
+- Pro testy s exportem do CSV použij `tempfile` a ověř obsah souboru.
+- Vždy ověř, že test nemění produkční data (používej testovací DB).
+
+## 3. Checklist pro přispěvatele
+- [ ] Hlavní logika je v samostatné funkci, kterou lze importovat a testovat.
+- [ ] Skript podporuje CLI parametry (např. --csv, --dry-run, --help).
+- [ ] Existuje odpovídající test v `tests/`, který ověřuje funkčnost i edge-case scénáře.
+- [ ] Testy procházejí lokálně i v CI.
+- [ ] Kód je okomentovaný a srozumitelný pro studenta.
+- [ ] Pokud skript mění data, je k dispozici i bezpečný režim (např. dry-run).
+- [ ] Pokud skript exportuje data, je ověřen i obsah exportu.
+
+## 4. Odkazy na vzorové skripty a testy
+- `klienti/scripts/klient_user_overview.py` + `klienti/tests/test_klient_user_overview.py` (přehled klientů, export do CSV)
+- `klienti/scripts/rozdel_klienty_mezi_uzivatele.py` + `klienti/tests/test_rozdel_klienty_mezi_uzivatele.py` (rozdělení klientů, dry-run, export do CSV)
+- `klienti/tests/test_klient_user_overview_csv.py`, `klienti/tests/test_rozdel_klienty_mezi_uzivatele_csv.py` (testy exportu do CSV)
+
+> Dodržuj tyto best practices pro všechny nové skripty a testy. Usnadníš tím údržbu, onboarding i rozvoj projektu!
 

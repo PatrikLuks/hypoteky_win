@@ -1,0 +1,49 @@
+name: Kontrola přístupnosti (a11y)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  pa11y-snapshots:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout kódu
+        uses: actions/checkout@v4
+
+      - name: Nastavení Pythonu
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Instalace závislostí
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Instalace Node.js a pa11y
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install -g pa11y
+
+      - name: Kontrola přístupnosti snapshotů
+        run: |
+          chmod +x pa11y_batch_snapshots.sh
+          ./pa11y_batch_snapshots.sh
+
+      - name: Výpis výsledků (první chyby)
+        run: |
+          grep -i error pa11y_*_snapshot_report.html || echo "Žádné chyby nenalezeny."
+
+      - name: Selhání buildu při chybách a11y
+        run: |
+          if grep -qi error pa11y_*_snapshot_report.html; then
+            echo "Nalezeny chyby přístupnosti!" && exit 1
+          fi
+
+# Tento workflow spustí pa11y na všechny hlavní HTML snapshoty a selže, pokud najde chyby přístupnosti.
+# Pro studium a úpravy: uprav snapshoty, šablony nebo skript pa11y_batch_snapshots.sh podle potřeb projektu.

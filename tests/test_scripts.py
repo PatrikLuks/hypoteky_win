@@ -23,6 +23,7 @@ SCRIPTS_TO_TEST = [
     "check_requirements_security.sh",
     "cleanup_workspace.sh",
     "check_git_clean.sh",
+    "cleanup_snapshot_backups.sh",  # nově přidaný skript
     # Přidej další skripty podle potřeby
 ]
 
