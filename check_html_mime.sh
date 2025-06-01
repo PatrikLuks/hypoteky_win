@@ -1,7 +1,8 @@
 #!/bin/zsh
-# check_html_mime.sh
-# Ověří, že všechny HTML snapshoty a a11y reporty mají MIME typ text/html po dekompresi
-# Používej před review, sdílením nebo troubleshooting
+# check_html_mime.sh – skript pro ověření MIME typu HTML snapshotů a a11y reportů
+# Používej před review, sdílením nebo troubleshootingem
+# Kontroluje, že všechny HTML snapshoty a reporty mají MIME typ text/html
+# Autor: automatická optimalizace Copilot
 
 TMPDIR=$(mktemp -d)
 ERROR=0

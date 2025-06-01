@@ -1,7 +1,8 @@
 #!/bin/zsh
-# check_large_files.sh
-# Najde všechny klíčové soubory (.sh, .py, .md, .html, .ini, .csv, .yml, .json) větší než 2 MB
+# check_large_files.sh – skript pro vyhledání velkých souborů (>2 MB) ve workspace
 # Používej před commitem, archivací, sdílením nebo troubleshootingem
+# Najde všechny klíčové soubory větší než 2 MB
+# Autor: automatická optimalizace Copilot
 
 LIMIT=2097152 # 2 MB v bajtech
 ERROR=0

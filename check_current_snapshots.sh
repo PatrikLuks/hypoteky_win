@@ -1,7 +1,8 @@
 #!/bin/zsh
-# check_current_snapshots.sh
-# Ověří, že ve workspace existují aktuální snapshoty a a11y reporty pro dnešní datum
+# check_current_snapshots.sh – skript pro ověření existence aktuálních snapshotů a a11y reportů
 # Používej před commitem, review, archivací nebo sdílením
+# Kontroluje, že ve workspace existují snapshoty a reporty pro dnešní datum
+# Autor: automatická optimalizace Copilot
 
 DNES=$(date +%Y-%m-%d)
 SNAPSHOT_DIR="snapshot_html_$DNES"

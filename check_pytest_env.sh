@@ -1,7 +1,8 @@
 #!/bin/zsh
-# check_pytest_env.sh
-# Ověří, že pytest je nainstalován a všechny testy v klienti/ a tests/ jsou spustitelné
+# check_pytest_env.sh – skript pro ověření, že pytest je nainstalován a testy jsou spustitelné
 # Používej před commitem, nasazením nebo při onboardingu
+# Kontroluje testovací soubory v klienti/ a tests/
+# Autor: automatická optimalizace Copilot
 
 # Ověření pytestu
 if ! command -v pytest &> /dev/null; then

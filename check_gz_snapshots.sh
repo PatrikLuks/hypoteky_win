@@ -1,7 +1,8 @@
 #!/bin/zsh
-# check_gz_snapshots.sh
-# Rychlá kontrola, že všechny .html.gz snapshoty a a11y reporty lze bez chyby dekomprimovat
-# Používej před archivací, review nebo troubleshooting
+# check_gz_snapshots.sh – skript pro rychlou kontrolu integrity .html.gz snapshotů a reportů
+# Používej před archivací, review nebo troubleshootingem
+# Ověří, že všechny .html.gz snapshoty a reporty lze bez chyby dekomprimovat
+# Autor: automatická optimalizace Copilot
 
 ERROR=0
 

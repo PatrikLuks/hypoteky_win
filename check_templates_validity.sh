@@ -1,7 +1,8 @@
 #!/bin/zsh
-# check_templates_validity.sh
-# Rychlá kontrola HTML šablon v klienti/templates/ na základní chyby
+# check_templates_validity.sh – skript pro rychlou kontrolu HTML šablon v klienti/templates/
 # Používej před nasazením, refaktoringem nebo při onboardingu
+# Kontroluje základní chyby v HTML šablonách
+# Autor: automatická optimalizace Copilot
 
 TEMPLATEDIR="klienti/templates"
 HTMLFILES=$(find "$TEMPLATEDIR" -type f -name "*.html")

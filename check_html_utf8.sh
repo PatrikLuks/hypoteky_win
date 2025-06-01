@@ -1,7 +1,8 @@
 #!/bin/zsh
-# check_html_utf8.sh
-# Ověří, že všechny HTML snapshoty a a11y reporty jsou validní UTF-8 (po dekompresi .gz)
+# check_html_utf8.sh – skript pro ověření, že všechny HTML snapshoty a reporty jsou validní UTF-8
 # Používej před review, sdílením nebo archivací
+# Kontroluje kódování HTML snapshotů a reportů po dekompresi
+# Autor: automatická optimalizace Copilot
 
 TMPDIR=$(mktemp -d)
 ERROR=0

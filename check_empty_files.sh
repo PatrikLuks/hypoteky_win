@@ -1,7 +1,8 @@
 #!/bin/zsh
-# check_empty_files.sh
-# Najde všechny klíčové soubory (.sh, .py, .md, .html, .ini, .csv, .yml, .json) s nulovou velikostí
+# check_empty_files.sh – skript pro vyhledání prázdných klíčových souborů ve workspace
 # Používej před commitem, archivací, sdílením nebo troubleshootingem
+# Najde všechny klíčové soubory s nulovou velikostí
+# Autor: automatická optimalizace Copilot
 
 ERROR=0
 

@@ -1,7 +1,8 @@
 #!/bin/zsh
-# check_git_conflicts.sh
-# Najde všechny klíčové soubory s nevyřešenými git konflikty (<<<<<<<, =======, >>>>>>>)
+# check_git_conflicts.sh – skript pro kontrolu nevyřešených git konfliktů ve workspace
 # Používej před commitem, review, sdílením nebo troubleshootingem
+# Najde všechny klíčové soubory s konflikty (<<<<<<<, =======, >>>>>>>)
+# Autor: automatická optimalizace Copilot
 
 ERROR=0
 

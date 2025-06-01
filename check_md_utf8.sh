@@ -1,7 +1,8 @@
 #!/bin/zsh
-# check_md_utf8.sh
-# Ověří, že všechny .md checklisty a dokumentace jsou validní UTF-8
+# check_md_utf8.sh – skript pro ověření, že všechny .md checklisty a dokumentace jsou validní UTF-8
 # Používej před review, sdílením nebo archivací
+# Kontroluje kódování všech .md souborů
+# Autor: automatická optimalizace Copilot
 
 ERROR=0
 

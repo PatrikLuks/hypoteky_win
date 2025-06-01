@@ -1,7 +1,8 @@
 #!/bin/zsh
-# check_snapshot_timestamps.sh
-# Ověří, že všechny .html.gz snapshoty a a11y reporty mají dnešní časové razítko (mtime)
+# check_snapshot_timestamps.sh – skript pro ověření časových razítek snapshotů a reportů
 # Používej před commitem, review, archivací nebo sdílením
+# Kontroluje, že všechny .html.gz snapshoty a reporty mají dnešní časové razítko
+# Autor: automatická optimalizace Copilot
 
 DNES=$(date +%Y-%m-%d)
 ERROR=0

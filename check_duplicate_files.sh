@@ -1,7 +1,8 @@
 #!/bin/zsh
-# check_duplicate_files.sh
-# Najde soubory se stejným názvem (bez ohledu na příponu) v celém workspace
+# check_duplicate_files.sh – skript pro vyhledání duplicitních názvů souborů ve workspace
 # Používej před refaktoringem, sdílením nebo troubleshootingem
+# Najde soubory se stejným názvem (bez ohledu na příponu)
+# Autor: automatická optimalizace Copilot
 
 ERROR=0
 
@@ -20,5 +21,5 @@ find . -type f \
 if [[ $ERROR -eq 0 ]]; then
   echo "\n✓ Ve workspace nejsou žádné duplicitní názvy souborů."
 else
-  echo "\n[!] Některé soubory mají duplicitní názvy! Zkontroluj je a zvaž sloučení nebo odstranění duplicit."
+  echo "\n[!] Některé soubory mají duplicitní názvy! Zkontroluj je a zvaž sloužení nebo odstranění duplicit."
 fi

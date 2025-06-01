@@ -1,7 +1,8 @@
 #!/bin/zsh
-# fix_file_ownership.sh
-# Nastaví správného vlastníka a skupinu pro všechny soubory ve workspace podle aktuálního uživatele
+# fix_file_ownership.sh – skript pro nastavení správného vlastníka a skupiny pro všechny soubory ve workspace
 # Používej po přesunu projektu, změně uživatele nebo při řešení problémů s přístupem
+# Nastaví vlastnictví pro všechny soubory a složky v aktuálním workspace
+# Autor: automatická optimalizace Copilot
 
 USER=$(whoami)
 GROUP=$(id -gn)
