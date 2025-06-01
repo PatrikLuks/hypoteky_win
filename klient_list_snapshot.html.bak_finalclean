@@ -1,0 +1,20 @@
+<!-- Tento soubor byl AGRESIVNĚ očištěn od všech neplatných/control znaků skriptem clean_html_aggressive.py -->
+<!-- filepath: klient_list_snapshot.html -->
+<!-- Tento soubor byl AGRESIVNĚ očištěn od všech neplatných/control znaků skriptem clean_html_aggressive.py -->
+<!-- Tento soubor byl automaticky očištěn od neplatných/control znaků skriptem clean_html_control_chars.py -->
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Seznam klientů</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>Seznam klientů</h1>
+        <!-- Zde bude obsah seznamu klientů -->
+    </div>
+</body>
+</html>
