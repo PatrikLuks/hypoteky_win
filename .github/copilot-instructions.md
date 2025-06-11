@@ -16,6 +16,26 @@ Moderní webová aplikace pro správu hypoték pro finanční poradce. Backend D
 > Tento plán pokrývá bezpečnost, compliance, testování, provoz, onboarding a právní požadavky. Každý bod obsahuje konkrétní kroky, doporučené skripty a checklisty.
 
 ---
+# REAL_DEPLOYMENT_ACTION_PLAN.md
+## 1. Bezpečnost a compliance
+- Ověř, že každý uživatel má přístup jen ke svým datům a funkcím dle role.
+- Otestuj všechny role (poradce, admin, manažer) včetně edge-case scénářů.
+- Pravidelná kontrola závislostí, auditní logování, GDPR, disaster recovery.
+
+## 2. Testování a spolehlivost
+- Každá klíčová funkce má unit/integration test (včetně edge-case scénářů).
+- Testy pokrývají import/export, reporting, notifikace, API, šifrování, bezpečnost.
+
+## 3. UI, UX a přístupnost
+- Ověření přístupnosti (a11y), snapshoty, responsivita, tmavý/světlý režim.
+- Dokumentace a onboarding, troubleshooting sekce, příklady pro nové vývojáře.
+
+## 4. Provoz, monitoring a CI/CD
+- Monitoring výkonu, chybovosti, dostupnosti, alerty na kritické chyby.
+- Automatizované nasazení (CI/CD), rollback plán, úklid workspace a logů.
+
+## 5. Právní a procesní požadavky
+- Smluvní dokumentace, GDPR, AML, disaster recovery plán, školení a podpora.
 
 ### 1. Bezpečnost a compliance
 - [ ] **Penetrační testy**

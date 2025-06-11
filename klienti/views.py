@@ -352,7 +352,7 @@ def klient_detail(request, pk):
                 'blizi_se' if klient.deadline_podani_zadosti and klient.splneno_podani_zadosti is None and (klient.deadline_podani_zadosti - today).days <= 3 and (klient.deadline_podani_zadosti - today).days >= 0 else
                 'ok'
             ),
-            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'podani_zadadosti'] if poznamky and hasattr(poznamky[0], 'krok') else []
+            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'podani_zadosti'] if poznamky and hasattr(poznamky[0], 'krok') else []
         },
         {
             'pole': 'odhad',
@@ -495,9 +495,11 @@ def home(request):
         # stav je číslo kroku 1-15 (string), převedeme na int
         try:
             stav = int(stav)
+            # POZOR: názvy musí přesně odpovídat názvům polí v modelu Klient!
+            # Pokud je zde překlep, filtr nebude fungovat (např. podani_zadadosti vs podani_zadosti)
             workflow_labels = [
                 'co_financuje', 'navrh_financovani', 'vyber_banky', 'priprava_zadosti',
-                'kompletace_podkladu', 'podani_zadadosti', 'odhad', 'schvalovani',
+                'kompletace_podkladu', 'podani_zadosti', 'odhad', 'schvalovani',
                 'priprava_uverove_dokumentace', 'podpis_uverove_dokumentace',
                 'priprava_cerpani', 'cerpani', 'zahajeni_splaceni', 'podminky_pro_splaceni',
             ]
