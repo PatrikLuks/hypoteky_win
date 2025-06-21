@@ -23,6 +23,7 @@ import tempfile
 from reportlab.lib.utils import ImageReader
 from datetime import datetime
 from django.db.models import Q
+from django.core.paginator import Paginator
 
 class KlientForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -491,6 +492,10 @@ def home(request):
         klienti = Klient.objects.all().order_by('-datum')
     else:
         klienti = Klient.objects.none()
+    # Stránkování pro výkon
+    paginator = Paginator(klienti, 20)  # 20 klientů na stránku
+    page_number = request.GET.get('page')
+    klienti_page = paginator.get_page(page_number)
     today = date.today()
     deadline_fields = [
         ('co_financuje', 'deadline_co_financuje', 'splneno_co_financuje'),
@@ -581,7 +586,7 @@ def home(request):
         klienti = klienti.filter(jmeno_index__icontains=q)
 
     return render(request, 'klienti/home.html', {
-        'klienti': klienti,
+        'klienti': klienti_page,
         'klienti_deadlines': klienti_deadlines,
         'today': today,
         'workflow_counts': workflow_counts,

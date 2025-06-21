@@ -102,6 +102,31 @@
         {% endfor %}
       </tbody>
     </table>
+    <!-- Stránkování -->
+    {% if klienti.has_other_pages %}
+    <nav aria-label="Stránkování klientů">
+      <ul class="pagination justify-content-center">
+        {% if klienti.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ klienti.previous_page_number }}">&laquo; Předchozí</a></li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">&laquo; Předchozí</span></li>
+        {% endif %}
+        {% for num in klienti.paginator.page_range %}
+          {% if klienti.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+          {% else %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+          {% endif %}
+        {% endfor %}
+        {% if klienti.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ klienti.next_page_number }}">Další &raquo;</a></li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Další &raquo;</span></li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+    <!-- /Stránkování -->
     </div>
   {% endif %}
 {% else %}
@@ -366,7 +391,31 @@
       {% endfor %}
     </tbody>
   </table>
-  </div>
+  <!-- Stránkování -->
+    {% if klienti.has_other_pages %}
+    <nav aria-label="Stránkování klientů">
+      <ul class="pagination justify-content-center">
+        {% if klienti.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ klienti.previous_page_number }}">&laquo; Předchozí</a></li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">&laquo; Předchozí</span></li>
+        {% endif %}
+        {% for num in klienti.paginator.page_range %}
+          {% if klienti.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+          {% else %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+          {% endif %}
+        {% endfor %}
+        {% if klienti.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ klienti.next_page_number }}">Další &raquo;</a></li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Další &raquo;</span></li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+    <!-- /Stránkování -->
 {% endif %}
 </div>
 <div class="alert alert-warning">DEBUG: klienti count = {{ klienti|length }}<br>Seznam: {% for k in klienti %}{{ k.jmeno }}, {% endfor %}</div>
