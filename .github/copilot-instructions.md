@@ -123,7 +123,6 @@ Moderní webová aplikace pro správu hypoték pro finanční poradce. Backend D
 - Respektuj bezpečnostní zásady (ochrana dat, autentizace, autorizace).
 - Pro UI používej moderní CSS frameworky (Tailwind, Bootstrap).
 - Přidávej komentáře a příklady pro studenty.
-- Optimalizuj kód pro slabší hardware (menší dávky, lazy loading, omezení paralelismu, jednoduché buildy).
 
 # Instrukce pro Copilot ohledně vedení uživatele
 
@@ -141,7 +140,3 @@ Moderní webová aplikace pro správu hypoték pro finanční poradce. Backend D
 - Chce získat maximum z chatu a naučit se životní dovednosti, které škola neučí.
 
 ---
-
-# Poznámka
-
-- Hodně štěstí při studiu a vývoji! Pokud narazíš na problém s výkonem, ptej se na optimalizace vhodné pro MacBook Air 2020.
