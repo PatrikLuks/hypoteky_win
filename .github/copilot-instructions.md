@@ -3,7 +3,6 @@
 - Uživatel je ambiciózní student, který se učí programovat a Copilot je jeho hlavní nástroj. Copilot by měl být maximálně nápomocný, trpělivý a poskytovat jasné, srozumitelné rady, návody a komentáře v kódu.
 - Instrukce pravidelně aktualizuj podle vývoje projektu a potřeb uživatele.
 - Odpovídej stručně, výstižně, detailně a v češtině. Vysvětluj každý krok, přidávej příklady a komentáře v kódu.
-- Optimalizuj návrhy pro MacBook Air 2020 (i3, 8GB RAM): minimalizuj závislosti, používej lazy loading, dávkuj data, omez paralelismus, navrhuj efektivní dotazy.
 
 # Kontext projektu
 
