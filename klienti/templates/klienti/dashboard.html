@@ -29,8 +29,10 @@
     <div class="card shadow-sm border-0 text-center h-100 bg-gradient" style="background:linear-gradient(135deg,#23272b 60%,#20c997 100%)">
       <div class="card-body">
         <h6 class="card-title text-secondary">Objem hypoték</h6>
-        <div class="display-4 fw-bold text-success" style="letter-spacing:1px;white-space:nowrap;">
-          {{ objem_hypotek|floatformat:0|thousands_separator }} Kč
+        <div class="display-4 fw-bold text-success" style="letter-spacing:1px;white-space:nowrap;max-width:100%;display:inline-block;font-size:clamp(1.5rem,6vw,2.7rem);">
+          <span style="display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom;">{{ objem_hypotek|floatformat:0|thousands_separator }}</span>
+          <br>
+          <span style="font-size:clamp(1rem,3vw,1.5rem);vertical-align:top;white-space:nowrap;">Kč</span>
         </div>
         <a href="{% url 'klient_create' %}" class="btn btn-sm btn-outline-light mt-2"><i class="fa fa-plus"></i> Přidat klienta</a>
       </div>
@@ -49,45 +51,7 @@
       <div class="card-body">
         <h6 class="card-title text-secondary">Workflow rozložení</h6>
         <canvas id="workflowPieChart" height="120"></canvas>
-      </div>
-    </div>
-  </div>
-</div>
-
-{# --- ROZLOŽENÍ PODLE BANK --- #}
-<div class="row mb-4 g-4">
-  <div class="col-lg-6">
-    <div class="card shadow-sm border-0 h-100">
-      <div class="card-body">
-        <h5 class="card-title"><i class="fa fa-university text-primary"></i> Rozložení podle bank</h5>
-        <canvas id="bankyPieChart" height="120"></canvas>
-        <ul class="list-group list-group-flush mt-3">
-          {% for banka, pocet in rozlozeni_banky.items %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <span>{{ banka }}</span>
-              <span class="badge bg-primary rounded-pill">{{ pocet }}</span>
-            </li>
-          {% empty %}
-            <li class="list-group-item text-muted">Žádné banky</li>
-          {% endfor %}
-        </ul>
-      </div>
-    </div>
-  </div>
-  <div class="col-lg-6">
-    <div class="card shadow-sm border-0 h-100">
-      <div class="card-body">
-        <h5 class="card-title"><i class="fa fa-ban text-danger"></i> Nejčastější důvody zamítnutí</h5>
-        <ul class="list-group list-group-flush">
-          {% for duvod, pocet in duvody_zamitnuti %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <span>{{ duvod }}</span>
-              <span class="badge bg-danger rounded-pill">{{ pocet }}</span>
-            </li>
-          {% empty %}
-            <li class="list-group-item text-muted">Žádné zamítnuté hypotéky</li>
-          {% endfor %}
-        </ul>
+        <div id="workflowPieLegendContainer"></div>
       </div>
     </div>
   </div>
@@ -266,12 +230,96 @@
   </div>
 </div>
 
+<div style="display:none;">
+  <pre>{{ workflow_labels|safe }}</pre>
+  <pre>{{ workflow_counts|safe }}</pre>
+</div>
+
+<style>
+/* Luxusní scrollbar pro legendu workflow – nejlepší podpora v Chrome/Edge.
+   Firefox podporuje pouze barvy (ne šířku, stín, gradient). Safari má omezenou podporu. 
+   Pro univerzální vzhled použijte JS knihovnu SimpleBar: https://github.com/Grsmto/simplebar */
+#workflowPieLegendContainer {
+  width: 100%;
+  max-width: 340px;
+  max-height: 90px;
+  overflow-y: auto;
+  margin: 0 auto;
+  scrollbar-width: thin; /* Firefox: pouze barva a šířka */
+  scrollbar-color: #FFD700 #23272b; /* Firefox: pouze barva */
+}
+#workflowPieLegendContainer::-webkit-scrollbar {
+  width: 12px !important;
+  background: #23272b !important;
+  border-radius: 12px !important;
+}
+#workflowPieLegendContainer::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #FFD700 60%, #ffe066 100%) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.10) !important;
+  border: 2px solid #23272b !important;
+  min-height: 24px !important;
+  transition: background 0.3s, box-shadow 0.3s !important;
+}
+#workflowPieLegendContainer::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #fffbe6 60%, #FFD700 100%) !important;
+  box-shadow: 0 4px 16px 0 rgba(0,0,0,0.18) !important;
+}
+#workflowPieLegendContainer::-webkit-scrollbar-track {
+  background: #23272b !important;
+  border-radius: 12px !important;
+}
+</style>
+<!--
+Pro univerzální luxusní vzhled scrollbarů napříč prohlížeči doporučuji použít knihovnu SimpleBar:
+1. npm install simplebar
+2. import 'simplebar/dist/simplebar.css';
+3. Přidej atribut data-simplebar na div: <div id="workflowPieLegendContainer" data-simplebar>
+-->
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+// Chart.js HTML legend plugin
+const htmlLegendPlugin = {
+  id: 'htmlLegend',
+  afterUpdate(chart, args, options) {
+    const legendContainer = document.getElementById(options.containerID);
+    while (legendContainer.firstChild) {
+      legendContainer.firstChild.remove();
+    }
+    const list = document.createElement('ul');
+    list.style.display = 'flex';
+    list.style.flexDirection = 'column';
+    list.style.margin = '0';
+    list.style.padding = '0';
+    list.style.listStyle = 'none';
+    chart.data.labels.forEach((label, i) => {
+      const li = document.createElement('li');
+      li.style.display = 'flex';
+      li.style.alignItems = 'center';
+      li.style.marginBottom = '4px';
+      const box = document.createElement('span');
+      box.style.display = 'inline-block';
+      box.style.width = '16px';
+      box.style.height = '16px';
+      box.style.marginRight = '8px';
+      box.style.background = chart.data.datasets[0].backgroundColor[i];
+      box.style.borderRadius = '3px';
+      li.appendChild(box);
+      const text = document.createElement('span');
+      text.style.fontSize = '13px';
+      text.style.color = '#e0e0e0';
+      text.textContent = label;
+      li.appendChild(text);
+      list.appendChild(li);
+    });
+    legendContainer.appendChild(list);
+  }
+};
 const workflowLabels = {{ workflow_labels|safe }};
 const workflowCounts = {{ workflow_counts|safe }};
 const ctxPie = document.getElementById('workflowPieChart').getContext('2d');
-new Chart(ctxPie, {
+const pieChart = new Chart(ctxPie, {
   type: 'pie',
   data: {
     labels: workflowLabels.map(l => l.replace(/_/g, ' ').replace('hotovo', 'Hotovo').replace(/\b\w/g, c => c.toUpperCase())),
@@ -284,47 +332,12 @@ new Chart(ctxPie, {
   },
   options: {
     plugins: {
-      legend: {position: 'bottom', labels: {color: '#e0e0e0', font: {size: 13}}}
+      legend: {display: false},
+      htmlLegend: {containerID: 'workflowPieLegendContainer'}
     }
-  }
+  },
+  plugins: [htmlLegendPlugin]
 });
-// --- Pie chart pro banky ---
-const bankyLabels = {{ banky_labels|safe }};
-const bankyCounts = {{ banky_counts|safe }};
-if (bankyLabels.length > 0) {
-  const ctxBanky = document.getElementById('bankyPieChart').getContext('2d');
-  new Chart(ctxBanky, {
-    type: 'pie',
-    data: {
-      labels: bankyLabels,
-      datasets: [{
-        data: bankyCounts,
-        backgroundColor: Array.from({length: bankyLabels.length}, (_, i) => [
-          '#0A192F', // tmavě modrá
-          '#FFD700', // zlatá
-          '#F7E7CE', // champagne
-          '#23272B', // tmavě šedá
-          '#50C878', // smaragdová
-          '#0F52BA', // safírová
-          '#C0C0C0', // stříbrná
-          '#800020', // vínová
-          '#014421', // tmavě zelená
-          '#4B006E', // tmavě fialová
-          '#E5E4E2', // platinová
-          '#B76E79', // růžové zlato
-          '#CD7F32', // bronzová
-          '#B2FFFF', // ledově modrá
-          '#B2BABB'  // světle šedá
-        ][i % 15])
-      }]
-    },
-    options: {
-      plugins: {
-        legend: {position: 'bottom', labels: {color: '#23272b', font: {size: 13}}}
-      }
-    }
-  });
-}
 </script>
 </div>
 {% endblock %}

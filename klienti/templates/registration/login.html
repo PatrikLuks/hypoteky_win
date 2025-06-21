@@ -3,11 +3,14 @@
 <div class="row justify-content-center">
   <div class="col-md-4">
     <h2>Přihlášení</h2>
-    <form method="post">
+    <form method="post" autocomplete="off">
       {% csrf_token %}
       {{ form.as_p }}
       <button type="submit" class="btn btn-primary">Přihlásit se</button>
     </form>
+    {% if form.errors %}
+      <div class="alert alert-danger mt-3">Chyba přihlášení – zkontrolujte jméno a heslo.</div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

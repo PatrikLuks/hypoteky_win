@@ -1,9 +1,13 @@
 {% load static %}
+{% if not request.user.is_authenticated and request.path != '/account/login/' %}
+  {% url 'login' as login_url %}
+  <script>window.location.href = '{{ login_url }}';</script>
+{% endif %}
 <!DOCTYPE html>
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <title>Správa hypoték</title>
+    <title>JPL Servis</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="{% static 'fontawesome/css/all.min.css' %}">
@@ -413,11 +417,12 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 rounded">
   <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="/">Správa hypoték</a>
+    <a class="navbar-brand fw-bold" href="/">JPL Servis</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Menu">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="mainNavbar">
+      {% if request.user.is_authenticated and user_role != 'klient' and request.path != '/login/' and request.path != '/account/login/' %}
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
           <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">Klienti</a>
@@ -434,17 +439,23 @@
           <a class="nav-link" href="{% url 'reporting' %}"><i class="fa fa-chart-bar"></i> Reporting</a>
         </li>
       </ul>
-      <span class="navbar-text small text-muted me-2">
-        <i class="fa fa-user"></i> {{ request.user.username|default:'Neregistrovaný uživatel' }}
-        {% if user_role %}<span class="badge" style="background-color: #003366; color: #fff;">{{ user_role|title }}</span>{% endif %}
-      </span>
-      <ul class="navbar-nav ms-1">
-        {% if request.user.is_authenticated %}
-          <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}"><i class="fa fa-sign-out-alt"></i>Odhlásit</a></li>
-        {% else %}
-          <li class="nav-item"><a class="nav-link" href="{% url 'login' %}"><i class="fa fa-sign-in-alt"></i>Přihlásit</a></li>
-        {% endif %}
-      </ul>
+      {% endif %}
+      <div class="d-flex align-items-center ms-auto gap-2">
+        <span class="navbar-text small text-muted">
+          <i class="fa fa-user"></i> {{ request.user.username|default:'Neregistrovaný uživatel' }}
+          {% if user_role %}<span class="badge" style="background-color: #003366; color: #fff;">{{ user_role|title }}</span>{% endif %}
+        </span>
+        <ul class="navbar-nav flex-row ms-2">
+          {% if request.user.is_authenticated %}
+            {% if user_role == 'klient' %}
+              <li class="nav-item"><a class="nav-link" href="{% url 'password_change' %}"><i class="fa fa-key"></i>Změnit heslo</a></li>
+            {% endif %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}"><i class="fa fa-sign-out-alt"></i>Odhlásit</a></li>
+          {% else %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'login' %}"><i class="fa fa-sign-in-alt"></i>Přihlásit</a></li>
+          {% endif %}
+        </ul>
+      </div>
     </div>
   </div>
 </nav>

@@ -29,15 +29,14 @@ def test_rozdel_klienty_mezi_uzivatele():
 def test_rozdel_klienty_mezi_uzivatele_bez_poradcu():
     """
     Testuje edge-case: v systému není žádný poradce (User s rolí 'poradce').
-    Ověří, že skript vrátí správnou hlášku a nemění klienty.
-    Tento scénář může nastat např. po smazání všech poradců nebo při špatném importu dat.
+    Ověří, že skript vrátí správnou hlášku a klienti nejsou přiřazeni žádnému poradci.
+    Každý klient má vždy uživatele, ale nemá přiřazeného poradce.
     """
     from klienti.models import Klient
-    # Vytvoříme klienty, ale žádného poradce
     klienti = [Klient.objects.create(jmeno=f'Klient{i}') for i in range(2)]
     result = rozdel_klienty_mezi_uzivatele()
     assert 'Žádní poradci v systému.' in result
-    # Ověříme, že klienti zůstali bez přiřazeného uživatele
+    # Ověříme, že klienti nejsou přiřazeni žádnému poradci (role != 'poradce')
     for k in klienti:
         k.refresh_from_db()
-        assert k.user is None
+        assert not hasattr(k.user, 'userprofile') or k.user.userprofile.role != 'poradce'

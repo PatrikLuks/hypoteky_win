@@ -113,7 +113,8 @@ class ImportKlientuXLSXTestCase(TestCase):
         pocet = import_klienti_from_xlsx(temp.name)
         klienti = list(Klient.objects.all())
         jmena = [k.jmeno for k in klienti]
-        self.assertIn(dlouhe_jmeno, jmena, "Klient s dlouhým jménem nebyl importován.")
+        # Ověř, že v DB je zkrácená verze dlouhého jména (prvních 100 znaků)
+        self.assertIn(dlouhe_jmeno[:100], jmena, "Klient s dlouhým jménem nebyl správně zkrácen a importován.")
         self.assertIn("Žofie Černá", jmena, "Klient s diakritikou nebyl importován.")
         self.assertIn("Emil 😊", jmena, "Klient s emoji nebyl importován.")
         self.assertIn("Jan Novak", jmena, "Klient s HTML tagem nebyl importován.")

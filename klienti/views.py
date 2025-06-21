@@ -12,15 +12,6 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import User
 from .utils import odeslat_notifikaci_email
 from django.http import HttpResponse
-import io
-import openpyxl
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-import matplotlib
-matplotlib.use('Agg')
-from matplotlib import pyplot as plt
-import tempfile
-from reportlab.lib.utils import ImageReader
 from datetime import datetime
 from django.db.models import Q
 from django.core.paginator import Paginator
@@ -168,6 +159,7 @@ class KlientForm(forms.ModelForm):
                 self.add_error(field, f'Nelze vyplnit krok "{field}", dokud není vyplněn předchozí krok.')
         return cleaned_data
 
+@login_required
 def klient_create(request):
     if request.method == 'POST':
         klient_form = KlientForm(request.POST)
@@ -189,6 +181,26 @@ def klient_create(request):
                     klient.user = None
             except Exception:
                 klient.user = None
+            # Nastavení deadline podle zadaného data
+            zadane_datum = klient_form.cleaned_data.get('datum')
+            if zadane_datum:
+                base_date = zadane_datum
+            else:
+                base_date = date.today()
+            klient.deadline_co_financuje = base_date + timedelta(days=7)
+            klient.deadline_navrh_financovani = base_date + timedelta(days=14)
+            klient.deadline_vyber_banky = base_date + timedelta(days=21)
+            klient.deadline_priprava_zadosti = base_date + timedelta(days=28)
+            klient.deadline_kompletace_podkladu = base_date + timedelta(days=35)
+            klient.deadline_podani_zadosti = base_date + timedelta(days=42)
+            klient.deadline_odhad = base_date + timedelta(days=49)
+            klient.deadline_schvalovani = base_date + timedelta(days=56)
+            klient.deadline_priprava_uverove_dokumentace = base_date + timedelta(days=63)
+            klient.deadline_podpis_uverove_dokumentace = base_date + timedelta(days=70)
+            klient.deadline_priprava_cerpani = base_date + timedelta(days=77)
+            klient.deadline_cerpani = base_date + timedelta(days=84)
+            klient.deadline_zahajeni_splaceni = base_date + timedelta(days=91)
+            klient.deadline_podminky_pro_splaceni = base_date + timedelta(days=98)
             klient.save()
             # Audit log - vytvoření klienta
             from .models import Zmena
@@ -221,6 +233,7 @@ def klient_create(request):
         klient_form = KlientForm(initial=initial)
     return render(request, 'klienti/klient_form.html', {'form': klient_form})
 
+@login_required
 def klient_edit(request, pk):
     klient = get_object_or_404(Klient, pk=pk)
     # Ulož původní hodnoty z DB před inicializací formuláře
@@ -258,6 +271,7 @@ def klient_edit(request, pk):
         form = KlientForm(instance=klient)
     return render(request, 'klienti/klient_form.html', {'form': form, 'editace': True, 'klient': klient})
 
+@login_required
 def klient_delete(request, pk):
     klient = get_object_or_404(Klient, pk=pk)
     if request.method == 'POST':
@@ -300,176 +314,10 @@ def klient_detail(request, pk):
             )
             print(f"[DEBUG] Poznámka a auditní log vytvořeny pro user={request.user.username}")
             return redirect('klient_detail', pk=pk)
-    # Definice kroků workflow pro timeline
-    from datetime import date
-    today = date.today()
-    workflow_steps = [
-        {
-            'pole': 'co_financuje',
-            'popis': 'Co chce klient financovat',
-            'deadline': klient.deadline_co_financuje,
-            'splneno': klient.splneno_co_financuje,
-            'stav_deadlinu': (
-                'po_termínu' if klient.deadline_co_financuje and klient.splneno_co_financuje is None and klient.deadline_co_financuje < today else
-                'blizi_se' if klient.deadline_co_financuje and klient.splneno_co_financuje is None and (klient.deadline_co_financuje - today).days <= 3 and (klient.deadline_co_financuje - today).days >= 0 else
-                'ok'
-            ),
-            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'co_financuje'] if poznamky and hasattr(poznamky[0], 'krok') else []
-        },
-        {
-            'pole': 'navrh_financovani',
-            'popis': 'Návrh financování',
-            'deadline': klient.deadline_navrh_financovani,
-            'splneno': klient.splneno_navrh_financovani,
-            'stav_deadlinu': (
-                'po_termínu' if klient.deadline_navrh_financovani and klient.splneno_navrh_financovani is None and klient.deadline_navrh_financovani < today else
-                'blizi_se' if klient.deadline_navrh_financovani and klient.splneno_navrh_financovani is None and (klient.deadline_navrh_financovani - today).days <= 3 and (klient.deadline_navrh_financovani - today).days >= 0 else
-                'ok'
-            ),
-            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'navrh_financovani'] if poznamky and hasattr(poznamky[0], 'krok') else []
-        },
-        {
-            'pole': 'vyber_banky',
-            'popis': 'Výběr banky',
-            'deadline': klient.deadline_vyber_banky,
-            'splneno': klient.splneno_vyber_banky,
-            'stav_deadlinu': (
-                'po_termínu' if klient.deadline_vyber_banky and klient.splneno_vyber_banky is None and klient.deadline_vyber_banky < today else
-                'blizi_se' if klient.deadline_vyber_banky and klient.splneno_vyber_banky is None and (klient.deadline_vyber_banky - today).days <= 3 and (klient.deadline_vyber_banky - today).days >= 0 else
-                'ok'
-            ),
-            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'vyber_banky'] if poznamky and hasattr(poznamky[0], 'krok') else []
-        },
-        {
-            'pole': 'priprava_zadosti',
-            'popis': 'Příprava žádosti',
-            'deadline': klient.deadline_priprava_zadosti,
-            'splneno': klient.splneno_priprava_zadosti,
-            'stav_deadlinu': (
-                'po_termínu' if klient.deadline_priprava_zadosti and klient.splneno_priprava_zadosti is None and klient.deadline_priprava_zadosti < today else
-                'blizi_se' if klient.deadline_priprava_zadosti and klient.splneno_priprava_zadosti is None and (klient.deadline_priprava_zadosti - today).days <= 3 and (klient.deadline_priprava_zadosti - today).days >= 0 else
-                'ok'
-            ),
-            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'priprava_zadosti'] if poznamky and hasattr(poznamky[0], 'krok') else []
-        },
-        {
-            'pole': 'kompletace_podkladu',
-            'popis': 'Kompletace podkladů',
-            'deadline': klient.deadline_kompletace_podkladu,
-            'splneno': klient.splneno_kompletace_podkladu,
-            'stav_deadlinu': (
-                'po_termínu' if klient.deadline_kompletace_podkladu and klient.splneno_kompletace_podkladu is None and klient.deadline_kompletace_podkladu < today else
-                'blizi_se' if klient.deadline_kompletace_podkladu and klient.splneno_kompletace_podkladu is None and (klient.deadline_kompletace_podkladu - today).days <= 3 and (klient.deadline_kompletace_podkladu - today).days >= 0 else
-                'ok'
-            ),
-            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'kompletace_podkladu'] if poznamky and hasattr(poznamky[0], 'krok') else []
-        },
-        {
-            'pole': 'podani_zadosti',
-            'popis': 'Podání žádosti',
-            'deadline': klient.deadline_podani_zadosti,
-            'splneno': klient.splneno_podani_zadosti,
-            'stav_deadlinu': (
-                'po_termínu' if klient.deadline_podani_zadosti and klient.splneno_podani_zadosti is None and klient.deadline_podani_zadosti < today else
-                'blizi_se' if klient.deadline_podani_zadosti and klient.splneno_podani_zadosti is None and (klient.deadline_podani_zadosti - today).days <= 3 and (klient.deadline_podani_zadosti - today).days >= 0 else
-                'ok'
-            ),
-            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'podani_zadadosti'] if poznamky and hasattr(poznamky[0], 'krok') else []
-        },
-        {
-            'pole': 'odhad',
-            'popis': 'Odhad',
-            'deadline': klient.deadline_odhad,
-            'splneno': klient.splneno_odhad,
-            'stav_deadlinu': (
-                'po_termínu' if klient.deadline_odhad and klient.splneno_odhad is None and klient.deadline_odhad < today else
-                'blizi_se' if klient.deadline_odhad and klient.splneno_odhad is None and (klient.deadline_odhad - today).days <= 3 and (klient.deadline_odhad - today).days >= 0 else
-                'ok'
-            ),
-            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'odhad'] if poznamky and hasattr(poznamky[0], 'krok') else []
-        },
-        {
-            'pole': 'schvalovani',
-            'popis': 'Schvalování',
-            'deadline': klient.deadline_schvalovani,
-            'splneno': klient.splneno_schvalovani,
-            'stav_deadlinu': (
-                'po_termínu' if klient.deadline_schvalovani and klient.splneno_schvalovani is None and klient.deadline_schvalovani < today else
-                'blizi_se' if klient.deadline_schvalovani and klient.splneno_schvalovani is None and (klient.deadline_schvalovani - today).days <= 3 and (klient.deadline_schvalovani - today).days >= 0 else
-                'ok'
-            ),
-            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'schvalovani'] if poznamky and hasattr(poznamky[0], 'krok') else []
-        },
-        {
-            'pole': 'priprava_uverove_dokumentace',
-            'popis': 'Příprava úvěrové dokumentace',
-            'deadline': klient.deadline_priprava_uverove_dokumentace,
-            'splneno': klient.splneno_priprava_uverove_dokumentace,
-            'stav_deadlinu': (
-                'po_termínu' if klient.deadline_priprava_uverove_dokumentace and klient.splneno_priprava_uverove_dokumentace is None and klient.deadline_priprava_uverove_dokumentace < today else
-                'blizi_se' if klient.deadline_priprava_uverove_dokumentace and klient.splneno_priprava_uverove_dokumentace is None and (klient.deadline_priprava_uverove_dokumentace - today).days <= 3 and (klient.deadline_priprava_uverove_dokumentace - today).days >= 0 else
-                'ok'
-            ),
-            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'priprava_uverove_dokumentace'] if poznamky and hasattr(poznamky[0], 'krok') else []
-        },
-        {
-            'pole': 'podpis_uverove_dokumentace',
-            'popis': 'Podpis úvěrové dokumentace',
-            'deadline': klient.deadline_podpis_uverove_dokumentace,
-            'splneno': klient.splneno_podpis_uverove_dokumentace,
-            'stav_deadlinu': (
-                'po_termínu' if klient.deadline_podpis_uverove_dokumentace and klient.splneno_podpis_uverove_dokumentace is None and klient.deadline_podpis_uverove_dokumentace < today else
-                'blizi_se' if klient.deadline_podpis_uverove_dokumentace and klient.splneno_podpis_uverove_dokumentace is None and (klient.deadline_podpis_uverove_dokumentace - today).days <= 3 and (klient.deadline_podpis_uverove_dokumentace - today).days >= 0 else
-                'ok'
-            ),
-            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'podpis_uverove_dokumentace'] if poznamky and hasattr(poznamky[0], 'krok') else []
-        },
-        {
-            'pole': 'priprava_cerpani',
-            'popis': 'Příprava čerpání',
-            'deadline': klient.deadline_priprava_cerpani,
-            'splneno': klient.splneno_priprava_cerpani,
-            'stav_deadlinu': (
-                'po_termínu' if klient.deadline_priprava_cerpani and klient.splneno_priprava_cerpani is None and klient.deadline_priprava_cerpani < today else
-                'blizi_se' if klient.deadline_priprava_cerpani and klient.splneno_priprava_cerpani is None and (klient.deadline_priprava_cerpani - today).days <= 3 and (klient.deadline_priprava_cerpani - today).days >= 0 else
-                'ok'
-            ),
-            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'priprava_cerpani'] if poznamky and hasattr(poznamky[0], 'krok') else []
-        },
-        {
-            'pole': 'cerpani',
-            'popis': 'Čerpání',
-            'deadline': klient.deadline_cerpani,
-            'splneno': klient.splneno_cerpani,
-            'stav_deadlinu': (
-                'po_termínu' if klient.deadline_cerpani and klient.splneno_cerpani is None and klient.deadline_cerpani < today else
-                'blizi_se' if klient.deadline_cerpani and klient.splneno_cerpani is None and (klient.deadline_cerpani - today).days <= 3 and (klient.deadline_cerpani - today).days >= 0 else
-                'ok'
-            ),
-            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'cerpani'] if poznamky and hasattr(poznamky[0], 'krok') else []
-        },
-        {
-            'pole': 'zahajeni_splaceni',
-            'popis': 'Zahájení splácení',
-            'deadline': klient.deadline_zahajeni_splaceni,
-            'splneno': klient.splneno_zahajeni_splaceni,
-            'stav_deadlinu': (
-                'po_termínu' if klient.deadline_zahajeni_splaceni and klient.splneno_zahajeni_splaceni is None and klient.deadline_zahajeni_splaceni < today else
-                'blizi_se' if klient.deadline_zahajeni_splaceni and klient.splneno_zahajeni_splaceni is None and (klient.deadline_zahajeni_splaceni - today).days <= 3 and (klient.deadline_zahajeni_splaceni - today).days >= 0 else
-                'ok'
-            ),
-            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'zahajeni_splaceni'] if poznamky and hasattr(poznamky[0], 'krok') else []
-        },
-    ]
-    # Určení aktuálního kroku klienta pro zvýraznění v timeline
-    aktivni_krok = None
-    for idx, step in enumerate(workflow_steps):
-        splneno_field = f'splneno_{step["pole"]}'
-        if not getattr(klient, splneno_field, None):
-            aktivni_krok = idx
-            break
-    else:
-        aktivni_krok = len(workflow_steps) - 1  # vše splněno
+    # Nová logika: použij pouze get_workflow_progress
+    progress = klient.get_workflow_progress
+    workflow_steps = progress['kroky']
+    aktivni_krok = progress['posledni_splneny_krok_index']
     return render(request, 'klienti/klient_detail.html', {
         'klient': klient,
         'poznamky': poznamky,
@@ -492,6 +340,10 @@ def home(request):
         klienti = Klient.objects.all().order_by('-datum')
     else:
         klienti = Klient.objects.none()
+    # Filtrování podle jména (pouze jednou, před stránkováním)
+    q = request.GET.get('q', '').strip()
+    if q:
+        klienti = klienti.filter(jmeno_index__icontains=q)
     # Stránkování pro výkon
     paginator = Paginator(klienti, 20)  # 20 klientů na stránku
     page_number = request.GET.get('page')
@@ -514,7 +366,7 @@ def home(request):
         ('podminky_pro_splaceni', 'deadline_podminky_pro_splaceni', 'splneno_podminky_pro_splaceni'),
     ]
     klienti_deadlines = []
-    for klient in klienti:
+    for klient in klienti_page:
         nejblizsi_deadline = None
         nejblizsi_krok = None
         for krok, deadline_field, splneno_field in deadline_fields:
@@ -536,14 +388,19 @@ def home(request):
     klienti_deadlines = sorted(klienti_deadlines, key=lambda x: x['deadline'])
 
     workflow_labels = [
+        'jmeno_klienta',
         'co_financuje', 'navrh_financovani', 'vyber_banky', 'priprava_zadosti',
         'kompletace_podkladu', 'podani_zadosti', 'odhad', 'schvalovani',
         'priprava_uverove_dokumentace', 'podpis_uverove_dokumentace',
         'priprava_cerpani', 'cerpani', 'zahajeni_splaceni', 'podminky_pro_splaceni', 'hotovo'
     ]
-    workflow_counts = [0]*15
-    workflow_sums = [0]*15
-    today = timezone.now().date()
+    workflow_counts = [0]*16
+    workflow_sums = [0]*16
+    for k in klienti_page:
+        progress = k.get_workflow_progress
+        idx = progress['prvni_nesplneny_krok_index'] + 1 if progress['prvni_nesplneny_krok_index'] is not None else 15
+        workflow_counts[idx] += 1
+        workflow_sums[idx] += float(k.navrh_financovani_castka or 0)
     months = []
     for i in range(6, -1, -1):
         m = (today.replace(day=1) - timedelta(days=30*i)).replace(day=1)
@@ -551,23 +408,13 @@ def home(request):
     months = sorted(list(set(months)))
     klienti_timeline = defaultdict(int)
     objem_timeline = defaultdict(float)
-    for klient in klienti:
+    # OPRAVA: počítej timeline ze všech klientů, ne jen z klienti_page
+    for klient in klienti:  # původně klienti_page
         m = klient.datum.strftime('%Y-%m')
         klienti_timeline[m] += 1
         objem_timeline[m] += float(klient.navrh_financovani_castka or 0)
     klientiTimeline = [klienti_timeline.get(m, 0) for m in months]
     objemTimeline = [objem_timeline.get(m, 0) for m in months]
-    for klient in klienti:
-        stav = 0
-        for idx, krok in enumerate(workflow_labels[:-1]):
-            splneno_field = f'splneno_{krok}'
-            if not getattr(klient, splneno_field, None):
-                stav = idx
-                break
-        else:
-            stav = 14
-        workflow_counts[stav] += 1
-        workflow_sums[stav] += float(klient.navrh_financovani_castka or 0)
     banky_vyber = list(Klient.objects.exclude(vyber_banky__isnull=True).exclude(vyber_banky='').values_list('vyber_banky', flat=True).distinct())
     # DEBUG: Výpis počtu klientů po aplikaci filtrů
     print(f"[DEBUG] Počet klientů po filtraci: {klienti.count()}")
@@ -580,10 +427,6 @@ def home(request):
     print(f"[DEBUG] Počet klientů před filtrací: {Klient.objects.count()}")
     print(f"[DEBUG] Počet klientů po filtraci: {klienti.count()}")
     print(f"[DEBUG] Jména klientů po filtraci: {[k.jmeno for k in klienti]}")
-
-    q = request.GET.get('q', '').strip()
-    if q:
-        klienti = klienti.filter(jmeno_index__icontains=q)
 
     return render(request, 'klienti/home.html', {
         'klienti': klienti_page,
@@ -598,6 +441,7 @@ def home(request):
         'user_role': role,  # <--- přidáno pro správné větvení šablony
     })
 
+@login_required
 def dashboard(request):
     klienti = Klient.objects.all()
     pocet_klientu = klienti.count()
@@ -650,22 +494,19 @@ def dashboard(request):
                         print(f"Chyba při odesílání e-mailu: {e}")
     # Workflow rozložení
     workflow_labels = [
+        'jmeno_klienta',
         'co_financuje', 'navrh_financovani', 'vyber_banky', 'priprava_zadosti',
         'kompletace_podkladu', 'podani_zadosti', 'odhad', 'schvalovani',
         'priprava_uverove_dokumentace', 'podpis_uverove_dokumentace',
         'priprava_cerpani', 'cerpani', 'zahajeni_splaceni', 'podminky_pro_splaceni', 'hotovo'
     ]
-    workflow_counts = [0]*15
+    workflow_counts = [0]*16
+    workflow_sums = [0]*16
     for k in klienti:
-        stav = 0
-        for idx, krok in enumerate(workflow_labels[:-1]):
-            splneno_field = f'splneno_{krok}'
-            if not getattr(k, splneno_field, None):
-                stav = idx
-                break
-        else:
-            stav = 14
-        workflow_counts[stav] += 1
+        progress = k.get_workflow_progress
+        idx = progress['prvni_nesplneny_krok_index'] + 1 if progress['prvni_nesplneny_krok_index'] is not None else 15
+        workflow_counts[idx] += 1
+        workflow_sums[idx] += float(k.navrh_financovani_castka or 0)
     posledni_klienti = klienti.order_by('-datum')[:5]
     top_hypoteky = klienti.order_by('-navrh_financovani_castka')[:5]
     # Log posledních změn
@@ -673,24 +514,6 @@ def dashboard(request):
     posledni_zmeny = Zmena.objects.select_related('klient').order_by('-created')[:5]
     # Průměrná výše hypotéky
     prumerna_hypoteka = objem_hypotek / pocet_klientu if pocet_klientu else 0
-
-    # --- NOVÉ AGREGACE ---
-    # Rozložení podle bank
-    from collections import Counter
-    banky = [k.vyber_banky for k in klienti if k.vyber_banky]
-    rozlozeni_banky = Counter(banky)
-    banky_labels = list(rozlozeni_banky.keys())
-    banky_counts = list(rozlozeni_banky.values())
-    # Nejčastější důvody zamítnutí
-    duvody = [k.duvod_zamitnuti for k in klienti if k.duvod_zamitnuti]
-    duvody_zamitnuti = Counter(duvody).most_common(5)
-    # Notifikace (např. klienti po termínu, urgentní deadliny)
-    notifikace = []
-    if urgent_deadlines:
-        notifikace.append(f"{len(urgent_deadlines)} urgentních deadline během 3 dnů")
-    if klienti_po_termínu:
-        notifikace.append(f"{len(klienti_po_termínu)} klientů po termínu")
-    # ...další notifikace lze přidat zde...
 
     return render(request, 'klienti/dashboard.html', {
         'pocet_klientu': pocet_klientu,
@@ -703,13 +526,9 @@ def dashboard(request):
         'klienti_po_termínu': klienti_po_termínu,
         'posledni_zmeny': posledni_zmeny,
         'prumerna_hypoteka': prumerna_hypoteka,
-        'rozlozeni_banky': dict(rozlozeni_banky),
-        'banky_labels': banky_labels,
-        'banky_counts': banky_counts,
-        'duvody_zamitnuti': duvody_zamitnuti,
-        'notifikace': notifikace,
     })
 
+@login_required
 def smazat_poznamku(request, klient_id, poznamka_id):
     klient = get_object_or_404(Klient, pk=klient_id)
     poznamka = get_object_or_404(Poznamka, pk=poznamka_id, klient=klient)
@@ -727,6 +546,7 @@ def smazat_poznamku(request, klient_id, poznamka_id):
         return redirect('klient_detail', pk=klient_id)
     return redirect('klient_detail', pk=klient_id)
 
+@login_required
 def get_user_role(request):
     if request.user.is_authenticated:
         try:
@@ -735,6 +555,7 @@ def get_user_role(request):
             return None
     return None
 
+@login_required
 def export_klient_ical(request, pk):
     klient = get_object_or_404(Klient, pk=pk)
     # Sestavení iCal souboru s deadliny workflow
@@ -778,10 +599,7 @@ def export_klient_ical(request, pk):
     response['Content-Disposition'] = f'attachment; filename=klient_{pk}_deadliny.ics'
     return response
 
-class ReportingFilterForm(forms.Form):
-    datum_od = forms.DateField(label="Od", required=False, widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
-    datum_do = forms.DateField(label="Do", required=False, widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
-
+@login_required
 def reporting(request):
     today = timezone.now().date()
     one_year_ago = today.replace(year=today.year-1)
@@ -816,10 +634,11 @@ def reporting(request):
     months = []
     schvaleneTimeline = []
     zamitnuteTimeline = []
+    # Vždy zobraz posledních 12 měsíců (i když nejsou data)
+    today = timezone.now().date()
     for i in range(11, -1, -1):
         m = (today.replace(day=1) - timedelta(days=30*i)).replace(day=1)
         months.append(m.strftime('%Y-%m'))
-    months = sorted(list(set(months)))
     for m in months:
         schv = 0
         zam = 0
@@ -831,6 +650,8 @@ def reporting(request):
                     zam += 1
         schvaleneTimeline.append(schv)
         zamitnuteTimeline.append(zam)
+    # Pokud jsou všechna data nulová, zobrazit info v šabloně
+    graf_trendy_prazdny = all(x == 0 for x in schvaleneTimeline + zamitnuteTimeline)
     # Statistika pro boxy nahoře
     klientu_celkem = len(klienti)
     schvaleno_celkem = sum(schvalenost)
@@ -844,6 +665,7 @@ def reporting(request):
         'months': months,
         'schvaleneTimeline': schvaleneTimeline,
         'zamitnuteTimeline': zamitnuteTimeline,
+        'graf_trendy_prazdny': graf_trendy_prazdny,
         'klienti': klienti,
         'klientu_celkem': len(klienti),
         'schvaleno_celkem': sum(schvalenost),
@@ -915,7 +737,6 @@ def reporting_export_pdf(request):
     for i in range(11, -1, -1):
         m = (today.replace(day=1) - timedelta(days=30*i)).replace(day=1)
         months.append(m.strftime('%Y-%m'))
-    months = sorted(list(set(months)))
     for m in months:
         schv = 0
         zam = 0
@@ -927,6 +748,11 @@ def reporting_export_pdf(request):
                     zam += 1
         schvaleneTimeline.append(schv)
         zamitnuteTimeline.append(zam)
+    # Oprava: zajistit, že timeline mají vždy stejnou délku jako months
+    if len(schvaleneTimeline) != len(months):
+        schvaleneTimeline = [0] * len(months)
+    if len(zamitnuteTimeline) != len(months):
+        zamitnuteTimeline = [0] * len(months)
     # --- generování grafů ---
     tempfiles = []
     # Bar chart úspěšnost podle banky
@@ -971,11 +797,9 @@ def reporting_export_pdf(request):
     p.setFont("Helvetica", 11)
     # Tabulka
     p.drawString(40, y, "Banka")
-    p.drawString(180, y, "Schváleno")
-    p.drawString(270, y, "Zamítnuto")
-    p.drawString(370, y, "Průměrná doba schválení (dny)")
     y -= 20
     for i in range(len(banky_labels)):
+        banka = banky_labels[i]
         p.drawString(40, y, banka)
         p.drawString(180, y, str(schvalenost[i]))
         p.drawString(270, y, str(zamitnutost[i]))

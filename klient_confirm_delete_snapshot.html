@@ -1,11 +1,14 @@
+
+
 <!DOCTYPE html>
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <title>Správa hypoték</title>
+    <title>JPL Servis</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/fontawesome/css/all.min.css">
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"> -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -411,42 +414,36 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 rounded">
   <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="/">Správa hypoték</a>
+    <a class="navbar-brand fw-bold" href="/">JPL Servis</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Menu">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="mainNavbar">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item">
-          <a class="nav-link " href="/">Klienti</a>
-        </li>
 
-        <li class="nav-item">
-          <a class="nav-link " href="/kalkulacka/"><i class="fa-solid fa-calculator"></i>Kalkulačka hypotéky</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/reporting/"><i class="fa-solid fa-chart-bar"></i> Reporting</a>
-        </li>
-      </ul>
-      <span class="navbar-text small text-muted me-2">
-        <i class="fa-solid fa-user"></i> detailklient
-        <span class="badge" style="background-color: #003366; color: #fff;">Klient</span>
-      </span>
-      <ul class="navbar-nav ms-1">
+      <div class="d-flex align-items-center ms-auto gap-2">
+        <span class="navbar-text small text-muted">
+          <i class="fa fa-user"></i> detailklient
+          <span class="badge" style="background-color: #003366; color: #fff;">Klient</span>
+        </span>
+        <ul class="navbar-nav flex-row ms-2">
 
-          <li class="nav-item"><a class="nav-link" href="/account/logout/"><i class="fa-solid fa-sign-out-alt"></i>Odhlásit</a></li>
 
-      </ul>
+              <li class="nav-item"><a class="nav-link" href="/account/password_change/"><i class="fa fa-key"></i>Změnit heslo</a></li>
+
+            <li class="nav-item"><a class="nav-link" href="/account/logout/"><i class="fa fa-sign-out-alt"></i>Odhlásit</a></li>
+
+        </ul>
+      </div>
     </div>
   </div>
 </nav>
 <div class="container mt-4">
 
-<h1 class="mb-4 text-danger"><i class="fa-solid fa-trash"></i> Potvrzení smazání klienta</h1>
+<h1 class="mb-4 text-danger"><i class="fa fa-trash"></i> Potvrzení smazání klienta</h1>
 <p>Opravdu chcete smazat klienta <strong>Detailní Klient</strong>?</p>
 <form method="post" class="mb-3"><input type="hidden" name="csrfmiddlewaretoken" value="__TOKEN__">
-    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash"></i> Ano, smazat</button>
-    <a href="/klient/__ID__/" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Zpět</a>
+    <button type="submit" class="btn btn-danger"><i class="fa fa-trash"></i> Ano, smazat</button>
+    <a href="/klient/__ID__/" class="btn btn-secondary"><i class="fa fa-arrow-left"></i> Zpět</a>
 </form>
 
 </div>
@@ -455,17 +452,12 @@
     <div class="row">
       <div class="col text-center">
         <a href="/" class="nav-link d-inline-block" title="Klienti">
-          <i class="fa-solid fa-users fa-lg"></i>
+          <i class="fa fa-users fa-lg"></i>
         </a>
       </div>
       <div class="col text-center">
         <a href="/klient/pridat/" class="nav-link d-inline-block" title="Přidat klienta">
-          <i class="fa-solid fa-user-plus fa-lg"></i>
-        </a>
-      </div>
-      <div class="col text-center">
-        <a href="/kalkulacka/" class="nav-link d-inline-block" title="Kalkulačka hypotéky">
-          <i class="fa-solid fa-calculator fa-lg"></i>
+          <i class="fa fa-user-plus fa-lg"></i>
         </a>
       </div>
     </div>

@@ -1,11 +1,14 @@
+
+
 <!DOCTYPE html>
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <title>Správa hypoték</title>
+    <title>JPL Servis</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/fontawesome/css/all.min.css">
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"> -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -411,84 +414,38 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 rounded">
   <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="/">Správa hypoték</a>
+    <a class="navbar-brand fw-bold" href="/">JPL Servis</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Menu">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="mainNavbar">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item">
-          <a class="nav-link " href="/">Klienti</a>
-        </li>
 
-        <li class="nav-item">
-          <a class="nav-link " href="/kalkulacka/"><i class="fa-solid fa-calculator"></i>Kalkulačka hypotéky</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/reporting/"><i class="fa-solid fa-chart-bar"></i> Reporting</a>
-        </li>
-      </ul>
-      <span class="navbar-text small text-muted me-2">
-        <i class="fa-solid fa-user"></i> Neregistrovaný uživatel
+      <div class="d-flex align-items-center ms-auto gap-2">
+        <span class="navbar-text small text-muted">
+          <i class="fa fa-user"></i> testreport
+          <span class="badge" style="background-color: #003366; color: #fff;">Klient</span>
+        </span>
+        <ul class="navbar-nav flex-row ms-2">
 
-      </span>
-      <ul class="navbar-nav ms-1">
 
-          <li class="nav-item"><a class="nav-link" href="/account/login/"><i class="fa-solid fa-sign-in-alt"></i>Přihlásit</a></li>
+              <li class="nav-item"><a class="nav-link" href="/account/password_change/"><i class="fa fa-key"></i>Změnit heslo</a></li>
 
-      </ul>
+            <li class="nav-item"><a class="nav-link" href="/account/logout/"><i class="fa fa-sign-out-alt"></i>Odhlásit</a></li>
+
+        </ul>
+      </div>
     </div>
   </div>
 </nav>
 <div class="container mt-4">
 
 <div class="container-fluid py-4 px-2 px-md-4" role="main" aria-label="Reporting a statistika hypoték">
-  <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">
-    <h1 class="mb-0 fw-bold text-primary"><i class="fa-solid fa-chart-bar me-2"></i>Reporting & Statistika hypoték</h1>
-    <div class="d-flex gap-2">
-      <a href="/reporting/export/csv/" class="btn btn-outline-primary btn-lg shadow-sm"><i class="fa-solid fa-file-csv me-1"></i> Export do CSV</a>
-      <a href="/reporting/export/pdf/" class="btn btn-danger btn-lg shadow-sm"><i class="fa-solid fa-file-pdf me-1"></i> Export do PDF</a>
-    </div>
-  </div>
-  <!-- Edukativní tipy a legenda -->
-  <div class="alert alert-info mb-4 bg-dark border-0 text-light">
-    <i class="fa-regular fa-lightbulb me-2"></i>
-    <b>Tip:</b> Reporty zobrazují trendy, úspěšnost podle banky a heatmapu schvalování. Klikni na legendu grafu pro zobrazení/skrývání dat. Exportuj výsledky do CSV/PDF pro další analýzu.
-  </div>
-  <!-- Sekce Jak číst reporty -->
-  <div class="card mb-4 border-0 shadow-sm bg-gradient bg-primary text-dark">
-    <div class="card-body">
-      <h5 class="card-title mb-2"><i class="fa-solid fa-book-open text-warning me-2"></i>Jak číst reporty?</h5>
-      <ul class="mb-0">
-        <li><b>Úspěšnost podle banky:</b> Porovnej schválené a zamítnuté hypotéky u jednotlivých bank. Vysoký poměr schválení značí vstřícnější podmínky.</li>
-        <li><b>Trendy:</b> Sleduj vývoj schvalování v čase. Výkyvy mohou znamenat změny v podmínkách nebo sezónní vlivy.</li>
-        <li><b>Heatmapa:</b> Rychle najdeš banky/měsíce s nejrychlejším schvalováním (tmavší = rychlejší).</li>
-      </ul>
-    </div>
-  </div>
-  <form method="get" class="row g-3 mb-4 bg-light rounded-3 p-3 shadow-sm align-items-end" aria-label="Filtr reportingu">
-    <div class="col-12 col-md-3">
-      <label for="id_datum_od">Od:</label>
-      <input type="date" name="datum_od" value="__DATUM__" class="form-control" id="id_datum_od">
-
-    </div>
-    <div class="col-12 col-md-3">
-      <label for="id_datum_do">Do:</label>
-      <input type="date" name="datum_do" value="__DATUM__" class="form-control" id="id_datum_do">
-
-    </div>
-    <div class="col-12 col-md-3">
-      <button type="submit" class="btn btn-primary btn-lg w-100"><i class="fa-solid fa-filter me-1"></i> Filtrovat</button>
-    </div>
-    <div class="col-12 col-md-3 text-md-end text-center">
-      <span class="text-muted small">Zobrazené období: <b>–</b> až <b>–</b></span>
-    </div>
-  </form>
+  <!-- Statistiky v luxusních boxech -->
   <div class="row g-4 mb-4">
     <div class="col-12 col-lg-4">
       <div class="card border-0 shadow-sm h-100 bg-gradient bg-primary text-white">
         <div class="card-body d-flex flex-column align-items-center justify-content-center">
-          <div class="display-5 fw-bold mb-2"><i class="fa-solid fa-users"></i> </div>
+          <div class="display-5 fw-bold mb-2"><i class="fa fa-users"></i> __KLIENTU__</div>
           <div class="fs-5">Klientů v období</div>
         </div>
       </div>
@@ -496,7 +453,7 @@
     <div class="col-6 col-lg-4">
       <div class="card border-0 shadow-sm h-100 bg-success bg-gradient text-white">
         <div class="card-body d-flex flex-column align-items-center justify-content-center">
-          <div class="display-6 fw-bold mb-2"><i class="fa-solid fa-check-circle"></i> </div>
+          <div class="display-6 fw-bold mb-2"><i class="fa fa-check-circle"></i> __SCHVALENO__</div>
           <div>Schválených hypoték</div>
         </div>
       </div>
@@ -504,163 +461,45 @@
     <div class="col-6 col-lg-4">
       <div class="card border-0 shadow-sm h-100 bg-danger bg-gradient text-white">
         <div class="card-body d-flex flex-column align-items-center justify-content-center">
-          <div class="display-6 fw-bold mb-2"><i class="fa-solid fa-times-circle"></i> </div>
+          <div class="display-6 fw-bold mb-2"><i class="fa fa-times-circle"></i> __ZAMITNUTO__</div>
           <div>Zamítnutých hypoték</div>
         </div>
       </div>
     </div>
   </div>
-  <div class="row g-4 mb-4">
-    <div class="col-lg-6">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-body">
-          <h5 class="card-title mb-3"><i class="fa-solid fa-university text-primary"></i> Úspěšnost podle banky</h5>
-          <canvas id="bankyBarChart" height="120" aria-label="Graf úspěšnosti podle banky" alt="Graf úspěšnosti podle banky"></canvas>
-          <div class="table-responsive mt-3" aria-label="Tabulka úspěšnosti podle banky">
-            <table class="table table-sm table-hover align-middle mb-0">
-              <thead class="table-light"><tr><th>Banka</th><th>Schváleno</th><th>Zamítnuto</th><th>Průměrná doba schválení (dny)</th></tr></thead>
-              <tbody>
-                <!-- Ukázková data pro demo a lepší orientaci -->
-                <tr><td>KB</td><td>12</td><td>3</td><td>7</td></tr>
-                <tr><td>ČSOB</td><td>8</td><td>2</td><td>9</td></tr>
-                <tr><td>Moneta</td><td>6</td><td>1</td><td>6</td></tr>
-                <tr><td>Raiffeisen</td><td>5</td><td>2</td><td>8</td></tr>
-              </tbody>
-            </table>
-            <div class="mt-2 d-flex justify-content-end">
-              <button class="btn btn-outline-primary btn-sm" id="exportBankyCsvBtn" aria-label="Exportovat tabulku bank do CSV"><i class="fa-solid fa-file-csv"></i> Export do CSV</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-6">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-body">
-          <h5 class="card-title mb-3"><i class="fa-solid fa-chart-line text-success"></i> Trendy schválených a zamítnutých hypoték</h5>
-          <canvas id="trendyLineChart" height="120" aria-label="Graf trendů schválených a zamítnutých hypoték" alt="Graf trendů schválených a zamítnutých hypoték"></canvas>
-          <div class="mt-2 small text-info"><i class="fa-solid fa-chart-line"></i> Trendy ukazují vývoj schvalování v čase. Klikni na legendu pro zobrazení/skrývání dat.</div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- Detailní tabulka klientů: přehled všech klientů v období -->
   <div class="row mb-4">
     <div class="col-12">
       <div class="card shadow-sm border-0">
         <div class="card-body">
-          <h5 class="card-title mb-3"><i class="fa-solid fa-th text-warning"></i> Heatmapa průměrné doby schválení podle banky a měsíce</h5>
-          <div class="table-responsive" aria-label="Heatmapa průměrné doby schválení">
-            <table class="table table-bordered text-center align-middle" style="min-width: 600px;">
+          <h5 class="card-title mb-3"><i class="fa fa-address-book text-info"></i> Detailní tabulka klientů</h5>
+          <!-- Responzivní tabulka klientů -->
+          <div class="table-responsive" aria-label="Tabulka klientů">
+            <table id="klientiTable" class="table table-striped table-hover align-middle small">
               <thead class="table-light">
                 <tr>
-                  <th>Banka / Měsíc</th>
-                  <th>1/2025</th><th>2/2025</th><th>3/2025</th><th>4/2025</th><th>5/2025</th>
+                  <th>Jméno</th>
+                  <th>Datum</th>
+                  <th>Částka (Kč)</th>
+                  <th>Banka</th>
+                  <th>Stav</th>
+                  <th>Důvod zamítnutí</th>
                 </tr>
               </thead>
               <tbody>
-                <tr><td>KB</td><td class="bg-success">6</td><td class="bg-warning">8</td><td class="bg-success">7</td><td class="bg-danger">12</td><td class="bg-success">6</td></tr>
-                <tr><td>ČSOB</td><td class="bg-success">7</td><td class="bg-success">6</td><td class="bg-warning">9</td><td class="bg-success">7</td><td class="bg-success">6</td></tr>
-                <tr><td>Moneta</td><td class="bg-warning">9</td><td class="bg-success">7</td><td class="bg-success">6</td><td class="bg-success">7</td><td class="bg-warning">9</td></tr>
-                <tr><td>Raiffeisen</td><td class="bg-danger">13</td><td class="bg-warning">9</td><td class="bg-success">7</td><td class="bg-success">7</td><td class="bg-success">6</td></tr>
+
+                <tr><td colspan="6" class="text-center text-muted">Žádní klienti v tomto období.</td></tr>
+
               </tbody>
             </table>
-            <div class="mt-2 d-flex justify-content-end">
-              <button class="btn btn-outline-primary btn-sm" id="exportHeatmapCsvBtn" aria-label="Exportovat heatmapu do CSV"><i class="fa-solid fa-file-csv"></i> Export do CSV</button>
-            </div>
           </div>
+          <!-- Komentář pro studenta: Tabulka je optimalizovaná pro přístupnost, export a výkon. Pokud je klientů hodně, doporučuji stránkování nebo lazy loading. -->
         </div>
       </div>
     </div>
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-// Ukázková data pro grafy (pro demo a lepší orientaci studenta)
-const bankyLabels = ["KB", "ČSOB", "Moneta", "Raiffeisen"];
-const schvalenost = [12, 8, 6, 5];
-const zamitnutost = [3, 2, 1, 2];
-const prumery = [7, 9, 6, 8];
-const months = ["1/2025", "2/2025", "3/2025", "4/2025", "5/2025"];
-const schvaleneTimeline = [3, 5, 7, 6, 8];
-const zamitnuteTimeline = [1, 2, 1, 3, 2];
-// Bar chart - úspěšnost podle banky
-const ctxBanky = document.getElementById('bankyBarChart').getContext('2d');
-new Chart(ctxBanky, {
-  type: 'bar',
-  data: {
-    labels: bankyLabels,
-    datasets: [
-      {label: 'Schváleno', data: schvalenost, backgroundColor: '#198754'},
-      {label: 'Zamítnuto', data: zamitnutost, backgroundColor: '#dc3545'}
-    ]
-  },
-  options: {
-    plugins: {legend: {position: 'bottom'}},
-    scales: {y: {beginAtZero: true}},
-    responsive: true,
-    animation: {duration: 900}
-  }
-});
-// Line chart - trendy
-const ctxTrendy = document.getElementById('trendyLineChart').getContext('2d');
-new Chart(ctxTrendy, {
-  type: 'line',
-  data: {
-    labels: months,
-    datasets: [
-      {label: 'Schváleno', data: schvaleneTimeline, borderColor: '#198754', backgroundColor: 'rgba(25,135,84,0.1)', tension: 0.3, fill: true},
-      {label: 'Zamítnuto', data: zamitnuteTimeline, borderColor: '#dc3545', backgroundColor: 'rgba(220,53,69,0.1)', tension: 0.3, fill: true}
-    ]
-  },
-  options: {
-    plugins: {legend: {position: 'bottom'}},
-    scales: {y: {beginAtZero: true}},
-    responsive: true,
-    animation: {duration: 900}
-  }
-});
-// Export tabulek do CSV (čistý JS, optimalizace pro slabší HW)
-document.getElementById('exportBankyCsvBtn').addEventListener('click', function() {
-  const table = document.querySelector('table.table-hover');
-  let csv = '';
-  for (let row of table.rows) {
-    let rowData = [];
-    for (let cell of row.cells) {
-      rowData.push('"' + cell.innerText.replace(/"/g, '""') + '"');
-    }
-    csv += rowData.join(',') + '\n';
-  }
-  const blob = new Blob([csv], {type: 'text/csv'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'report_banky.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-});
-document.getElementById('exportHeatmapCsvBtn').addEventListener('click', function() {
-  const table = document.querySelector('table.table-bordered');
-  let csv = '';
-  for (let row of table.rows) {
-    let rowData = [];
-    for (let cell of row.cells) {
-      rowData.push('"' + cell.innerText.replace(/"/g, '""') + '"');
-    }
-    csv += rowData.join(',') + '\n';
-  }
-  const blob = new Blob([csv], {type: 'text/csv'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'report_heatmapa.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-});
-</script>
 
 </div>
 <div class="sticky-bottom-nav d-lg-none">
@@ -668,17 +507,12 @@ document.getElementById('exportHeatmapCsvBtn').addEventListener('click', functio
     <div class="row">
       <div class="col text-center">
         <a href="/" class="nav-link d-inline-block" title="Klienti">
-          <i class="fa-solid fa-users fa-lg"></i>
+          <i class="fa fa-users fa-lg"></i>
         </a>
       </div>
       <div class="col text-center">
         <a href="/klient/pridat/" class="nav-link d-inline-block" title="Přidat klienta">
-          <i class="fa-solid fa-user-plus fa-lg"></i>
-        </a>
-      </div>
-      <div class="col text-center">
-        <a href="/kalkulacka/" class="nav-link d-inline-block" title="Kalkulačka hypotéky">
-          <i class="fa-solid fa-calculator fa-lg"></i>
+          <i class="fa fa-user-plus fa-lg"></i>
         </a>
       </div>
     </div>

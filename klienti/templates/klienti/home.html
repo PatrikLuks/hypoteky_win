@@ -30,70 +30,22 @@
             <td>{% if klient.navrh_financovani_procento %}{{ klient.navrh_financovani_procento|floatformat:2 }} %{% else %}-{% endif %}</td>
             <td>{% if klient.navrh_financovani_castka %}{{ klient.navrh_financovani_castka|floatformat:0 }} Kč{% else %}-{% endif %}</td>
             <td>
-              {% if klient.podminky_pro_splaceni %}
-                Podmínky pro splacení
-              {% elif klient.zahajeni_splaceni %}
-                Zahájení splácení
-              {% elif klient.cerpani %}
-                Čerpání
-              {% elif klient.priprava_cerpani %}
-                Příprava čerpání
-              {% elif klient.podpis_uverove_dokumentace %}
-                Podpis úvěrové dokumentace
-              {% elif klient.priprava_uverove_dokumentace %}
-                Příprava úvěrové dokumentace
-              {% elif klient.schvalovani %}
-                Schvalování
-              {% elif klient.odhad %}
-                Odhad
-              {% elif klient.podani_zadosti %}
-                Podání žádosti
-              {% elif klient.kompletace_podkladu %}
-                Kompletace podkladů
-              {% elif klient.priprava_zadosti %}
-                Příprava žádosti
-              {% elif klient.vyber_banky %}
-                Výběr banky
-              {% elif klient.navrh_financovani %}
-                Návrh financování
-              {% elif klient.co_financuje %}
-                Co financuje
-              {% else %}
-                Nový klient
-              {% endif %}
+              {% with progress=klient.get_workflow_progress %}
+                {% if not progress.prvni_nesplneny_krok_nazev %}
+                  <span class="badge bg-success">Hotovo</span>
+                {% else %}
+                  {{ progress.posledni_splneny_krok_nazev|default:'-' }}
+                {% endif %}
+              {% endwith %}
             </td>
             <td>
-              {% if not klient.co_financuje %}
-                <span class="badge bg-primary">Co chce klient financovat</span>
-              {% elif not klient.navrh_financovani %}
-                <span class="badge bg-primary">Návrh financování</span>
-              {% elif not klient.vyber_banky %}
-                <span class="badge bg-primary">Výběr banky</span>
-              {% elif not klient.priprava_zadosti %}
-                <span class="badge bg-primary">Příprava žádosti</span>
-              {% elif not klient.kompletace_podkladu %}
-                <span class="badge bg-primary">Kompletace podkladů</span>
-              {% elif not klient.podani_zadosti %}
-                <span class="badge bg-primary">Podání žádosti</span>
-              {% elif not klient.odhad %}
-                <span class="badge bg-primary">Odhad</span>
-              {% elif not klient.schvalovani %}
-                <span class="badge bg-primary">Schvalování</span>
-              {% elif not klient.priprava_uverove_dokumentace %}
-                <span class="badge bg-primary">Příprava úvěrové dokumentace</span>
-              {% elif not klient.podpis_uverove_dokumentace %}
-                <span class="badge bg-primary">Podpis úvěrové dokumentace</span>
-              {% elif not klient.priprava_cerpani %}
-                <span class="badge bg-primary">Příprava čerpání</span>
-              {% elif not klient.cerpani %}
-                <span class="badge bg-primary">Čerpání</span>
-              {% elif not klient.zahajeni_splaceni %}
-                <span class="badge bg-primary">Zahájení splácení</span>
-              {% elif not klient.podminky_pro_splaceni %}
-                <span class="badge bg-primary">Podmínky pro splacení</span>
-              {% else %}
-                <span class="badge bg-success">Hotovo</span>
-              {% endif %}
+              {% with progress=klient.get_workflow_progress %}
+                {% if progress.prvni_nesplneny_krok_nazev %}
+                  <span class="badge bg-primary">{{ progress.prvni_nesplneny_krok_nazev }}</span>
+                {% else %}
+                  <span class="badge bg-success">Hotovo</span>
+                {% endif %}
+              {% endwith %}
             </td>
             <td>
               <a href="{% url 'klient_detail' klient.pk %}" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Zobrazit detail"><i class="fa fa-eye"></i> Detail</a>
@@ -103,11 +55,11 @@
       </tbody>
     </table>
     <!-- Stránkování -->
-    {% if klienti.has_other_pages %}
+    {% if klienti.has_other_pages and not request.GET.show_all == '1' %}
     <nav aria-label="Stránkování klientů">
       <ul class="pagination justify-content-center">
         {% if klienti.has_previous %}
-          <li class="page-item"><a class="page-link" href="?page={{ klienti.previous_page_number }}">&laquo; Předchozí</a></li>
+          <li class="page-item"><a class="page-link" href="?page={{ klienti.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.show_all %}&show_all={{ request.GET.show_all }}{% endif %}">&laquo; Předchozí</a></li>
         {% else %}
           <li class="page-item disabled"><span class="page-link">&laquo; Předchozí</span></li>
         {% endif %}
@@ -115,11 +67,11 @@
           {% if klienti.number == num %}
             <li class="page-item active"><span class="page-link">{{ num }}</span></li>
           {% else %}
-            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.show_all %}&show_all={{ request.GET.show_all }}{% endif %}">{{ num }}</a></li>
           {% endif %}
         {% endfor %}
         {% if klienti.has_next %}
-          <li class="page-item"><a class="page-link" href="?page={{ klienti.next_page_number }}">Další &raquo;</a></li>
+          <li class="page-item"><a class="page-link" href="?page={{ klienti.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.show_all %}&show_all={{ request.GET.show_all }}{% endif %}">Další &raquo;</a></li>
         {% else %}
           <li class="page-item disabled"><span class="page-link">Další &raquo;</span></li>
         {% endif %}
@@ -135,16 +87,16 @@
   <div class="row mb-4">
     <div class="col-md-6 mb-3 d-flex align-items-stretch">
       <div class="card shadow-sm w-100 h-100">
-        <div class="card-body d-flex flex-column justify-content-center align-items-center" style="min-height:320px;">
+        <div class="card-body d-flex flex-column justify-content-center align-items-center" style="min-height:420px; padding-bottom:56px;">
           <h5 class="card-title"><i class="fa fa-chart-pie"></i> Stav workflow klientů</h5>
-          <canvas id="workflowPieChart" style="max-width:100%;max-height:220px;" height="220"></canvas>
+          <canvas id="workflowPieChart" style="max-width:100%;max-height:320px;" height="300"></canvas>
         </div>
       </div>
     </div>
     <div class="col-md-6 mb-3 d-flex align-items-stretch">
       <div class="card shadow-sm w-100 h-100">
-        <div class="card-body d-flex flex-column justify-content-center align-items-center" style="min-height:320px;">
-          <h5 class="card-title"><i class="fa fa-chart-bar"></i> Objem hypoték podle stavu</h5>
+        <div class="card-body d-flex flex-column justify-content-center align-items-center" style="min-height:320px; color: #FFD700;">
+          <h5 class="card-title" style="color: #FFD700;"><i class="fa fa-chart-bar"></i> Objem hypoték podle stavu</h5>
           <canvas id="workflowBarChart" style="max-width:100%;max-height:220px;" height="220"></canvas>
         </div>
       </div>
@@ -224,6 +176,13 @@
     <div class="col-md-2">
       <button type="submit" class="btn btn-primary w-100"><i class="fa fa-search"></i> Filtrovat</button>
     </div>
+    <div class="col-md-3">
+      <label for="show_all" class="form-label">Zobrazit:</label>
+      <select id="show_all" name="show_all" class="form-select" onchange="this.form.submit()">
+        <option value="0" {% if not request.GET.show_all or request.GET.show_all == '0' %}selected{% endif %}>Stránkovat (rychlejší)</option>
+        <option value="1" {% if request.GET.show_all == '1' %}selected{% endif %}>Celý seznam (pomalejší)</option>
+      </select>
+    </div>
   </form>
   <div class="table-responsive">
   <table class="table table-bordered table-striped align-middle">
@@ -248,70 +207,22 @@
           <td>{% if klient.navrh_financovani_procento %}{{ klient.navrh_financovani_procento|floatformat:2 }} %{% else %}-{% endif %}</td>
           <td>{% if klient.navrh_financovani_castka %}{{ klient.navrh_financovani_castka|floatformat:0 }} Kč{% else %}-{% endif %}</td>
           <td>
-            {% if klient.podminky_pro_splaceni %}
-              Podmínky pro splacení
-            {% elif klient.zahajeni_splaceni %}
-              Zahájení splácení
-            {% elif klient.cerpani %}
-              Čerpání
-            {% elif klient.priprava_cerpani %}
-              Příprava čerpání
-            {% elif klient.podpis_uverove_dokumentace %}
-              Podpis úvěrové dokumentace
-            {% elif klient.priprava_uverove_dokumentace %}
-              Příprava úvěrové dokumentace
-            {% elif klient.schvalovani %}
-              Schvalování
-            {% elif klient.odhad %}
-              Odhad
-            {% elif klient.podani_zadosti %}
-              Podání žádosti
-            {% elif klient.kompletace_podkladu %}
-              Kompletace podkladů
-            {% elif klient.priprava_zadosti %}
-              Příprava žádosti
-            {% elif klient.vyber_banky %}
-              Výběr banky
-            {% elif klient.navrh_financovani %}
-              Návrh financování
-            {% elif klient.co_financuje %}
-              Co financuje
-            {% else %}
-              Nový klient
-            {% endif %}
+            {% with progress=klient.get_workflow_progress %}
+              {% if not progress.prvni_nesplneny_krok_nazev %}
+                <span class="badge bg-success">Hotovo</span>
+              {% else %}
+                {{ progress.posledni_splneny_krok_nazev|default:'-' }}
+              {% endif %}
+            {% endwith %}
           </td>
           <td>
-            {% if not klient.co_financuje %}
-              <span class="badge bg-primary">Co chce klient financovat</span>
-            {% elif not klient.navrh_financovani %}
-              <span class="badge bg-primary">Návrh financování</span>
-            {% elif not klient.vyber_banky %}
-              <span class="badge bg-primary">Výběr banky</span>
-            {% elif not klient.priprava_zadosti %}
-              <span class="badge bg-primary">Příprava žádosti</span>
-            {% elif not klient.kompletace_podkladu %}
-              <span class="badge bg-primary">Kompletace podkladů</span>
-            {% elif not klient.podani_zadosti %}
-              <span class="badge bg-primary">Podání žádosti</span>
-            {% elif not klient.odhad %}
-              <span class="badge bg-primary">Odhad</span>
-            {% elif not klient.schvalovani %}
-              <span class="badge bg-primary">Schvalování</span>
-            {% elif not klient.priprava_uverove_dokumentace %}
-              <span class="badge bg-primary">Příprava úvěrové dokumentace</span>
-            {% elif not klient.podpis_uverove_dokumentace %}
-              <span class="badge bg-primary">Podpis úvěrové dokumentace</span>
-            {% elif not klient.priprava_cerpani %}
-              <span class="badge bg-primary">Příprava čerpání</span>
-            {% elif not klient.cerpani %}
-              <span class="badge bg-primary">Čerpání</span>
-            {% elif not klient.zahajeni_splaceni %}
-              <span class="badge bg-primary">Zahájení splácení</span>
-            {% elif not klient.podminky_pro_splaceni %}
-              <span class="badge bg-primary">Podmínky pro splacení</span>
-            {% else %}
-              <span class="badge bg-success">Hotovo</span>
-            {% endif %}
+            {% with progress=klient.get_workflow_progress %}
+              {% if progress.prvni_nesplneny_krok_nazev %}
+                <span class="badge bg-primary">{{ progress.prvni_nesplneny_krok_nazev }}</span>
+              {% else %}
+                <span class="badge bg-success">Hotovo</span>
+              {% endif %}
+            {% endwith %}
           </td>
           <td>
             <div class="d-flex gap-2 w-100">
@@ -323,67 +234,20 @@
         </tr>
         <tr>
           <td colspan="8" style="padding: 0; border-top: none; background: #f8fafc;">
-            {% if klient.podminky_pro_splaceni %}
+            {# Nová logika: progress bar podle get_workflow_progress #}
+            {% with progress=klient.get_workflow_progress %}
               <div class="progress" style="height: 18px; background: #e9ecef; margin: 0 0 2px 0;">
-                <div class="progress-bar bg-info" role="progressbar" style="width: {% widthratio 15 15 100 %}%; min-width: 40px; font-size: 0.92em;">Podmínky pro splacení</div>
+                {% if not progress.prvni_nesplneny_krok_nazev %}
+                  <div class="progress-bar bg-success" role="progressbar" style="width: 100%; min-width: 40px; font-size: 0.92em;">
+                    Hotovo
+                  </div>
+                {% else %}
+                  <div class="progress-bar bg-info" role="progressbar" style="width: {{ progress.procenta_dokonceni }}%; min-width: 40px; font-size: 0.92em;">
+                    {{ progress.posledni_splneny_krok_nazev|default:'-' }}
+                  </div>
+                {% endif %}
               </div>
-            {% elif klient.zahajeni_splaceni %}
-              <div class="progress" style="height: 18px; background: #e9ecef; margin: 0 0 2px 0;">
-                <div class="progress-bar bg-info" role="progressbar" style="width: {% widthratio 14 15 100 %}%; min-width: 40px; font-size: 0.92em;">Zahájení splácení</div>
-              </div>
-            {% elif klient.cerpani %}
-              <div class="progress" style="height: 18px; background: #e9ecef; margin: 0 0 2px 0;">
-                <div class="progress-bar bg-info" role="progressbar" style="width: {% widthratio 13 15 100 %}%; min-width: 40px; font-size: 0.92em;">Čerpání</div>
-              </div>
-            {% elif klient.priprava_cerpani %}
-              <div class="progress" style="height: 18px; background: #e9ecef; margin: 0 0 2px 0;">
-                <div class="progress-bar bg-info" role="progressbar" style="width: {% widthratio 12 15 100 %}%; min-width: 40px; font-size: 0.92em;">Příprava čerpání</div>
-              </div>
-            {% elif klient.podpis_uverove_dokumentace %}
-              <div class="progress" style="height: 18px; background: #e9ecef; margin: 0 0 2px 0;">
-                <div class="progress-bar bg-info" role="progressbar" style="width: {% widthratio 11 15 100 %}%; min-width: 40px; font-size: 0.92em;">Podpis úvěrové dokumentace</div>
-              </div>
-            {% elif klient.priprava_uverove_dokumentace %}
-              <div class="progress" style="height: 18px; background: #e9ecef; margin: 0 0 2px 0;">
-                <div class="progress-bar bg-info" role="progressbar" style="width: {% widthratio 10 15 100 %}%; min-width: 40px; font-size: 0.92em;">Příprava úvěrové dokumentace</div>
-              </div>
-            {% elif klient.schvalovani %}
-              <div class="progress" style="height: 18px; background: #e9ecef; margin: 0 0 2px 0;">
-                <div class="progress-bar bg-info" role="progressbar" style="width: {% widthratio 9 15 100 %}%; min-width: 40px; font-size: 0.92em;">Schvalování</div>
-              </div>
-            {% elif klient.odhad %}
-              <div class="progress" style="height: 18px; background: #e9ecef; margin: 0 0 2px 0;">
-                <div class="progress-bar bg-info" role="progressbar" style="width: {% widthratio 8 15 100 %}%; min-width: 40px; font-size: 0.92em;">Odhad</div>
-              </div>
-            {% elif klient.podani_zadosti %}
-              <div class="progress" style="height: 18px; background: #e9ecef; margin: 0 0 2px 0;">
-                <div class="progress-bar bg-info" role="progressbar" style="width: {% widthratio 7 15 100 %}%; min-width: 40px; font-size: 0.92em;">Podání žádosti</div>
-              </div>
-            {% elif klient.kompletace_podkladu %}
-              <div class="progress" style="height: 18px; background: #e9ecef; margin: 0 0 2px 0;">
-                <div class="progress-bar bg-info" role="progressbar" style="width: {% widthratio 6 15 100 %}%; min-width: 40px; font-size: 0.92em;">Kompletace podkladů</div>
-              </div>
-            {% elif klient.priprava_zadosti %}
-              <div class="progress" style="height: 18px; background: #e9ecef; margin: 0 0 2px 0;">
-                <div class="progress-bar bg-info" role="progressbar" style="width: {% widthratio 5 15 100 %}%; min-width: 40px; font-size: 0.92em;">Příprava žádosti</div>
-              </div>
-            {% elif klient.vyber_banky %}
-              <div class="progress" style="height: 18px; background: #e9ecef; margin: 0 0 2px 0;">
-                <div class="progress-bar bg-info" role="progressbar" style="width: {% widthratio 4 15 100 %}%; min-width: 40px; font-size: 0.92em;">Výběr banky</div>
-              </div>
-            {% elif klient.navrh_financovani %}
-              <div class="progress" style="height: 18px; background: #e9ecef; margin: 0 0 2px 0;">
-                <div class="progress-bar bg-info" role="progressbar" style="width: {% widthratio 3 15 100 %}%; min-width: 40px; font-size: 0.92em;">Návrh financování</div>
-              </div>
-            {% elif klient.co_financuje %}
-              <div class="progress" style="height: 18px; background: #e9ecef; margin: 0 0 2px 0;">
-                <div class="progress-bar bg-info" role="progressbar" style="width: {% widthratio 2 15 100 %}%; min-width: 40px; font-size: 0.92em;">Co chce klient financovat</div>
-              </div>
-            {% else %}
-              <div class="progress" style="height: 18px; background: #e9ecef; margin: 0 0 2px 0;">
-                <div class="progress-bar bg-info" role="progressbar" style="width: {% widthratio 1 15 100 %}%; min-width: 40px; font-size: 0.92em;">Nový klient</div>
-              </div>
-            {% endif %}
+            {% endwith %}
           </td>
         </tr>
       {% empty %}
@@ -392,11 +256,11 @@
     </tbody>
   </table>
   <!-- Stránkování -->
-    {% if klienti.has_other_pages %}
+    {% if klienti.has_other_pages and not request.GET.show_all == '1' %}
     <nav aria-label="Stránkování klientů">
       <ul class="pagination justify-content-center">
         {% if klienti.has_previous %}
-          <li class="page-item"><a class="page-link" href="?page={{ klienti.previous_page_number }}">&laquo; Předchozí</a></li>
+          <li class="page-item"><a class="page-link" href="?page={{ klienti.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.show_all %}&show_all={{ request.GET.show_all }}{% endif %}">&laquo; Předchozí</a></li>
         {% else %}
           <li class="page-item disabled"><span class="page-link">&laquo; Předchozí</span></li>
         {% endif %}
@@ -404,11 +268,11 @@
           {% if klienti.number == num %}
             <li class="page-item active"><span class="page-link">{{ num }}</span></li>
           {% else %}
-            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.show_all %}&show_all={{ request.GET.show_all }}{% endif %}">{{ num }}</a></li>
           {% endif %}
         {% endfor %}
         {% if klienti.has_next %}
-          <li class="page-item"><a class="page-link" href="?page={{ klienti.next_page_number }}">Další &raquo;</a></li>
+          <li class="page-item"><a class="page-link" href="?page={{ klienti.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.show_all %}&show_all={{ request.GET.show_all }}{% endif %}">Další &raquo;</a></li>
         {% else %}
           <li class="page-item disabled"><span class="page-link">Další &raquo;</span></li>
         {% endif %}
@@ -419,6 +283,8 @@
 {% endif %}
 </div>
 <div class="alert alert-warning">DEBUG: klienti count = {{ klienti|length }}<br>Seznam: {% for k in klienti %}{{ k.jmeno }}, {% endfor %}</div>
+<div class="alert alert-info">
+</div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {{ workflow_counts|json_script:"workflowCountsData" }}
 {{ workflow_sums|json_script:"workflowSumsData" }}
@@ -451,7 +317,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const workflowLabels = [
       'Jméno klienta', 'Co chce klient financovat', 'Návrh financování', 'Výběr banky', 'Příprava žádosti',
       'Kompletace podkladů', 'Podání žádosti', 'Odhad', 'Schvalování', 'Příprava úvěrové dokumentace',
-      'Podpis úvěrové dokumentace', 'Příprava čerpání', 'Čerpání', 'Zahájení splácení', 'Podmínky pro splacení', 'Hotovo'
+      'Podpis úvěrové dokumentace', 'Příprava čerpání', 'Čerpání', 'Zahájení splácení', 'Podmínky pro vyčerpání', 'Hotovo'
     ];
     const pieColors = [
       '#0A192F', // tmavě modrá (luxusní základ)
@@ -474,16 +340,21 @@ document.addEventListener('DOMContentLoaded', function() {
     new Chart(ctxPie, {
       type: 'pie',
       data: {
-        labels: workflowLabels.slice(1),
+        labels: workflowLabels, // bez slice(1)
         datasets: [{ data: workflowCounts, backgroundColor: pieColors }]
       },
-      options: {plugins: {legend: {position: 'bottom', labels: {color: '#FFD700'}}}}
+      options: {
+        plugins: {legend: {position: 'bottom', labels: {color: '#FFD700'}}},
+        responsive: true,
+        aspectRatio: 1.2,
+        maintainAspectRatio: false,
+      }
     });
     new Chart(ctxBar, {
       type: 'bar',
       data: {
         labels: workflowLabels.slice(1),
-        datasets: [{ label: 'Objem hypoték (Kč)', data: workflowSums, backgroundColor: '#FFD700', borderColor: '#FFD700', borderWidth: 1 }]
+        datasets: [{ label: 'Objem hypoték (Kč)', data: workflowSums.slice(1), backgroundColor: '#FFD700', borderColor: '#FFD700', borderWidth: 1 }]
       },
       options: {plugins: {legend: {display: false}}, scales: {y: {beginAtZero: true}}}
     });
@@ -506,4 +377,4 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 </script>
-{% endblock %
+{% endblock %}

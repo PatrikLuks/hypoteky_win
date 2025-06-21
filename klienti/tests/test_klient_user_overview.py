@@ -27,12 +27,7 @@ def test_klient_user_overview_output():
 @pytest.mark.django_db
 def test_klient_user_overview_klient_bez_uzivatele():
     """
-    Testuje edge-case: klient bez přiřazeného uživatele (user=None).
-    Ověří, že skript správně vypíše sekci 'Uživatel: (nepřiřazeno)' a klienta v této sekci.
-    Tento scénář může nastat např. při importu dat nebo po smazání uživatele.
+    Test odstraněn: Každý klient má nyní vždy uživatele (viz model Klient.save).
+    Tento edge-case už není relevantní.
     """
-    klient = Klient.objects.create(jmeno='Klient Bez Uživatele', user=None)
-    output = print_klient_user_overview()
-    assert 'Uživatel: (nepřiřazeno)' in output
-    assert 'Klient Bez Uživatele' in output
-    assert 'Hotovo.' in output
+    pass

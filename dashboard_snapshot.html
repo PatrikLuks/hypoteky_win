@@ -1,11 +1,14 @@
+
+
 <!DOCTYPE html>
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <title>Správa hypoték</title>
+    <title>JPL Servis</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/fontawesome/css/all.min.css">
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"> -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -411,32 +414,26 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 rounded">
   <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="/">Správa hypoték</a>
+    <a class="navbar-brand fw-bold" href="/">JPL Servis</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Menu">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="mainNavbar">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item">
-          <a class="nav-link " href="/">Klienti</a>
-        </li>
 
-        <li class="nav-item">
-          <a class="nav-link " href="/kalkulacka/"><i class="fa fa-calculator"></i>Kalkulačka hypotéky</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/reporting/"><i class="fa fa-chart-bar"></i> Reporting</a>
-        </li>
-      </ul>
-      <span class="navbar-text small text-muted me-2">
-        <i class="fa fa-user"></i> Neregistrovaný uživatel
+      <div class="d-flex align-items-center ms-auto gap-2">
+        <span class="navbar-text small text-muted">
+          <i class="fa fa-user"></i> test
+          <span class="badge" style="background-color: #003366; color: #fff;">Klient</span>
+        </span>
+        <ul class="navbar-nav flex-row ms-2">
 
-      </span>
-      <ul class="navbar-nav ms-1">
 
-          <li class="nav-item"><a class="nav-link" href="/account/login/"><i class="fa fa-sign-in-alt"></i>Přihlásit</a></li>
+              <li class="nav-item"><a class="nav-link" href="/account/password_change/"><i class="fa fa-key"></i>Změnit heslo</a></li>
 
-      </ul>
+            <li class="nav-item"><a class="nav-link" href="/account/logout/"><i class="fa fa-sign-out-alt"></i>Odhlásit</a></li>
+
+        </ul>
+      </div>
     </div>
   </div>
 </nav>
@@ -462,8 +459,10 @@
     <div class="card shadow-sm border-0 text-center h-100 bg-gradient" style="background:linear-gradient(135deg,#23272b 60%,#20c997 100%)">
       <div class="card-body">
         <h6 class="card-title text-secondary">Objem hypoték</h6>
-        <div class="display-4 fw-bold text-success" style="letter-spacing:1px;white-space:nowrap;">
-          0 Kč
+        <div class="display-4 fw-bold text-success" style="letter-spacing:1px;white-space:nowrap;max-width:100%;display:inline-block;font-size:clamp(1.5rem,6vw,2.7rem);">
+          <span style="display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom;">0</span>
+          <br>
+          <span style="font-size:clamp(1rem,3vw,1.5rem);vertical-align:top;white-space:nowrap;">Kč</span>
         </div>
         <a href="/klient/pridat/" class="btn btn-sm btn-outline-light mt-2"><i class="fa fa-plus"></i> Přidat klienta</a>
       </div>
@@ -482,35 +481,7 @@
       <div class="card-body">
         <h6 class="card-title text-secondary">Workflow rozložení</h6>
         <canvas id="workflowPieChart" height="120"></canvas>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<div class="row mb-4 g-4">
-  <div class="col-lg-6">
-    <div class="card shadow-sm border-0 h-100">
-      <div class="card-body">
-        <h5 class="card-title"><i class="fa fa-university text-primary"></i> Rozložení podle bank</h5>
-        <canvas id="bankyPieChart" height="120"></canvas>
-        <ul class="list-group list-group-flush mt-3">
-
-            <li class="list-group-item text-muted">Žádné banky</li>
-
-        </ul>
-      </div>
-    </div>
-  </div>
-  <div class="col-lg-6">
-    <div class="card shadow-sm border-0 h-100">
-      <div class="card-body">
-        <h5 class="card-title"><i class="fa fa-ban text-danger"></i> Nejčastější důvody zamítnutí</h5>
-        <ul class="list-group list-group-flush">
-
-            <li class="list-group-item text-muted">Žádné zamítnuté hypotéky</li>
-
-        </ul>
+        <div id="workflowPieLegendContainer"></div>
       </div>
     </div>
   </div>
@@ -618,12 +589,96 @@
   </div>
 </div>
 
+<div style="display:none;">
+  <pre>['jmeno_klienta', 'co_financuje', 'navrh_financovani', 'vyber_banky', 'priprava_zadosti', 'kompletace_podkladu', 'podani_zadosti', 'odhad', 'schvalovani', 'priprava_uverove_dokumentace', 'podpis_uverove_dokumentace', 'priprava_cerpani', 'cerpani', 'zahajeni_splaceni', 'podminky_pro_splaceni', 'hotovo']</pre>
+  <pre>[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]</pre>
+</div>
+
+<style>
+/* Luxusní scrollbar pro legendu workflow – nejlepší podpora v Chrome/Edge.
+   Firefox podporuje pouze barvy (ne šířku, stín, gradient). Safari má omezenou podporu.
+   Pro univerzální vzhled použijte JS knihovnu SimpleBar: https://github.com/Grsmto/simplebar */
+#workflowPieLegendContainer {
+  width: 100%;
+  max-width: 340px;
+  max-height: 90px;
+  overflow-y: auto;
+  margin: 0 auto;
+  scrollbar-width: thin; /* Firefox: pouze barva a šířka */
+  scrollbar-color: #FFD700 #23272b; /* Firefox: pouze barva */
+}
+#workflowPieLegendContainer::-webkit-scrollbar {
+  width: 12px !important;
+  background: #23272b !important;
+  border-radius: 12px !important;
+}
+#workflowPieLegendContainer::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #FFD700 60%, #ffe066 100%) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.10) !important;
+  border: 2px solid #23272b !important;
+  min-height: 24px !important;
+  transition: background 0.3s, box-shadow 0.3s !important;
+}
+#workflowPieLegendContainer::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #fffbe6 60%, #FFD700 100%) !important;
+  box-shadow: 0 4px 16px 0 rgba(0,0,0,0.18) !important;
+}
+#workflowPieLegendContainer::-webkit-scrollbar-track {
+  background: #23272b !important;
+  border-radius: 12px !important;
+}
+</style>
+<!--
+Pro univerzální luxusní vzhled scrollbarů napříč prohlížeči doporučuji použít knihovnu SimpleBar:
+1. npm install simplebar
+2. import 'simplebar/dist/simplebar.css';
+3. Přidej atribut data-simplebar na div: <div id="workflowPieLegendContainer" data-simplebar>
+-->
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-const workflowLabels = ['co_financuje', 'navrh_financovani', 'vyber_banky', 'priprava_zadosti', 'kompletace_podkladu', 'podani_zadosti', 'odhad', 'schvalovani', 'priprava_uverove_dokumentace', 'podpis_uverove_dokumentace', 'priprava_cerpani', 'cerpani', 'zahajeni_splaceni', 'podminky_pro_splaceni', 'hotovo'];
-const workflowCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+// Chart.js HTML legend plugin
+const htmlLegendPlugin = {
+  id: 'htmlLegend',
+  afterUpdate(chart, args, options) {
+    const legendContainer = document.getElementById(options.containerID);
+    while (legendContainer.firstChild) {
+      legendContainer.firstChild.remove();
+    }
+    const list = document.createElement('ul');
+    list.style.display = 'flex';
+    list.style.flexDirection = 'column';
+    list.style.margin = '0';
+    list.style.padding = '0';
+    list.style.listStyle = 'none';
+    chart.data.labels.forEach((label, i) => {
+      const li = document.createElement('li');
+      li.style.display = 'flex';
+      li.style.alignItems = 'center';
+      li.style.marginBottom = '4px';
+      const box = document.createElement('span');
+      box.style.display = 'inline-block';
+      box.style.width = '16px';
+      box.style.height = '16px';
+      box.style.marginRight = '8px';
+      box.style.background = chart.data.datasets[0].backgroundColor[i];
+      box.style.borderRadius = '3px';
+      li.appendChild(box);
+      const text = document.createElement('span');
+      text.style.fontSize = '13px';
+      text.style.color = '#e0e0e0';
+      text.textContent = label;
+      li.appendChild(text);
+      list.appendChild(li);
+    });
+    legendContainer.appendChild(list);
+  }
+};
+const workflowLabels = ['jmeno_klienta', 'co_financuje', 'navrh_financovani', 'vyber_banky', 'priprava_zadosti', 'kompletace_podkladu', 'podani_zadosti', 'odhad', 'schvalovani', 'priprava_uverove_dokumentace', 'podpis_uverove_dokumentace', 'priprava_cerpani', 'cerpani', 'zahajeni_splaceni', 'podminky_pro_splaceni', 'hotovo'];
+const workflowCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 const ctxPie = document.getElementById('workflowPieChart').getContext('2d');
-new Chart(ctxPie, {
+const pieChart = new Chart(ctxPie, {
   type: 'pie',
   data: {
     labels: workflowLabels.map(l => l.replace(/_/g, ' ').replace('hotovo', 'Hotovo').replace(/\b\w/g, c => c.toUpperCase())),
@@ -636,33 +691,12 @@ new Chart(ctxPie, {
   },
   options: {
     plugins: {
-      legend: {position: 'bottom', labels: {color: '#e0e0e0', font: {size: 13}}}
+      legend: {display: false},
+      htmlLegend: {containerID: 'workflowPieLegendContainer'}
     }
-  }
+  },
+  plugins: [htmlLegendPlugin]
 });
-// --- Pie chart pro banky ---
-const bankyLabels = [];
-const bankyCounts = [];
-if (bankyLabels.length > 0) {
-  const ctxBanky = document.getElementById('bankyPieChart').getContext('2d');
-  new Chart(ctxBanky, {
-    type: 'pie',
-    data: {
-      labels: bankyLabels,
-      datasets: [{
-        data: bankyCounts,
-        backgroundColor: [
-          '#0d6efd','#6c757d','#198754','#ffc107','#dc3545','#20c997','#6610f2','#fd7e14','#6f42c1','#0dcaf0','#adb5bd','#f8d7da','#b6d4fe','#d1e7dd','#198754'
-        ],
-      }]
-    },
-    options: {
-      plugins: {
-        legend: {position: 'bottom', labels: {color: '#23272b', font: {size: 13}}}
-      }
-    }
-  });
-}
 </script>
 </div>
 
@@ -678,11 +712,6 @@ if (bankyLabels.length > 0) {
       <div class="col text-center">
         <a href="/klient/pridat/" class="nav-link d-inline-block" title="Přidat klienta">
           <i class="fa fa-user-plus fa-lg"></i>
-        </a>
-      </div>
-      <div class="col text-center">
-        <a href="/kalkulacka/" class="nav-link d-inline-block" title="Kalkulačka hypotéky">
-          <i class="fa fa-calculator fa-lg"></i>
         </a>
       </div>
     </div>

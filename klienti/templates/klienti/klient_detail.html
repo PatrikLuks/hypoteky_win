@@ -110,88 +110,26 @@
     {% for step in workflow_steps %}
       <div class="text-center {% if forloop.counter0 == aktivni_krok %}border border-3 border-primary shadow bg-white{% endif %}"
            style="min-width: 120px; border-radius: 12px; padding: 4px 0 8px 0; position: relative;">
-        {% if klient|attr:step.pole %}
+        {% if step.splneno %}
           <div class="rounded-circle bg-success text-white mx-auto mb-1"
                style="width: 36px; height: 36px; line-height: 36px; font-size: 1.2em;"
                data-bs-toggle="tooltip" data-bs-placement="top"
-               title="Krok splněn\n{{ step.popis }}\n{% if step.deadline %}Deadline: {{ step.deadline|date:'d.m.Y' }}{% endif %}{% if step.poznamky %}\nPoznámky: {{ step.poznamky|length }}{% endif %}">
+               title="Krok splněn\n{{ step.nazev }}\n{% if step.datum %}Splněno: {{ step.datum|date:'d.m.Y' }}{% endif %}">
             <i class="fa fa-check"></i>
           </div>
         {% else %}
-          <div class="rounded-circle mx-auto mb-1
-            {% if step.stav_deadlinu == 'po_termínu' %} bg-danger text-white border-danger
-            {% elif step.stav_deadlinu == 'blizi_se' %} bg-warning text-dark border-warning
-            {% else %} bg-light border text-secondary{% endif %}"
+          <div class="rounded-circle mx-auto mb-1 bg-light border text-secondary"
             style="width: 36px; height: 36px; line-height: 36px; font-size: 1.2em; position: relative;"
             data-bs-toggle="tooltip" data-bs-placement="top"
-            title="{{ step.popis }}\n{% if step.deadline %}Deadline: {{ step.deadline|date:'d.m.Y' }}{% endif %}{% if step.poznamky %}\nPoznámky: {{ step.poznamky|length }}{% endif %}">
+            title="{{ step.nazev }}">
             <i class="fa fa-circle"></i>
-            {% if step.stav_deadlinu == 'po_termínu' %}
-              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.8em;">
-                <i class="fa fa-exclamation-triangle"></i>
-              </span>
-            {% elif step.stav_deadlinu == 'blizi_se' %}
-              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark" style="font-size:0.8em;">
-                <i class="fa fa-clock"></i>
-              </span>
-            {% endif %}
           </div>
         {% endif %}
-        <div style="font-size: 0.95em; color: #fff; background: #23272b;"> {# a11y: vysoký kontrast textu ve workflow #}
-          {{ step.popis }}
-        </div>
+        <div style="font-size: 0.95em; color: #fff; background: #23272b;">{{ step.nazev }}</div>
         <div class="small text-muted">
-          {% if step.deadline %}
-            <span {% if step.stav_deadlinu == 'po_termínu' %}class="text-danger fw-bold"{% elif step.stav_deadlinu == 'blizi_se' %}class="text-warning fw-bold"{% endif %}>
-              Deadline: {{ step.deadline|date:"d.m.Y" }}
-            </span>
+          {% if step.datum %}
+            <span class="text-success fw-bold">Splněno: {{ step.datum|date:"d.m.Y" }}</span>
           {% endif %}
-        </div>
-        <div class="mt-1 d-flex justify-content-center gap-1">
-          <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addNoteModal{{ forloop.counter }}" title="Přidat poznámku ke kroku">
-            <i class="fa fa-sticky-note"></i>
-          </button>
-          {% if step.poznamky and step.poznamky|length > 0 %}
-            <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#notesCollapse{{ forloop.counter }}" aria-expanded="false" aria-controls="notesCollapse{{ forloop.counter }}">
-              <i class="fa fa-comment-dots"></i> Zobrazit poznámky ({{ step.poznamky|length }})
-            </button>
-          {% endif %}
-        </div>
-        {% if step.poznamky and step.poznamky|length > 0 %}
-        <div class="collapse mt-2" id="notesCollapse{{ forloop.counter }}">
-          <div class="card card-body p-2 small text-start" style="max-width: 260px; margin: 0 auto;">
-            <ul class="list-group list-group-flush">
-              {% for p in step.poznamky %}
-                <li class="list-group-item py-1 px-2">
-                  <span class="fw-bold">{{ p.author|default:'Uživatel' }}</span> <span class="text-muted">{{ p.created|date:"d.m.Y H:i" }}</span><br>
-                  {{ p.text|linebreaksbr }}
-                </li>
-              {% endfor %}
-            </ul>
-          </div>
-        </div>
-        {% endif %}
-        <!-- Modal pro přidání poznámky ke kroku -->
-        <div class="modal fade" id="addNoteModal{{ forloop.counter }}" tabindex="-1" aria-labelledby="addNoteModalLabel{{ forloop.counter }}" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <form method="post">
-                {% csrf_token %}
-                <div class="modal-header">
-                  <h5 class="modal-title" id="addNoteModalLabel{{ forloop.counter }}">Přidat poznámku ke kroku: {{ step.popis }}</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zavřít"></button>
-                </div>
-                <div class="modal-body">
-                  <textarea name="text" class="form-control" rows="3" placeholder="Poznámka ke kroku..." required></textarea>
-                  <input type="hidden" name="krok" value="{{ step.pole }}">
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zavřít</button>
-                  <button type="submit" name="nova_poznamka_krok" class="btn btn-primary">Přidat poznámku</button>
-                </div>
-              </form>
-            </div>
-          </div>
         </div>
       </div>
       {% if not forloop.last %}

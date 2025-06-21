@@ -288,7 +288,7 @@
   </div>
   <hr>
   <div class="row g-3">
-    <div class="col-md-6">
+    <div class="col-12">
       <label for="id_duvod_zamitnuti" class="form-label">Důvod zamítnutí hypotéky</label>
       {{ form.duvod_zamitnuti }}
       <div class="form-text fw-semibold" style="color: #ffd700;">Vyplňte pouze v případě zamítnuté hypotéky.</div>
@@ -323,6 +323,43 @@ document.addEventListener('DOMContentLoaded', function() {
   if (cena) cena.addEventListener('input', calcHypoCastka);
   if (procento) procento.addEventListener('input', calcHypoCastka);
   calcHypoCastka();
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const datumInput = document.getElementById('id_datum');
+  const deadlineFields = [
+    'id_deadline_co_financuje',
+    'id_deadline_navrh_financovani',
+    'id_deadline_vyber_banky',
+    'id_deadline_priprava_zadosti',
+    'id_deadline_kompletace_podkladu',
+    'id_deadline_podani_zadosti',
+    'id_deadline_odhad',
+    'id_deadline_schvalovani',
+    'id_deadline_priprava_uverove_dokumentace',
+    'id_deadline_podpis_uverove_dokumentace',
+    'id_deadline_priprava_cerpani',
+    'id_deadline_cerpani',
+    'id_deadline_zahajeni_splaceni',
+    'id_deadline_podminky_pro_splaceni'
+  ];
+  datumInput && datumInput.addEventListener('change', function() {
+    const baseDate = new Date(this.value);
+    if (isNaN(baseDate)) return;
+    deadlineFields.forEach(function(fieldId, idx) {
+      const field = document.getElementById(fieldId);
+      if (field) {
+        const d = new Date(baseDate);
+        d.setDate(d.getDate() + 7 * (idx + 1));
+        // YYYY-MM-DD
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        field.value = `${yyyy}-${mm}-${dd}`;
+      }
+    });
+  });
 });
 </script>
 </div>

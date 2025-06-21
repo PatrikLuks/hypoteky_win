@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.conf import settings
 from encrypted_model_fields.fields import EncryptedCharField, EncryptedTextField
+import unicodedata
 
 # Signály pro automatické vytváření a aktualizaci UserProfile
 try:
@@ -85,9 +86,98 @@ class Klient(models.Model):
         pass  # odstraněn unikátní constraint, řeší se na úrovni importu
 
     def save(self, *args, **kwargs):
-        # Synchronizace indexu pro vyhledávání
         self.jmeno_index = self.jmeno
+        if not self.user:
+            from django.contrib.auth.models import User
+            # Odstranění diakritiky a speciálních znaků
+            def normalize_username(name):
+                name = unicodedata.normalize('NFKD', name).encode('ascii', 'ignore').decode('ascii')
+                return ''.join(c for c in name.lower().replace(' ', '_') if c.isalnum() or c == '_')
+            base_username = normalize_username(self.jmeno)
+            username = base_username
+            i = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{i}"
+                i += 1
+            temp_password = username
+            user = User.objects.create_user(username=username, password=temp_password)
+            user.first_name = self.jmeno
+            if hasattr(self, 'email') and self.email:
+                user.email = self.email
+            user.save()
+            self.user = user
+            print(f"[DEBUG] Vytvoren uzivatel: {username} / heslo: {temp_password}")
         super().save(*args, **kwargs)
+
+    @property
+    def is_hotovo(self):
+        progress = self.get_workflow_progress
+        vse_splneno = all(k['splneno'] for k in progress['kroky'])
+        return self.duvod_zamitnuti in (None, "") and vse_splneno
+
+    @property
+    def get_workflow_progress(self):
+        """
+        Vrací průběh workflow na základě polí splneno_... jako slovník:
+        {
+            'posledni_splneny_krok_index': int or None,
+            'posledni_splneny_krok_nazev': str or None,
+            'prvni_nesplneny_krok_index': int or None,
+            'prvni_nesplneny_krok_nazev': str or None,
+            'procenta_dokonceni': float, # procento dokončení (0-100)
+            'kroky': [
+                {'nazev': str, 'splneno': bool, 'datum': date or None},
+                ...
+            ]
+        }
+        """
+        workflow_kroky = [
+            ("Co chce klient financovat", self.splneno_co_financuje),
+            ("Návrh financování", self.splneno_navrh_financovani),
+            ("Výběr banky", self.splneno_vyber_banky),
+            ("Příprava žádosti", self.splneno_priprava_zadosti),
+            ("Kompletace podkladů", self.splneno_kompletace_podkladu),
+            ("Podání žádosti", self.splneno_podani_zadosti),
+            ("Odhad", self.splneno_odhad),
+            ("Schvalování", self.splneno_schvalovani),
+            ("Příprava úvěrové dokumentace", self.splneno_priprava_uverove_dokumentace),
+            ("Podpis úvěrové dokumentace", self.splneno_podpis_uverove_dokumentace),
+            ("Příprava čerpání", self.splneno_priprava_cerpani),
+            ("Čerpání", self.splneno_cerpani),
+            ("Zahájení splácení", self.splneno_zahajeni_splaceni),
+            ("Podmínky pro vyčerpání", self.splneno_podminky_pro_splaceni),
+        ]
+        kroky = []
+        posledni_splneny_krok_index = None
+        prvni_nesplneny_krok_index = None
+        for idx, (nazev, datum) in enumerate(workflow_kroky):
+            splneno = datum is not None
+            kroky.append({
+                'nazev': nazev,
+                'splneno': splneno,
+                'datum': datum
+            })
+            if splneno:
+                posledni_splneny_krok_index = idx
+            elif prvni_nesplneny_krok_index is None:
+                prvni_nesplneny_krok_index = idx
+        procenta_dokonceni = 100 * sum(1 for _, d in workflow_kroky if d is not None) / len(workflow_kroky)
+        return {
+            'posledni_splneny_krok_index': posledni_splneny_krok_index,
+            'posledni_splneny_krok_nazev': workflow_kroky[posledni_splneny_krok_index][0] if posledni_splneny_krok_index is not None else None,
+            'prvni_nesplneny_krok_index': prvni_nesplneny_krok_index,
+            'prvni_nesplneny_krok_nazev': workflow_kroky[prvni_nesplneny_krok_index][0] if prvni_nesplneny_krok_index is not None else None,
+            'procenta_dokonceni': round(procenta_dokonceni, 1),
+            'kroky': kroky
+        }
+
+    # Příklad použití v šabloně nebo view:
+    # progress = klient.get_workflow_progress
+    # progress['aktualni_krok_nazev'], progress['procenta_dokonceni'], ...
+    # Pro zobrazení všech kroků a jejich splnění:
+    # for krok in progress['kroky']:
+    #     print(krok['nazev'], krok['splneno'], krok['datum'])
+    # ...
 
 class HypotekaWorkflow(models.Model):
     klient = models.ForeignKey(Klient, on_delete=models.CASCADE, related_name='workflowy')

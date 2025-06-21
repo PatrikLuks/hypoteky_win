@@ -142,6 +142,10 @@ def import_klienti_from_xlsx(file: IO) -> int:
             print(f"[IMPORT XLSX] Řádek {idx} přeskočen - chybí jméno")
             continue
         jmeno = row_data['jmeno'].strip()
+        # Validace délky jména podle modelu (max_length=100)
+        if len(jmeno) > 100:
+            print(f"[IMPORT XLSX] VAROVÁNÍ: Jméno je delší než 100 znaků, bude zkráceno. Původní: {jmeno}")
+            jmeno = jmeno[:100]
         datum = None
         if row_data.get('datum'):
             try:
@@ -183,7 +187,7 @@ def import_klienti_from_xlsx(file: IO) -> int:
             except Exception as e:
                 print(f"[IMPORT XLSX] Chyba při převodu procenta: {row_data['navrh_financovani_procento']} ({e})")
         klient, created = Klient.objects.get_or_create(
-            jmeno=row_data['jmeno'],
+            jmeno=jmeno,
             defaults={
                 'datum': datum,
                 'vyber_banky': row_data.get('vyber_banky'),

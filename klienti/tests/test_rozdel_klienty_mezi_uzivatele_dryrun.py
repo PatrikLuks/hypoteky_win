@@ -23,7 +23,7 @@ def test_rozdel_klienty_mezi_uzivatele_dryrun():
     assert "Náhled rozdělení klientů mezi poradce" in output
     assert "poradce0" in output and "poradce1" in output
     assert "Klient0" in output and "Klient3" in output
-    # Ověříme, že v DB stále nejsou klienti přiřazeni (user=None)
+    # Ověříme, že v DB klienti nejsou přiřazeni žádnému poradci (role != 'poradce')
     for k in klienti:
         k.refresh_from_db()
-        assert k.user is None
+        assert not hasattr(k.user, 'userprofile') or k.user.userprofile.role != 'poradce'
