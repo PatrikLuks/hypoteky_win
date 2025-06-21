@@ -31,6 +31,7 @@ if post_save:
 
 class Klient(models.Model):
     jmeno = EncryptedCharField(max_length=100)
+    jmeno_index = models.CharField(max_length=100, db_index=True, blank=True)  # Pomocné pole pro rychlé vyhledávání podle jména
     datum = models.DateField(default=timezone.now)
     co_financuje = EncryptedCharField(max_length=255, blank=True)
     cena = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
@@ -82,6 +83,11 @@ class Klient(models.Model):
 
     class Meta:
         pass  # odstraněn unikátní constraint, řeší se na úrovni importu
+
+    def save(self, *args, **kwargs):
+        # Synchronizace indexu pro vyhledávání
+        self.jmeno_index = self.jmeno
+        super().save(*args, **kwargs)
 
 class HypotekaWorkflow(models.Model):
     klient = models.ForeignKey(Klient, on_delete=models.CASCADE, related_name='workflowy')

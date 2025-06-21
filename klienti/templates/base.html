@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -5,7 +6,8 @@
     <title>Správa hypoték</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'fontawesome/css/all.min.css' %}">
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"> -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -429,9 +431,6 @@
         </li>
         {% endif %}
         <li class="nav-item">
-          <a class="nav-link {% if request.path == '/kalkulacka/' %}active{% endif %}" href="{% url 'kalkulacka' %}"><i class="fa fa-calculator"></i>Kalkulačka hypotéky</a>
-        </li>
-        <li class="nav-item">
           <a class="nav-link" href="{% url 'reporting' %}"><i class="fa fa-chart-bar"></i> Reporting</a>
         </li>
       </ul>
@@ -463,11 +462,6 @@
       <div class="col text-center">
         <a href="{% url 'klient_create' %}" class="nav-link d-inline-block" title="Přidat klienta">
           <i class="fa fa-user-plus fa-lg"></i>
-        </a>
-      </div>
-      <div class="col text-center">
-        <a href="{% url 'kalkulacka' %}" class="nav-link d-inline-block" title="Kalkulačka hypotéky">
-          <i class="fa fa-calculator fa-lg"></i>
         </a>
       </div>
     </div>

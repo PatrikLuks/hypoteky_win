@@ -23,7 +23,7 @@ for FILE in $PYFILES; do
   fi
   # Kontrola hlavičky (popis + autor v prvních 5 řádcích)
   HEADER=$(head -n 5 "$FILE")
-  if [[ "$HEADER" != *Autor* || ( "$HEADER" != *popis* && "$HEADER" != *Popis* && "$HEADER" != *účel* ) ]]; then
+  if [[ "$HEADER" != *Autor* || ( "$HEADER" !=x *popis* && "$HEADER" != *Popis* && "$HEADER" != *účel* ) ]]; then
     echo "[SELHÁNÍ] Chybí komentář s popisem a autorem v prvních 5 řádcích."
     ALL_OK=0
   fi

@@ -11,7 +11,6 @@ urlpatterns = [
     path('klient/<int:pk>/smazat/', views.klient_delete, name='klient_delete'),
     # Alias pro snapshot testy a kompatibilitu
     path('klient/<int:pk>/potvrdit-smazani/', views.klient_delete, name='klient_confirm_delete'),
-    path('kalkulacka/', views.kalkulacka, name='kalkulacka'),
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
     path('dashboard/', views.dashboard, name='dashboard'),

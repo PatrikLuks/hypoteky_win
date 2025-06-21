@@ -1,0 +1,1 @@
+Krok 4: Provedu smazání souborů kalkulačky a snapshotů a připravím úpravy v kódu (views, urls, base.html).

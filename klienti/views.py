@@ -22,6 +22,7 @@ from matplotlib import pyplot as plt
 import tempfile
 from reportlab.lib.utils import ImageReader
 from datetime import datetime
+from django.db.models import Q
 
 class KlientForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -41,6 +42,23 @@ class KlientForm(forms.ModelForm):
             if field in self.fields:
                 css = self.fields[field].widget.attrs.get('class', '')
                 self.fields[field].widget.attrs['class'] = f'{css} text-white'.strip()
+        # Pole splneno_<krok> se již automaticky nepředvyplňuje, zůstává prázdné
+        # Pokud chceš předvyplnit, odkomentuj logiku níže
+        # if not self.instance or not self.instance.pk:
+        #     workflow = [
+        #         'co_financuje', 'navrh_financovani', 'vyber_banky', 'priprava_zadosti',
+        #         'kompletace_podkladu', 'podani_zadosti', 'odhad', 'schvalovani',
+        #         'priprava_uverove_dokumentace', 'podpis_uverove_dokumentace', 'priprava_cerpani',
+        #         'cerpani', 'zahajeni_splaceni', 'podminky_pro_splaceni'
+        #     ]
+        #     for krok in workflow:
+        #         deadline_field = f'deadline_{krok}'
+        #         splneno_field = f'splneno_{krok}'
+        #         if splneno_field in self.fields and deadline_field in self.fields:
+        #             if not self.initial.get(splneno_field):
+        #                 deadline_value = self.initial.get(deadline_field)
+        #                 if deadline_value:
+        #                     self.initial[splneno_field] = deadline_value
 
     class Meta:
         model = Klient
@@ -60,8 +78,10 @@ class KlientForm(forms.ModelForm):
             'cerpani', 'deadline_cerpani', 'splneno_cerpani',
             'zahajeni_splaceni', 'deadline_zahajeni_splaceni', 'splneno_zahajeni_splaceni',
             'podminky_pro_splaceni', 'deadline_podminky_pro_splaceni', 'splneno_podminky_pro_splaceni',
+            'duvod_zamitnuti',
         ]
         widgets = {
+            'jmeno': forms.TextInput(attrs={'class': 'form-control'}),  # přidáno pro správné barvy
             'datum': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'cena': forms.TextInput(attrs={'inputmode': 'numeric', 'pattern': '[0-9 ]*', 'placeholder': 'např. 12 200 000', 'class': 'form-control'}),
             'navrh_financovani_procento': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100', 'placeholder': 'např. 80', 'class': 'form-control'}),
@@ -107,6 +127,7 @@ class KlientForm(forms.ModelForm):
             'splneno_cerpani': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'splneno_zahajeni_splaceni': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'splneno_podminky_pro_splaceni': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'duvod_zamitnuti': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Např. nedostatečný příjem, špatná bonita, chybějící dokumenty...'}),
         }
 
     def clean_cena(self):
@@ -352,7 +373,7 @@ def klient_detail(request, pk):
                 'blizi_se' if klient.deadline_podani_zadosti and klient.splneno_podani_zadosti is None and (klient.deadline_podani_zadosti - today).days <= 3 and (klient.deadline_podani_zadosti - today).days >= 0 else
                 'ok'
             ),
-            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'podani_zadosti'] if poznamky and hasattr(poznamky[0], 'krok') else []
+            'poznamky': [p for p in poznamky if getattr(p, 'krok', None) == 'podani_zadadosti'] if poznamky and hasattr(poznamky[0], 'krok') else []
         },
         {
             'pole': 'odhad',
@@ -442,7 +463,8 @@ def klient_detail(request, pk):
     # Určení aktuálního kroku klienta pro zvýraznění v timeline
     aktivni_krok = None
     for idx, step in enumerate(workflow_steps):
-        if not getattr(klient, step['pole']):
+        splneno_field = f'splneno_{step["pole"]}'
+        if not getattr(klient, splneno_field, None):
             aktivni_krok = idx
             break
     else:
@@ -486,34 +508,6 @@ def home(request):
         ('zahajeni_splaceni', 'deadline_zahajeni_splaceni', 'splneno_zahajeni_splaceni'),
         ('podminky_pro_splaceni', 'deadline_podminky_pro_splaceni', 'splneno_podminky_pro_splaceni'),
     ]
-    # --- Filtrování a vyhledávání ---
-    q = request.GET.get('q', '').strip()
-    stav = request.GET.get('stav', '').strip()
-    if q:
-        klienti = klienti.filter(jmeno__icontains=q)
-    if stav:
-        # stav je číslo kroku 1-15 (string), převedeme na int
-        try:
-            stav = int(stav)
-            # POZOR: názvy musí přesně odpovídat názvům polí v modelu Klient!
-            # Pokud je zde překlep, filtr nebude fungovat (např. podani_zadadosti vs podani_zadosti)
-            workflow_labels = [
-                'co_financuje', 'navrh_financovani', 'vyber_banky', 'priprava_zadosti',
-                'kompletace_podkladu', 'podani_zadosti', 'odhad', 'schvalovani',
-                'priprava_uverove_dokumentace', 'podpis_uverove_dokumentace',
-                'priprava_cerpani', 'cerpani', 'zahajeni_splaceni', 'podminky_pro_splaceni',
-            ]
-            if stav == 1:
-                klienti = klienti.filter(co_financuje__isnull=True)
-            elif stav <= len(workflow_labels):
-                predchozi = workflow_labels[stav-2] if stav > 1 else None
-                aktualni = workflow_labels[stav-1]
-                if predchozi:
-                    klienti = klienti.filter(**{predchozi+'__isnull': False, aktualni+'__isnull': True})
-                else:
-                    klienti = klienti.filter(**{aktualni+'__isnull': True})
-        except Exception:
-            pass
     klienti_deadlines = []
     for klient in klienti:
         nejblizsi_deadline = None
@@ -536,7 +530,6 @@ def home(request):
             })
     klienti_deadlines = sorted(klienti_deadlines, key=lambda x: x['deadline'])
 
-    # --- Data pro grafy ---
     workflow_labels = [
         'co_financuje', 'navrh_financovani', 'vyber_banky', 'priprava_zadosti',
         'kompletace_podkladu', 'podani_zadosti', 'odhad', 'schvalovani',
@@ -545,8 +538,6 @@ def home(request):
     ]
     workflow_counts = [0]*15
     workflow_sums = [0]*15
-    # --- Časové řady ---
-    # Získat posledních 7 měsíců
     today = timezone.now().date()
     months = []
     for i in range(6, -1, -1):
@@ -561,18 +552,34 @@ def home(request):
         objem_timeline[m] += float(klient.navrh_financovani_castka or 0)
     klientiTimeline = [klienti_timeline.get(m, 0) for m in months]
     objemTimeline = [objem_timeline.get(m, 0) for m in months]
-    # workflow stav
     for klient in klienti:
         stav = 0
         for idx, krok in enumerate(workflow_labels[:-1]):
-            if not getattr(klient, krok):
+            splneno_field = f'splneno_{krok}'
+            if not getattr(klient, splneno_field, None):
                 stav = idx
                 break
         else:
-            stav = 14  # hotovo
+            stav = 14
         workflow_counts[stav] += 1
         workflow_sums[stav] += float(klient.navrh_financovani_castka or 0)
-    # ---
+    banky_vyber = list(Klient.objects.exclude(vyber_banky__isnull=True).exclude(vyber_banky='').values_list('vyber_banky', flat=True).distinct())
+    # DEBUG: Výpis počtu klientů po aplikaci filtrů
+    print(f"[DEBUG] Počet klientů po filtraci: {klienti.count()}")
+    # DEBUG: Výpis klientů po filtraci
+    print(f"[DEBUG] klienti.count = {klienti.count()}")
+    for k in klienti:
+        print(f"[DEBUG] klient: {k.jmeno}, co_financuje={k.co_financuje}, navrh_financovani={k.navrh_financovani}, vyber_banky={k.vyber_banky}")
+
+    print("[DEBUG] GET parametry:", dict(request.GET))
+    print(f"[DEBUG] Počet klientů před filtrací: {Klient.objects.count()}")
+    print(f"[DEBUG] Počet klientů po filtraci: {klienti.count()}")
+    print(f"[DEBUG] Jména klientů po filtraci: {[k.jmeno for k in klienti]}")
+
+    q = request.GET.get('q', '').strip()
+    if q:
+        klienti = klienti.filter(jmeno_index__icontains=q)
+
     return render(request, 'klienti/home.html', {
         'klienti': klienti,
         'klienti_deadlines': klienti_deadlines,
@@ -582,35 +589,9 @@ def home(request):
         'months': months,
         'klientiTimeline': klientiTimeline,
         'objemTimeline': objemTimeline,
+        'banky_vyber': banky_vyber,
+        'user_role': role,  # <--- přidáno pro správné větvení šablony
     })
-
-class KalkulackaForm(forms.Form):
-    castka = forms.DecimalField(label="Výše úvěru", max_digits=12, decimal_places=2, min_value=10000)
-    urok = forms.DecimalField(label="Úroková sazba (%)", max_digits=5, decimal_places=2, min_value=0.01)
-    doba = forms.IntegerField(label="Doba splatnosti (roky)", min_value=1, max_value=40)
-    fixace = forms.IntegerField(label="Doba fixace (roky)", min_value=1, max_value=40, required=False)
-    mimoradne_splatky = forms.DecimalField(label="Mimořádná splátka (Kč)", max_digits=12, decimal_places=2, required=False)
-
-
-def kalkulacka(request):
-    vysledek = None
-    if request.method == 'POST':
-        form = KalkulackaForm(request.POST)
-        if form.is_valid():
-            castka = float(form.cleaned_data['castka'])
-            urok = float(form.cleaned_data['urok']) / 100 / 12
-            doba = int(form.cleaned_data['doba']) * 12
-            splatka = castka * urok * pow(1 + urok, doba) / (pow(1 + urok, doba) - 1)
-            celkem = splatka * doba
-            urok_celkem = celkem - castka
-            vysledek = {
-                'splatka': round(splatka, 2),
-                'celkem': round(celkem, 2),
-                'urok_celkem': round(urok_celkem, 2),
-            }
-    else:
-        form = KalkulackaForm()
-    return render(request, 'klienti/kalkulacka.html', {'form': form, 'vysledek': vysledek})
 
 def dashboard(request):
     klienti = Klient.objects.all()
@@ -673,7 +654,8 @@ def dashboard(request):
     for k in klienti:
         stav = 0
         for idx, krok in enumerate(workflow_labels[:-1]):
-            if not getattr(k, krok):
+            splneno_field = f'splneno_{krok}'
+            if not getattr(k, splneno_field, None):
                 stav = idx
                 break
         else:
@@ -791,77 +773,65 @@ def export_klient_ical(request, pk):
     response['Content-Disposition'] = f'attachment; filename=klient_{pk}_deadliny.ics'
     return response
 
+class ReportingFilterForm(forms.Form):
+    datum_od = forms.DateField(label="Od", required=False, widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
+    datum_do = forms.DateField(label="Do", required=False, widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
+
 def reporting(request):
-    """
-    View pro zobrazení reportingu v HTML (grafy, tabulky, filtry).
-    Export do PDF je řešen samostatnou view reporting_export_pdf.
-    """
     today = timezone.now().date()
-    first_day = today.replace(day=1)
-    datum_od = request.GET.get('datum_od')
-    datum_do = request.GET.get('datum_do')
-    form = ReportingFilterForm(request.GET or None, initial={'datum_od': first_day, 'datum_do': today})
-    klienti = Klient.objects.all()
-    if datum_od:
-        try:
-            klienti = klienti.filter(datum__gte=datum_od)
-        except Exception:
-            pass
-    else:
-        klienti = klienti.filter(datum__gte=first_day)
-    if datum_do:
-        try:
-            klienti = klienti.filter(datum__lte=datum_do)
-        except Exception:
-            pass
-    # Statistiky
-    banky = [k.vyber_banky for k in klienti if k.vyber_banky]
-    rozlozeni_banky = Counter(banky)
-    schvalene = klienti.filter(duvod_zamitnuti__isnull=True, vyber_banky__isnull=False)
-    zamitnute = klienti.filter(duvod_zamitnuti__isnull=False, vyber_banky__isnull=False)
-    banky_labels = list(rozlozeni_banky.keys())
-    schvalenost = [schvalene.filter(vyber_banky=b).count() for b in banky_labels]
-    zamitnutost = [zamitnute.filter(vyber_banky=b).count() for b in banky_labels]
+    one_year_ago = today.replace(year=today.year-1)
+    klienti = Klient.objects.filter(datum__gte=one_year_ago, datum__lte=today)
+    # Najdi všechny unikátní banky (bez prázdných a mezer)
+    banky_labels = sorted(set(k.vyber_banky.strip() for k in klienti if k.vyber_banky and k.vyber_banky.strip()))
+    schvalenost = []
+    zamitnutost = []
     prumery = []
     for banka in banky_labels:
-        klienti_banka = klienti.filter(vyber_banky=banka, podani_zadosti__isnull=False, schvalovani__isnull=False)
+        klienti_banka = [k for k in klienti if k.vyber_banky and k.vyber_banky.strip() == banka]
+        schv = [k for k in klienti_banka if not (k.duvod_zamitnuti and str(k.duvod_zamitnuti).strip())]
+        zam = [k for k in klienti_banka if (k.duvod_zamitnuti and str(k.duvod_zamitnuti).strip())]
+        schvalenost.append(len(schv))
+        zamitnutost.append(len(zam))
+        # Průměrná doba schválení (jen pro schválené)
         doby = []
-        for k in klienti_banka:
-            schv = k.schvalovani
-            pod = k.podani_zadosti
-            if isinstance(schv, str):
-                try:
-                    schv = datetime.datetime.strptime(schv, "%Y-%m-%d").date()
-                except Exception:
-                    continue
-            if isinstance(pod, str):
-                try:
-                    pod = datetime.datetime.strptime(pod, "%Y-%m-%d").date()
-                except Exception:
-                    continue
-            if schv and pod:
-                doby.append((schv - pod).days)
+        for k in schv:
+            try:
+                schv_date = k.schvalovani
+                pod_date = k.podani_zadosti
+                if isinstance(schv_date, str):
+                    schv_date = datetime.datetime.strptime(schv_date, "%Y-%m-%d").date()
+                if isinstance(pod_date, str):
+                    pod_date = datetime.datetime.strptime(pod_date, "%Y-%m-%d").date()
+                if schv_date and pod_date:
+                    doby.append((schv_date - pod_date).days)
+            except Exception:
+                continue
         prumery.append(round(sum(doby)/len(doby), 1) if doby else None)
-    # Trendy
+    # Trendy schválených a zamítnutých hypoték (timeline)
     months = []
     schvaleneTimeline = []
     zamitnuteTimeline = []
-    if klienti.exists():
-        min_date = klienti.order_by('datum').first().datum
-        max_date = klienti.order_by('-datum').first().datum
-        d = min_date.replace(day=1)
-        while d <= max_date:
-            months.append(d.strftime('%Y-%m'))
-            if d.month == 12:
-                d = d.replace(year=d.year+1, month=1)
-            else:
-                d = d.replace(month=d.month+1)
-        for m in months:
-            schvaleneTimeline.append(len([k for k in schvalene if k.datum and k.datum.strftime('%Y-%m') == m]))
-            zamitnuteTimeline.append(len([k for k in zamitnute if k.datum and k.datum.strftime('%Y-%m') == m]))
-    # Předání dat do šablony
+    for i in range(11, -1, -1):
+        m = (today.replace(day=1) - timedelta(days=30*i)).replace(day=1)
+        months.append(m.strftime('%Y-%m'))
+    months = sorted(list(set(months)))
+    for m in months:
+        schv = 0
+        zam = 0
+        for k in klienti:
+            if k.datum.strftime('%Y-%m') == m:
+                if not (k.duvod_zamitnuti and str(k.duvod_zamitnuti).strip()):
+                    schv += 1
+                else:
+                    zam += 1
+        schvaleneTimeline.append(schv)
+        zamitnuteTimeline.append(zam)
+    # Statistika pro boxy nahoře
+    klientu_celkem = len(klienti)
+    schvaleno_celkem = sum(schvalenost)
+    zamitnuto_celkem = sum(zamitnutost)
+    # Předání do šablony
     context = {
-        'form': form,
         'banky_labels': banky_labels,
         'schvalenost': schvalenost,
         'zamitnutost': zamitnutost,
@@ -870,12 +840,11 @@ def reporting(request):
         'schvaleneTimeline': schvaleneTimeline,
         'zamitnuteTimeline': zamitnuteTimeline,
         'klienti': klienti,
+        'klientu_celkem': len(klienti),
+        'schvaleno_celkem': sum(schvalenost),
+        'zamitnuto_celkem': sum(zamitnutost),
     }
     return render(request, 'klienti/reporting.html', context)
-
-class ReportingFilterForm(forms.Form):
-    datum_od = forms.DateField(label="Od", required=False, widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
-    datum_do = forms.DateField(label="Do", required=False, widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
 
 @login_required
 def reporting_export_pdf(request):
@@ -936,19 +905,23 @@ def reporting_export_pdf(request):
     months = []
     schvaleneTimeline = []
     zamitnuteTimeline = []
-    if klienti.exists():
-        min_date = klienti.order_by('datum').first().datum
-        max_date = klienti.order_by('-datum').first().datum
-        d = min_date.replace(day=1)
-        while d <= max_date:
-            months.append(d.strftime('%Y-%m'))
-            if d.month == 12:
-                d = d.replace(year=d.year+1, month=1)
-            else:
-                d = d.replace(month=d.month+1)
-        for m in months:
-            schvaleneTimeline.append(len([k for k in schvalene if k.datum and k.datum.strftime('%Y-%m') == m]))
-            zamitnuteTimeline.append(len([k for k in zamitnute if k.datum and k.datum.strftime('%Y-%m') == m]))
+    # Vždy zobraz posledních 12 měsíců (i když nejsou data)
+    today = timezone.now().date()
+    for i in range(11, -1, -1):
+        m = (today.replace(day=1) - timedelta(days=30*i)).replace(day=1)
+        months.append(m.strftime('%Y-%m'))
+    months = sorted(list(set(months)))
+    for m in months:
+        schv = 0
+        zam = 0
+        for k in klienti:
+            if k.datum.strftime('%Y-%m') == m:
+                if not (k.duvod_zamitnuti and str(k.duvod_zamitnuti).strip()):
+                    schv += 1
+                else:
+                    zam += 1
+        schvaleneTimeline.append(schv)
+        zamitnuteTimeline.append(zam)
     # --- generování grafů ---
     tempfiles = []
     # Bar chart úspěšnost podle banky
@@ -973,7 +946,7 @@ def reporting_export_pdf(request):
         ax2.plot(months, schvaleneTimeline, marker='o', label='Schváleno', color='#198754')
         ax2.plot(months, zamitnuteTimeline, marker='o', label='Zamítnuto', color='#dc3545')
         ax2.set_ylabel('Počet případů')
-        ax2.set_title('Trendy schválených a zamítnutých hypoték')
+        ax2.set_title('Trendy schválených a zamitnutých hypoték')
         ax2.legend()
         fig2.tight_layout()
         f2 = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
@@ -997,18 +970,15 @@ def reporting_export_pdf(request):
     p.drawString(270, y, "Zamítnuto")
     p.drawString(370, y, "Průměrná doba schválení (dny)")
     y -= 20
-    for i, banka in enumerate(banky_labels):
-        p.drawString(40, y, str(banka))
+    for i in range(len(banky_labels)):
+        p.drawString(40, y, banka)
         p.drawString(180, y, str(schvalenost[i]))
         p.drawString(270, y, str(zamitnutost[i]))
-        p.drawString(370, y, str(prumery[i]) if prumery[i] is not None else '-')
-        y -= 18
-        if y < 60:
-            p.showPage()
-            y = 800
+        p.drawString(370, y, str(prumery[i]) if prumery[i] is not None else "-")
+        y += 15
+    p.showPage()
     p.save()
     buffer.seek(0)
-    # Smazat temp soubory
-    for tf in tempfiles:
-        tf.close()
-    return HttpResponse(buffer, content_type='application/pdf')
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="reporting.pdf"'
+    return response

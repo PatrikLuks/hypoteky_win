@@ -2,32 +2,7 @@
 {% load klient_filters %}
 {% block content %}
 <div class="container-fluid py-4 px-2 px-md-4" role="main" aria-label="Reporting a statistika hypoték">
-  <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">
-    <h1 class="mb-0 fw-bold text-primary"><i class="fa fa-chart-bar me-2"></i>Reporting & Statistika hypoték</h1>
-    <a href="{% url 'reporting_export_pdf' %}" class="btn btn-danger btn-lg shadow-sm"><i class="fa fa-file-pdf me-1"></i> Export do PDF</a>
-  </div>
-  <form method="get" class="row g-3 mb-4 bg-light rounded-3 p-3 shadow-sm align-items-end" aria-label="Filtr reportingu">
-    <div class="col-12 col-md-3">
-      {{ form.datum_od.label_tag }}
-      {{ form.datum_od }}
-      {% if form.datum_od.errors %}
-        <div class="text-danger small">{{ form.datum_od.errors.0 }}</div>
-      {% endif %}
-    </div>
-    <div class="col-12 col-md-3">
-      {{ form.datum_do.label_tag }}
-      {{ form.datum_do }}
-      {% if form.datum_do.errors %}
-        <div class="text-danger small">{{ form.datum_do.errors.0 }}</div>
-      {% endif %}
-    </div>
-    <div class="col-12 col-md-3">
-      <button type="submit" class="btn btn-primary btn-lg w-100"><i class="fa fa-filter me-1"></i> Filtrovat</button>
-    </div>
-    <div class="col-12 col-md-3 text-md-end text-center">
-      <span class="text-muted small">Zobrazené období: <b>{{ form.cleaned_data.datum_od|default:'–' }}</b> až <b>{{ form.cleaned_data.datum_do|default:'–' }}</b></span>
-    </div>
-  </form>
+  <!-- Statistiky v luxusních boxech -->
   <div class="row g-4 mb-4">
     <div class="col-12 col-lg-4">
       <div class="card border-0 shadow-sm h-100 bg-gradient bg-primary text-white">
@@ -54,6 +29,7 @@
       </div>
     </div>
   </div>
+  <!-- Grafy -->
   <div class="row g-4 mb-4">
     <div class="col-lg-6">
       <div class="card shadow-sm border-0 h-100">
@@ -87,37 +63,50 @@
       </div>
     </div>
   </div>
+  <!-- Detailní tabulka klientů: přehled všech klientů v období -->
   <div class="row mb-4">
     <div class="col-12">
       <div class="card shadow-sm border-0">
         <div class="card-body">
-          <h5 class="card-title mb-3"><i class="fa fa-th text-warning"></i> Heatmapa průměrné doby schválení podle banky a měsíce</h5>
-          <div class="table-responsive" aria-label="Heatmapa průměrné doby schválení">
-            <table class="table table-bordered text-center align-middle" style="min-width: 600px;">
+          <h5 class="card-title mb-3"><i class="fa fa-address-book text-info"></i> Detailní tabulka klientů</h5>
+          <!-- Tlačítko pro export do CSV -->
+          <button id="exportKlientiCsv" class="btn btn-outline-primary mb-3" aria-label="Exportovat tabulku klientů do CSV"><i class="fa fa-file-csv me-1"></i> Export do CSV</button>
+          <!-- Responzivní tabulka klientů -->
+          <div class="table-responsive" aria-label="Tabulka klientů">
+            <table id="klientiTable" class="table table-striped table-hover align-middle small">
               <thead class="table-light">
                 <tr>
-                  <th>Banka / Měsíc</th>
-                  {% for m in heatmap_months %}
-                  <th>{{ m }}</th>
-                  {% endfor %}
+                  <th>Jméno</th>
+                  <th>Datum</th>
+                  <th>Částka (Kč)</th>
+                  <th>Banka</th>
+                  <th>Stav</th>
+                  <th>Důvod zamítnutí</th>
                 </tr>
               </thead>
               <tbody>
-                {% for banka in heatmap_banks %}
-                  {% with row=heatmap_data|index:forloop.counter0 %}
-                  <tr>
-                    <th class="text-start">{{ banka }}</th>
-                    {% for val in row %}
-                    <td style="background: {% if val %}rgba(220,53,69,{{ val|floatformat:0|divisibleby:30|yesno:'0.15,0.7' }}); color: {% if val and val > 20 %}#fff{% else %}#222{% endif %}{% else %}#f8f9fa{% endif %}; min-width: 60px; transition: background 0.2s; cursor: pointer;" title="{{ banka }} / {{ forloop.parentloop.counter0|add:1 }}. měsíc: {% if val %}{{ val }} dní{% else %}–{% endif %}">
-                      {% if val %}{{ val }}{% else %}-{% endif %}
-                    </td>
-                    {% endfor %}
-                  </tr>
-                  {% endwith %}
+                {% for klient in klienti %}
+                <tr>
+                  <td>{{ klient.jmeno }}</td>
+                  <td>{{ klient.datum|date:'d.m.Y' }}</td>
+                  <td>{% if klient.cena %}{{ klient.cena|floatformat:0 }}{% else %}-{% endif %}</td>
+                  <td>{{ klient.vyber_banky|default:'-' }}</td>
+                  <td>
+                    {% if klient.duvod_zamitnuti %}
+                      <span class="badge bg-danger bg-opacity-75">Zamítnuto</span>
+                    {% else %}
+                      <span class="badge bg-success bg-opacity-75">Schváleno</span>
+                    {% endif %}
+                  </td>
+                  <td>{% if klient.duvod_zamitnuti %}<span class="text-warning fw-semibold">{{ klient.duvod_zamitnuti }}</span>{% else %}-{% endif %}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center text-muted">Žádní klienti v tomto období.</td></tr>
                 {% endfor %}
               </tbody>
             </table>
           </div>
+          <!-- Komentář pro studenta: Tabulka je optimalizovaná pro přístupnost, export a výkon. Pokud je klientů hodně, doporučuji stránkování nebo lazy loading. -->
         </div>
       </div>
     </div>
@@ -130,8 +119,27 @@ const schvalenost = {{ schvalenost|safe }};
 const zamitnutost = {{ zamitnutost|safe }};
 const prumery = {{ prumery|safe }};
 const months = {{ months|safe }};
-const schvaleneTimeline = {{ schvalene_timeline|safe }};
-const zamitnuteTimeline = {{ zamitnute_timeline|safe }};
+const schvaleneTimeline = {{ schvaleneTimeline|safe }};
+const zamitnuteTimeline = {{ zamitnuteTimeline|safe }};
+// Luxusní paleta pro banky (bude cyklovat podle počtu bank)
+const bankyLuxusPaleta = [
+  '#0A192F', // tmavě modrá
+  '#FFD700', // zlatá
+  '#F7E7CE', // champagne
+  '#23272B', // tmavě šedá
+  '#50C878', // smaragdová
+  '#0F52BA', // safírová
+  '#C0C0C0', // stříbrná
+  '#800020', // vínová
+  '#014421', // tmavě zelená
+  '#4B006E', // tmavě fialová
+  '#E5E4E2', // platinová
+  '#B76E79', // růžové zlato
+  '#CD7F32', // bronzová
+  '#B2FFFF', // ledově modrá
+  '#B2BABB'  // světle šedá
+];
+const barvyBanky = Array.from({length: bankyLabels.length}, (_, i) => bankyLuxusPaleta[i % bankyLuxusPaleta.length]);
 // Bar chart - úspěšnost podle banky
 const ctxBanky = document.getElementById('bankyBarChart').getContext('2d');
 new Chart(ctxBanky, {
@@ -139,8 +147,16 @@ new Chart(ctxBanky, {
   data: {
     labels: bankyLabels,
     datasets: [
-      {label: 'Schváleno', data: schvalenost, backgroundColor: '#198754'},
-      {label: 'Zamítnuto', data: zamitnutost, backgroundColor: '#dc3545'}
+      {
+        label: 'Schváleno',
+        data: schvalenost,
+        backgroundColor: barvyBanky
+      },
+      {
+        label: 'Zamítnuto',
+        data: zamitnutost,
+        backgroundColor: '#dc3545'
+      }
     ]
   },
   options: {
@@ -167,6 +183,29 @@ new Chart(ctxTrendy, {
     responsive: true,
     animation: {duration: 900}
   }
+});
+// Export tabulky klientů do CSV (čistý JS, optimalizováno pro výkon)
+document.getElementById('exportKlientiCsv').addEventListener('click', function() {
+  const table = document.getElementById('klientiTable');
+  let csv = [];
+  for (let row of table.rows) {
+    let rowData = [];
+    for (let cell of row.cells) {
+      // Ošetření čárek a uvozovek v datech
+      let text = cell.innerText.replace(/"/g, '""');
+      rowData.push('"' + text + '"');
+    }
+    csv.push(rowData.join(','));
+  }
+  const blob = new Blob([csv.join('\n')], {type: 'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'klienti_export.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 });
 </script>
 {% endblock %}

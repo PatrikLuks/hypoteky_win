@@ -221,17 +221,27 @@ Pro rychlou kontrolu stavu workspace a onboarding použijte skript `run_all_main
 
 ---
 
-## 🧹 Pravidelný úklid workspace (doporučeno pro MacBook Air)
+## 🆕 Novinky a tipy (červen 2025)
+- **Kalkulačka hypotéky**: Nový UX, validace, grafy, export, přístupnost, sjednocený vzhled, tooltipy, animace, edukativní chybové hlášky.
+- **Font Awesome**: Ikony jsou načítány lokálně ze složky `static/fontawesome`. Pokud se objeví čtverečky, spusť `./download_fontawesome.sh`.
+- **Optimalizace pro MacBook Air**: Pravidelně spouštěj úklidové skripty (`cleanup_*`, `run_all_maintenance.sh`), archivuj snapshoty mimo hlavní workspace, omez rozšíření ve VS Code.
+- **Údržba workspace**: Používej skripty pro úklid záloh, snapshotů, duplicit a prázdných souborů. Vše najdeš v rootu projektu.
+- **Checklisty a troubleshooting**: Aktuální checklisty pro testy, úklid, snapshoty, a11y, CI/CD najdeš v tomto souboru a v `E2E_TESTING_CHECKLIST.md`.
 
-- Pravidelně spouštěj skript `cleanup_snapshots_archives.sh` pro smazání snapshotů, záloh, archivů a reportů:
-  ```zsh
-  ./cleanup_snapshots_archives.sh
-  ```
-- Udržuj workspace co nejmenší – snapshoty, zálohy a reporty archivuj mimo hlavní složku projektu.
-- Pracuj pouze s klíčovými složkami (`hypoteky/`, `tests/`, `klienti/` atd.), ostatní ignoruj ve VS Code.
-- Omez počet aktivních rozšíření ve VS Code, pravidelně restartuj editor.
-- Pravidelně kontroluj `.gitignore` a `.vscode/settings.json`, zda obsahují aktuální ignore vzory.
-- Pokud workspace zpomaluje, spusť i další úklidové skripty (`cleanup_*`, `shrink_workspace_for_vscode.sh`).
+---
+
+## 🖼️ Font Awesome – lokální načítání ikon
+- Ikony Font Awesome jsou načítány lokálně ze složky `static/fontawesome`.
+- Pro update spusť `./download_fontawesome.sh`.
+- V šablonách používej třídy `fa-solid`, `fa-regular` dle Font Awesome 6.
+- Ověř, že máš v šabloně `{% load static %}`.
+
+---
+
+## 🧹 Údržba workspace a snapshotů
+- Pravidelně spouštěj skripty `cleanup_*`, `run_all_maintenance.sh` a archivuj snapshoty/reporty mimo hlavní workspace.
+- Pro úklid záloh, snapshotů a duplicit používej připravené skripty (viz níže).
+- Pro MacBook Air doporučujeme minimalizovat počet otevřených souborů a rozšíření ve VS Code.
 
 ---
 

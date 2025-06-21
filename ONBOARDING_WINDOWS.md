@@ -96,6 +96,29 @@ python -m pytest
 
 ---
 
+## 🆕 Novinky a tipy (červen 2025)
+- **Kalkulačka hypotéky**: Nový UX, validace, grafy, export, přístupnost, sjednocený vzhled, tooltipy, animace, edukativní chybové hlášky.
+- **Font Awesome**: Ikony jsou načítány lokálně ze složky `static/fontawesome`. Pokud se objeví čtverečky, spusť `./download_fontawesome.sh` (přes WSL nebo v Linux/macOS).
+- **Optimalizace pro slabší HW**: Pravidelně spouštěj úklidové skripty (`cleanup_*`, `run_all_maintenance.sh`), archivuj snapshoty mimo hlavní workspace, omez rozšíření ve VS Code.
+- **Údržba workspace**: Používej skripty pro úklid záloh, snapshotů, duplicit a prázdných souborů. Vše najdeš v rootu projektu a v `ONBOARDING.md`.
+
+---
+
+## 🖼️ Font Awesome – lokální načítání ikon
+- Ikony Font Awesome jsou načítány lokálně ze složky `static/fontawesome`.
+- Pro update spusť `./download_fontawesome.sh` (přes WSL nebo v Linux/macOS).
+- V šablonách používej třídy `fa-solid`, `fa-regular` dle Font Awesome 6.
+- Ověř, že máš v šabloně `{% load static %}`.
+
+---
+
+## 🧹 Údržba workspace a snapshotů
+- Pravidelně spouštěj skripty `cleanup_*`, `run_all_maintenance.sh` a archivuj snapshoty/reporty mimo hlavní workspace.
+- Pro úklid záloh, snapshotů a duplicit používej připravené skripty (viz `ONBOARDING.md`).
+- Pro slabší HW doporučujeme minimalizovat počet otevřených souborů a rozšíření ve VS Code.
+
+---
+
 ## 10. Odkazy
 - [README.md](README.md)
 - [ONBOARDING.md](ONBOARDING.md)

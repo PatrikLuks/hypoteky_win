@@ -193,68 +193,11 @@
   {% endif %}
   <form method="get" class="row g-2 mb-3 align-items-end">
     <div class="col-md-4">
-      <label for="q" class="form-label">Hledat klienta</label>
+      <label for="q" class="form-label">Filtrovat klienty podle jména</label>
       <input type="text" id="q" name="q" value="{{ request.GET.q|default:'' }}" class="form-control" placeholder="Jméno klienta...">
-    </div>
-    <div class="col-md-4">
-      <label for="stav" class="form-label">Stav workflow</label>
-      <select id="stav" name="stav" class="form-select">
-        <option value="">Všechny stavy</option>
-        <option value="1" {% if request.GET.stav == '1' %}selected{% endif %}>Nový klient</option>
-        <option value="2" {% if request.GET.stav == '2' %}selected{% endif %}>Co chce klient financovat</option>
-        <option value="3" {% if request.GET.stav == '3' %}selected{% endif %}>Návrh financování</option>
-        <option value="4" {% if request.GET.stav == '4' %}selected{% endif %}>Výběr banky</option>
-        <option value="5" {% if request.GET.stav == '5' %}selected{% endif %}>Příprava žádosti</option>
-        <option value="6" {% if request.GET.stav == '6' %}selected{% endif %}>Kompletace podkladů</option>
-        <option value="7" {% if request.GET.stav == '7' %}selected{% endif %}>Podání žádosti</option>
-        <option value="8" {% if request.GET.stav == '8' %}selected{% endif %}>Odhad</option>
-        <option value="9" {% if request.GET.stav == '9' %}selected{% endif %}>Schvalování</option>
-        <option value="10" {% if request.GET.stav == '10' %}selected{% endif %}>Příprava úvěrové dokumentace</option>
-        <option value="11" {% if request.GET.stav == '11' %}selected{% endif %}>Podpis úvěrové dokumentace</option>
-        <option value="12" {% if request.GET.stav == '12' %}selected{% endif %}>Příprava čerpání</option>
-        <option value="13" {% if request.GET.stav == '13' %}selected{% endif %}>Čerpání</option>
-        <option value="14" {% if request.GET.stav == '14' %}selected{% endif %}>Zahájení splácení</option>
-        <option value="15" {% if request.GET.stav == '15' %}selected{% endif %}>Podmínky pro splacení</option>
-      </select>
     </div>
     <div class="col-md-2">
       <button type="submit" class="btn btn-primary w-100"><i class="fa fa-search"></i> Filtrovat</button>
-    </div>
-    <div class="col-md-2">
-      <a href="?" class="btn btn-outline-secondary w-100"><i class="fa fa-times"></i> Zrušit filtr</a>
-    </div>
-    <div class="col-md-2">
-      <label for="banka" class="form-label">Banka</label>
-      <select id="banka" name="banka" class="form-select">
-        <option value="">Všechny banky</option>
-        {% for banka in banky_vyber %}
-          <option value="{{ banka }}" {% if request.GET.banka == banka %}selected{% endif %}>{{ banka }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="col-md-2">
-      <label for="castka_od" class="form-label">Částka od</label>
-      <input type="number" id="castka_od" name="castka_od" value="{{ request.GET.castka_od|default:'' }}" class="form-control" placeholder="od">
-    </div>
-    <div class="col-md-2">
-      <label for="castka_do" class="form-label">Částka do</label>
-      <input type="number" id="castka_do" name="castka_do" value="{{ request.GET.castka_do|default:'' }}" class="form-control" placeholder="do">
-    </div>
-    <div class="col-md-2">
-      <label for="datum_od" class="form-label">Datum od</label>
-      <input type="date" id="datum_od" name="datum_od" value="{{ request.GET.datum_od|default:'' }}" class="form-control">
-    </div>
-    <div class="col-md-2">
-      <label for="datum_do" class="form-label">Datum do</label>
-      <input type="date" id="datum_do" name="datum_do" value="{{ request.GET.datum_do|default:'' }}" class="form-control">
-    </div>
-    <div class="col-md-2">
-      <label for="zamitnuti" class="form-label">Zamítnutí</label>
-      <select id="zamitnuti" name="zamitnuti" class="form-select">
-        <option value="">Vše</option>
-        <option value="ano" {% if request.GET.zamitnuti == 'ano' %}selected{% endif %}>Pouze zamítnuté</option>
-        <option value="ne" {% if request.GET.zamitnuti == 'ne' %}selected{% endif %}>Pouze schválené</option>
-      </select>
     </div>
   </form>
   <div class="table-responsive">
@@ -426,86 +369,92 @@
   </div>
 {% endif %}
 </div>
+<div class="alert alert-warning">DEBUG: klienti count = {{ klienti|length }}<br>Seznam: {% for k in klienti %}{{ k.jmeno }}, {% endfor %}</div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{{ workflow_counts|json_script:"workflowCountsData" }}
+{{ workflow_sums|json_script:"workflowSumsData" }}
+{{ months|json_script:"monthsData" }}
+{{ klientiTimeline|json_script:"klientiTimelineData" }}
+{{ objemTimeline|json_script:"objemTimelineData" }}
 <script>
-const workflowLabels = [
-  'Jméno klienta', 'Co chce klient financovat', 'Návrh financování', 'Výběr banky', 'Příprava žádosti',
-  'Kompletace podkladů', 'Podání žádosti', 'Odhad', 'Schvalování', 'Příprava úvěrové dokumentace',
-  'Podpis úvěrové dokumentace', 'Příprava čerpání', 'Čerpání', 'Zahájení splácení', 'Podmínky pro splacení', 'Hotovo'
-];
-const workflowCounts = {{ workflow_counts|safe }};
-const workflowSums = {{ workflow_sums|safe }};
-const months = {{ months|safe }};
-const klientiTimeline = {{ klientiTimeline|safe }};
-const objemTimeline = {{ objemTimeline|safe }};
-
-// Pie chart - workflow stav
-const ctxPie = document.getElementById('workflowPieChart').getContext('2d');
-new Chart(ctxPie, {
-  type: 'pie',
-  data: {
-    labels: workflowLabels.slice(1),
-    datasets: [{
-      data: workflowCounts,
-      backgroundColor: [
-        '#0d6efd','#6c757d','#198754','#ffc107','#dc3545','#20c997','#6610f2','#fd7e14','#6f42c1','#0dcaf0','#adb5bd','#f8d7da','#b6d4fe','#d1e7dd','#ffd700'
-      ],
-    }]
-  },
-  options: {plugins: {legend: {position: 'bottom'}}}
-});
-// Bar chart - objem hypoték podle stavu
-const ctxBar = document.getElementById('workflowBarChart').getContext('2d');
-new Chart(ctxBar, {
-  type: 'bar',
-  data: {
-    labels: workflowLabels.slice(1),
-    datasets: [{
-      label: 'Objem hypoték (Kč)',
-      data: workflowSums,
-      backgroundColor: '#ffd700',
-      borderColor: '#ffd700',
-      borderWidth: 1
-    }]
-  },
-  options: {
-    plugins: {legend: {display: false}},
-    scales: {y: {beginAtZero: true}}
+document.addEventListener('DOMContentLoaded', function() {
+  const workflowCounts = JSON.parse(document.getElementById('workflowCountsData').textContent);
+  const workflowSums = JSON.parse(document.getElementById('workflowSumsData').textContent);
+  const months = JSON.parse(document.getElementById('monthsData').textContent);
+  const klientiTimeline = JSON.parse(document.getElementById('klientiTimelineData').textContent);
+  const objemTimeline = JSON.parse(document.getElementById('objemTimelineData').textContent);
+  const ctxPie = document.getElementById('workflowPieChart');
+  const ctxBar = document.getElementById('workflowBarChart');
+  const ctxLine = document.getElementById('klientiLineChart');
+  const ctxObjem = document.getElementById('objemLineChart');
+  if (!ctxPie) { console.warn('Canvas workflowPieChart nenalezen!'); }
+  if (!ctxBar) { console.warn('Canvas workflowBarChart nenalezen!'); }
+  if (!ctxLine) { console.warn('Canvas klientiLineChart nenalezen!'); }
+  if (!ctxObjem) { console.warn('Canvas objemLineChart nenalezen!'); }
+  // Kontrola dat
+  if (typeof workflowCounts === 'undefined') { console.warn('workflowCounts není definováno!'); }
+  if (typeof workflowSums === 'undefined' ) { console.warn('workflowSums není definováno!'); }
+  if (typeof months === 'undefined' ) { console.warn('months není definováno!'); }
+  if (typeof klientiTimeline === 'undefined' ) { console.warn('klientiTimeline není definováno!'); }
+  if (typeof objemTimeline === 'undefined' ) { console.warn('objemTimeline není definováno!'); }
+  // Pokud vše existuje, vykresli grafy
+  if (ctxPie && ctxBar && ctxLine && ctxObjem && typeof workflowCounts !== 'undefined' && typeof workflowSums !== 'undefined' && typeof months !== 'undefined' && typeof klientiTimeline !== 'undefined' && typeof objemTimeline !== 'undefined') {
+    const workflowLabels = [
+      'Jméno klienta', 'Co chce klient financovat', 'Návrh financování', 'Výběr banky', 'Příprava žádosti',
+      'Kompletace podkladů', 'Podání žádosti', 'Odhad', 'Schvalování', 'Příprava úvěrové dokumentace',
+      'Podpis úvěrové dokumentace', 'Příprava čerpání', 'Čerpání', 'Zahájení splácení', 'Podmínky pro splacení', 'Hotovo'
+    ];
+    const pieColors = [
+      '#0A192F', // tmavě modrá (luxusní základ)
+      '#FFD700', // zlatá (jasná, kontrastní)
+      '#BFA76F', // tmavší champagne (lepší kontrast)
+      '#23272B', // tmavě šedá
+      '#E5E4E2', // světle šedá místo bílé (lepší kontrast)
+      '#50C878', // smaragdová (jasná)
+      '#0F52BA', // safírová (sytá)
+      '#C0C0C0', // stříbrná
+      '#800020', // vínová (tmavá)
+      '#2E8B57', // tmavě zelená (lepší kontrast)
+      '#6C3483', // tmavě fialová (sytější)
+      '#B2BABB', // platinová (světle šedá, kontrastní)
+      '#B76E79', // růžové zlato
+      '#CD7F32', // bronzová
+      '#5DADE2'  // ledově modrá (jasnější)
+    ];
+    const barColors = pieColors;
+    new Chart(ctxPie, {
+      type: 'pie',
+      data: {
+        labels: workflowLabels.slice(1),
+        datasets: [{ data: workflowCounts, backgroundColor: pieColors }]
+      },
+      options: {plugins: {legend: {position: 'bottom'}}}
+    });
+    new Chart(ctxBar, {
+      type: 'bar',
+      data: {
+        labels: workflowLabels.slice(1),
+        datasets: [{ label: 'Objem hypoték (Kč)', data: workflowSums, backgroundColor: '#FFD700', borderColor: '#FFD700', borderWidth: 1 }]
+      },
+      options: {plugins: {legend: {display: false}}, scales: {y: {beginAtZero: true}}}
+    });
+    new Chart(ctxLine, {
+      type: 'line',
+      data: {
+        labels: months,
+        datasets: [{ label: 'Počet klientů', data: klientiTimeline, borderColor: '#FFD700', backgroundColor: 'rgba(255,215,0,0.15)', tension: 0.3, fill: true }]
+      },
+      options: {plugins: {legend: {display: false}}}
+    });
+    new Chart(ctxObjem, {
+      type: 'line',
+      data: {
+        labels: months,
+        datasets: [{ label: 'Objem hypoték (Kč)', data: objemTimeline, borderColor: '#FFD700', backgroundColor: 'rgba(255,215,0,0.15)', tension: 0.3, fill: true }]
+      },
+      options: {plugins: {legend: {display: false}}}
+    });
   }
-});
-// Line chart - vývoj počtu klientů v čase
-const ctxLine = document.getElementById('klientiLineChart').getContext('2d');
-new Chart(ctxLine, {
-  type: 'line',
-  data: {
-    labels: months,
-    datasets: [{
-      label: 'Počet klientů',
-      data: klientiTimeline,
-      borderColor: '#ffd700',
-      backgroundColor: 'rgba(255,215,0,0.2)',
-      tension: 0.3,
-      fill: true
-    }]
-  },
-  options: {plugins: {legend: {display: false}}}
-});
-// Line chart - vývoj objemu hypoték v čase
-const ctxObjem = document.getElementById('objemLineChart').getContext('2d');
-new Chart(ctxObjem, {
-  type: 'line',
-  data: {
-    labels: months,
-    datasets: [{
-      label: 'Objem hypoték (Kč)',
-      data: objemTimeline,
-      borderColor: '#ffd700',
-      backgroundColor: 'rgba(255,215,0,0.2)',
-      tension: 0.3,
-      fill: true
-    }]
-  },
-  options: {plugins: {legend: {display: false}}}
 });
 </script>
 {% endblock %}

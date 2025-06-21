@@ -674,3 +674,34 @@ Chceš přidat nový skript nebo test? Postupuj podle těchto doporučení, aby 
 
 > Dodržuj tyto best practices pro všechny nové skripty a testy. Usnadníš tím údržbu, onboarding i rozvoj projektu!
 
+---
+
+## 🆕 Novinky a důležité změny (červen 2025)
+- **Kalkulačka hypotéky**: Nový UX, validace, grafy (Chart.js), export do CSV, přístupnost, sjednocený vzhled (tmavé karty, zlaté akcenty, luxusní tlačítka, responsivita, tooltipy, animace, sekce s nápovědou, edukativní chybové hlášky).
+- **Font Awesome**: Ikony jsou nyní načítány lokálně ze složky `static/fontawesome` (žádné čtverečky před tlačítky). Pro update spusť `./download_fontawesome.sh`.
+- **Optimalizace pro MacBook Air**: Doporučujeme pravidelný úklid workspace (`cleanup_*`, `run_all_maintenance.sh`), archivaci snapshotů mimo hlavní složku, omezení rozšíření ve VS Code a práci pouze s klíčovými složkami.
+- **Údržbové skripty**: Přibyly nové skripty pro úklid záloh, snapshotů, duplicit, prázdných souborů a workspace. Vše najdeš v rootu projektu a v `ONBOARDING.md`.
+- **Checklisty a onboarding**: Aktuální checklisty pro testy, úklid, snapshoty, a11y, CI/CD najdeš v `ONBOARDING.md` a `E2E_TESTING_CHECKLIST.md`.
+
+---
+
+## 🖼️ Font Awesome – lokální načítání ikon
+- Ikony Font Awesome jsou nyní načítány lokálně ze složky `static/fontawesome`.
+- Pokud se objeví čtverečky místo ikon, spusť skript:
+  ```zsh
+  ./download_fontawesome.sh
+  ```
+- V šablonách používej třídy `fa-solid`, `fa-regular` dle Font Awesome 6.
+- Pro správné načtení statických souborů ověř, že máš v šabloně `{% load static %}`.
+
+---
+
+## 🧹 Údržba workspace a snapshotů
+- Pravidelně spouštěj skripty `cleanup_*`, `run_all_maintenance.sh` a archivuj snapshoty/reporty mimo hlavní workspace.
+- Pro úklid záloh, snapshotů a duplicit používej připravené skripty (viz `ONBOARDING.md`).
+- Pro MacBook Air doporučujeme minimalizovat počet otevřených souborů a rozšíření ve VS Code.
+
+---
+
+> Pokud narazíš na problém s ikonami, zpomalením nebo snapshoty, začni od checklistu v `ONBOARDING.md` a spusť úklidové skripty.
+

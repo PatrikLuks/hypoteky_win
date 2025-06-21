@@ -1,0 +1,1 @@
+Krok 5: Smazat soubory kalkulacka_snapshot.html, kalkulacka_snapshot.html.bak_finalclean, kalkulacka_snapshot.html.bak_fix, kalkulacka_snapshot.html.bak_aggressive, klienti/templates/klienti/kalkulacka.html.

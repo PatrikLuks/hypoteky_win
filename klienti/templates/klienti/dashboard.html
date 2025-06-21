@@ -299,9 +299,23 @@ if (bankyLabels.length > 0) {
       labels: bankyLabels,
       datasets: [{
         data: bankyCounts,
-        backgroundColor: [
-          '#0d6efd','#6c757d','#198754','#ffc107','#dc3545','#20c997','#6610f2','#fd7e14','#6f42c1','#0dcaf0','#adb5bd','#f8d7da','#b6d4fe','#d1e7dd','#198754'
-        ],
+        backgroundColor: Array.from({length: bankyLabels.length}, (_, i) => [
+          '#0A192F', // tmavě modrá
+          '#FFD700', // zlatá
+          '#F7E7CE', // champagne
+          '#23272B', // tmavě šedá
+          '#50C878', // smaragdová
+          '#0F52BA', // safírová
+          '#C0C0C0', // stříbrná
+          '#800020', // vínová
+          '#014421', // tmavě zelená
+          '#4B006E', // tmavě fialová
+          '#E5E4E2', // platinová
+          '#B76E79', // růžové zlato
+          '#CD7F32', // bronzová
+          '#B2FFFF', // ledově modrá
+          '#B2BABB'  // světle šedá
+        ][i % 15])
       }]
     },
     options: {
