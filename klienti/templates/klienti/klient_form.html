@@ -18,72 +18,78 @@
   </div>
 {% endif %}
 
+<style>
+  .min-width-250 { min-width: 250px; }
+</style>
+
 <form method="post" class="mb-4">
   {% csrf_token %}
-  <div class="row g-3">
-    <div class="col-md-4">
+  <!-- První skupina polí -->
+  <div class="d-flex flex-wrap gap-3 mb-3">
+    <div class="flex-fill min-width-250">
       <label for="id_jmeno" class="form-label">Jméno klienta</label>
       {{ form.jmeno }}
     </div>
-    <div class="col-md-4">
+    <div class="flex-fill min-width-250">
       <label for="id_datum" class="form-label">Datum</label>
       {{ form.datum }}
     </div>
   </div>
   <hr>
-  <div class="row g-3">
-    <div class="col-md-4">
+  <!-- Druhá skupina polí -->
+  <div class="d-flex flex-wrap gap-3 mb-3">
+    <div class="flex-fill min-width-250">
       <label for="id_co_financuje" class="form-label">Co chce klient financovat</label>
       {{ form.co_financuje }}
     </div>
-    <div class="col-md-4">
+    <div class="flex-fill min-width-250">
       <label for="id_cena" class="form-label">Cena</label>
       {{ form.cena }}
     </div>
-    <div class="col-md-4">
+    <div class="flex-fill min-width-250">
       <label for="id_deadline_co_financuje" class="form-label">Deadline</label>
       {{ form.deadline_co_financuje }}
     </div>
-    <div class="col-md-4">
+    <div class="flex-fill min-width-250">
       <label for="id_splneno_co_financuje" class="form-label">Datum splnění</label>
       {{ form.splneno_co_financuje }}
     </div>
   </div>
   <hr>
   <div class="row g-3">
-    <div class="col-md-4">
+    <div class="col-12 col-md-4">
       <label for="id_navrh_financovani" class="form-label">Návrh financování</label>
       {{ form.navrh_financovani }}
     </div>
-    <div class="col-md-4">
+    <div class="col-12 col-md-4">
       <label for="id_navrh_financovani_procento" class="form-label">v&nbsp;% hypotečního úvěru</label>
       {{ form.navrh_financovani_procento }}
     </div>
-    <div class="col-md-4">
+    <div class="col-12 col-md-4">
       <span class="text-success">Hypoteční úvěr: <strong id="hypo-castka-vysledek">
         {% if form.instance.navrh_financovani_castka %}{{ form.instance.navrh_financovani_castka|floatformat:0 }} Kč{% endif %}
       </strong></span>
     </div>
-    <div class="col-md-4">
+    <div class="col-12 col-md-4">
       <label for="id_deadline_navrh_financovani" class="form-label">Deadline</label>
       {{ form.deadline_navrh_financovani }}
     </div>
-    <div class="col-md-4">
+    <div class="col-12 col-md-4">
       <label for="id_splneno_navrh_financovani" class="form-label">Datum splnění</label>
       {{ form.splneno_navrh_financovani }}
     </div>
   </div>
   <hr>
   <div class="row g-3">
-    <div class="col-md-4">
+    <div class="col-12 col-md-4">
       <label for="id_vyber_banky" class="form-label">Výběr banky</label>
       {{ form.vyber_banky }}
     </div>
-    <div class="col-md-4">
+    <div class="col-12 col-md-4">
       <label for="id_deadline_vyber_banky" class="form-label">Deadline</label>
       {{ form.deadline_vyber_banky }}
     </div>
-    <div class="col-md-4">
+    <div class="col-12 col-md-4">
       <label for="id_splneno_vyber_banky" class="form-label">Datum splnění</label>
       {{ form.splneno_vyber_banky }}
     </div>

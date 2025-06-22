@@ -49,20 +49,22 @@
                 </tr>
               </thead>
               <tbody>
-                {% for klient in klienti %}
+                {% for k in klienti %}
                 <tr>
-                  <td>{{ klient.jmeno }}</td>
-                  <td>{{ klient.datum|date:'d.m.Y' }}</td>
-                  <td>{% if klient.cena %}{{ klient.cena|floatformat:0 }}{% else %}-{% endif %}</td>
-                  <td>{{ klient.vyber_banky|default:'-' }}</td>
+                  <td>{{ k.obj.jmeno }}</td>
+                  <td>{{ k.obj.datum|date:'d.m.Y' }}</td>
+                  <td>{% if k.obj.cena %}{{ k.obj.cena|floatformat:0 }}{% else %}-{% endif %}</td>
+                  <td>{{ k.obj.vyber_banky|default:'-' }}</td>
                   <td>
-                    {% if klient.duvod_zamitnuti %}
+                    {% if k.stav == 'zamítnuto' %}
                       <span class="badge bg-danger bg-opacity-75">Zamítnuto</span>
-                    {% else %}
+                    {% elif k.stav == 'schvaleno' %}
                       <span class="badge bg-success bg-opacity-75">Schváleno</span>
+                    {% else %}
+                      <span class="badge bg-warning bg-opacity-75">Probíhá</span>
                     {% endif %}
                   </td>
-                  <td>{% if klient.duvod_zamitnuti %}<span class="text-warning fw-semibold">{{ klient.duvod_zamitnuti }}</span>{% else %}-{% endif %}</td>
+                  <td>{% if k.obj.duvod_zamitnuti %}<span class="text-warning fw-semibold">{{ k.obj.duvod_zamitnuti }}</span>{% else %}-{% endif %}</td>
                 </tr>
                 {% empty %}
                 <tr><td colspan="6" class="text-center text-muted">Žádní klienti v tomto období.</td></tr>

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="alert alert-warning mt-5 text-center">
+      <h2>Přístup zamítnut</h2>
+      <p>Pro zobrazení této stránky se musíte přihlásit.</p>
+      <a href="{% url 'login' %}" class="btn btn-primary mt-3">Přihlásit se</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

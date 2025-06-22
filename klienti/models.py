@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
@@ -20,9 +21,14 @@ if post_save:
             UserProfile.objects.create(user=instance)
         else:
             try:
-                # Nepřepisuj existující profil, pouze ulož
+                # Vždy aktualizuj roli podle skupin při každém uložení uživatele
                 if hasattr(instance, 'userprofile'):
-                    instance.userprofile.save()
+                    profile = instance.userprofile
+                    if hasattr(instance, 'groups') and instance.groups.filter(name='jplservis').exists():
+                        profile.role = 'poradce'
+                    else:
+                        profile.role = 'klient'
+                    profile.save()
                 else:
                     UserProfile.objects.create(user=instance)
             except Exception:

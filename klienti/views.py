@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Klient, Poznamka, Zmena, UserProfile
 from django import forms
@@ -416,17 +417,6 @@ def home(request):
     klientiTimeline = [klienti_timeline.get(m, 0) for m in months]
     objemTimeline = [objem_timeline.get(m, 0) for m in months]
     banky_vyber = list(Klient.objects.exclude(vyber_banky__isnull=True).exclude(vyber_banky='').values_list('vyber_banky', flat=True).distinct())
-    # DEBUG: Výpis počtu klientů po aplikaci filtrů
-    print(f"[DEBUG] Počet klientů po filtraci: {klienti.count()}")
-    # DEBUG: Výpis klientů po filtraci
-    print(f"[DEBUG] klienti.count = {klienti.count()}")
-    for k in klienti:
-        print(f"[DEBUG] klient: {k.jmeno}, co_financuje={k.co_financuje}, navrh_financovani={k.navrh_financovani}, vyber_banky={k.vyber_banky}")
-
-    print("[DEBUG] GET parametry:", dict(request.GET))
-    print(f"[DEBUG] Počet klientů před filtrací: {Klient.objects.count()}")
-    print(f"[DEBUG] Počet klientů po filtraci: {klienti.count()}")
-    print(f"[DEBUG] Jména klientů po filtraci: {[k.jmeno for k in klienti]}")
 
     return render(request, 'klienti/home.html', {
         'klienti': klienti_page,
@@ -546,9 +536,8 @@ def smazat_poznamku(request, klient_id, poznamka_id):
         return redirect('klient_detail', pk=klient_id)
     return redirect('klient_detail', pk=klient_id)
 
-@login_required
 def get_user_role(request):
-    if request.user.is_authenticated:
+    if hasattr(request, 'user') and request.user.is_authenticated:
         try:
             return request.user.userprofile.role
         except Exception:
@@ -602,25 +591,40 @@ def export_klient_ical(request, pk):
 @login_required
 def reporting(request):
     today = timezone.now().date()
-    one_year_ago = today.replace(year=today.year-1)
-    klienti = Klient.objects.filter(datum__gte=one_year_ago, datum__lte=today)
+    # ZOBRAZIT VŠECHNY KLIENTY BEZ FILTRU NA DATUM
+    klienti = Klient.objects.all()
+    # Připravíme pro každého klienta stav podle workflow a zamítnutí
+    klienti_with_status = []
+    for k in klienti:
+        if k.duvod_zamitnuti and str(k.duvod_zamitnuti).strip():
+            stav = 'zamítnuto'
+        else:
+            progress = k.get_workflow_progress
+            if all(krok['splneno'] for krok in progress['kroky']):
+                stav = 'schvaleno'
+            else:
+                stav = 'in_process'
+        klienti_with_status.append({
+            'obj': k,
+            'stav': stav,
+        })
     # Najdi všechny unikátní banky (bez prázdných a mezer)
     banky_labels = sorted(set(k.vyber_banky.strip() for k in klienti if k.vyber_banky and k.vyber_banky.strip()))
     schvalenost = []
     zamitnutost = []
     prumery = []
     for banka in banky_labels:
-        klienti_banka = [k for k in klienti if k.vyber_banky and k.vyber_banky.strip() == banka]
-        schv = [k for k in klienti_banka if not (k.duvod_zamitnuti and str(k.duvod_zamitnuti).strip())]
-        zam = [k for k in klienti_banka if (k.duvod_zamitnuti and str(k.duvod_zamitnuti).strip())]
+        klienti_banka = [k for k in klienti_with_status if k['obj'].vyber_banky and k['obj'].vyber_banky.strip() == banka]
+        schv = [k for k in klienti_banka if k['stav'] == 'schvaleno']
+        zam = [k for k in klienti_banka if k['stav'] == 'zamítnuto']
         schvalenost.append(len(schv))
         zamitnutost.append(len(zam))
         # Průměrná doba schválení (jen pro schválené)
         doby = []
         for k in schv:
             try:
-                schv_date = k.schvalovani
-                pod_date = k.podani_zadosti
+                schv_date = k['obj'].schvalovani
+                pod_date = k['obj'].podani_zadosti
                 if isinstance(schv_date, str):
                     schv_date = datetime.datetime.strptime(schv_date, "%Y-%m-%d").date()
                 if isinstance(pod_date, str):
@@ -642,11 +646,11 @@ def reporting(request):
     for m in months:
         schv = 0
         zam = 0
-        for k in klienti:
-            if k.datum.strftime('%Y-%m') == m:
-                if not (k.duvod_zamitnuti and str(k.duvod_zamitnuti).strip()):
+        for k in klienti_with_status:
+            if k['obj'].datum.strftime('%Y-%m') == m:
+                if k['stav'] == 'schvaleno':
                     schv += 1
-                else:
+                elif k['stav'] == 'zamítnuto':
                     zam += 1
         schvaleneTimeline.append(schv)
         zamitnuteTimeline.append(zam)
@@ -666,10 +670,10 @@ def reporting(request):
         'schvaleneTimeline': schvaleneTimeline,
         'zamitnuteTimeline': zamitnuteTimeline,
         'graf_trendy_prazdny': graf_trendy_prazdny,
-        'klienti': klienti,
-        'klientu_celkem': len(klienti),
-        'schvaleno_celkem': sum(schvalenost),
-        'zamitnuto_celkem': sum(zamitnutost),
+        'klienti': klienti_with_status,
+        'klientu_celkem': klientu_celkem,
+        'schvaleno_celkem': schvaleno_celkem,
+        'zamitnuto_celkem': zamitnuto_celkem,
     }
     return render(request, 'klienti/reporting.html', context)
 

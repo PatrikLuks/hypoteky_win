@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.test import TestCase
 from klienti.models import Klient, Poznamka, Zmena
 from django.conf import settings

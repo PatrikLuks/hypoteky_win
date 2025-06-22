@@ -1,16 +1,28 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-md-4">
-    <h2>Přihlášení</h2>
-    <form method="post" autocomplete="off">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit" class="btn btn-primary">Přihlásit se</button>
-    </form>
-    {% if form.errors %}
-      <div class="alert alert-danger mt-3">Chyba přihlášení – zkontrolujte jméno a heslo.</div>
-    {% endif %}
+  <div class="col-md-5 col-lg-4">
+    <div class="card shadow p-4 mt-5">
+      <h2 class="card-title text-center mb-4">Přihlášení</h2>
+      <form method="post" autocomplete="off">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="id_username" class="form-label">Uživatelské jméno</label>
+          <input type="text" name="username" autofocus required maxlength="150" class="form-control" id="id_username" style="background:#23272b;color:#ffd700;border:1px solid #ffd700;">
+        </div>
+        <div class="mb-3">
+          <label for="id_password" class="form-label">Heslo</label>
+          <input type="password" name="password" required class="form-control" id="id_password" style="background:#23272b;color:#ffd700;border:1px solid #ffd700;">
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Přihlásit se</button>
+      </form>
+      <div class="text-center mt-3">
+        <a href="{% url 'password_reset' %}" class="link-warning" style="color:#ffd700;">Zapomněli jste heslo?</a>
+      </div>
+      {% if form.errors %}
+        <div class="alert alert-danger mt-3">Chyba přihlášení – zkontrolujte jméno a heslo.</div>
+      {% endif %}
+    </div>
   </div>
 </div>
 {% endblock %}
