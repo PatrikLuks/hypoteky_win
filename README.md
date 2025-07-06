@@ -137,6 +137,23 @@ pytest tests_e2e_playwright.py
 
 ---
 
+## 🟢 Nejjednodušší start (pro vývojáře)
+
+Pro rychlé spuštění na macOS/Linux stačí jeden příkaz:
+
+```sh
+./start.sh
+```
+
+- Skript vytvoří venv, nainstaluje závislosti, provede migrace, nastaví SQLite (pokud není DB) a spustí server.
+- Pokud existuje `.env.example`, automaticky se zkopíruje do `.env`.
+- Pro testování není potřeba nastavovat MySQL – použije se SQLite.
+- Výchozí superuživatel: admin/admin (změň si ho!).
+
+Pro Windows spusť jednotlivé kroky ručně podle sekce „Rychlý start“ níže.
+
+---
+
 ## 🏦 Workflow hypotéky (kroky)
 1. Jméno klienta
 2. Co chce klient financovat
@@ -676,32 +693,41 @@ Chceš přidat nový skript nebo test? Postupuj podle těchto doporučení, aby 
 
 ---
 
-## 🆕 Novinky a důležité změny (červen 2025)
-- **Kalkulačka hypotéky**: Nový UX, validace, grafy (Chart.js), export do CSV, přístupnost, sjednocený vzhled (tmavé karty, zlaté akcenty, luxusní tlačítka, responsivita, tooltipy, animace, sekce s nápovědou, edukativní chybové hlášky).
-- **Font Awesome**: Ikony jsou nyní načítány lokálně ze složky `static/fontawesome` (žádné čtverečky před tlačítky). Pro update spusť `./download_fontawesome.sh`.
-- **Optimalizace pro MacBook Air**: Doporučujeme pravidelný úklid workspace (`cleanup_*`, `run_all_maintenance.sh`), archivaci snapshotů mimo hlavní složku, omezení rozšíření ve VS Code a práci pouze s klíčovými složkami.
-- **Údržbové skripty**: Přibyly nové skripty pro úklid záloh, snapshotů, duplicit, prázdných souborů a workspace. Vše najdeš v rootu projektu a v `ONBOARDING.md`.
-- **Checklisty a onboarding**: Aktuální checklisty pro testy, úklid, snapshoty, a11y, CI/CD najdeš v `ONBOARDING.md` a `E2E_TESTING_CHECKLIST.md`.
+## 🚩 Aktuální priority projektu (červen 2025)
+
+### 1. Nasazení (deployment)
+- Build frontendu (`npm run build`), `python manage.py collectstatic --noinput`.
+- Spusť všechny testy (`pytest`), zálohuj DB, ověř migrace (`python manage.py migrate --plan`).
+- Ověř proměnné prostředí (DB, SECRET_KEY, DEBUG, EMAIL, HTTPS).
+- Pro produkci používej Gunicorn/Uvicorn + Nginx/Apache, logování a monitoring.
+
+### 2. CI/CD
+- Všechny commity a pull requesty musí projít CI (viz `.github/workflows/ci.yml`).
+- CI pipeline: build, testy, collectstatic, lint, (volitelně deploy).
+- Chyby v CI řeš ihned, build musí být vždy zelený.
+
+### 3. Bezpečnostní audit
+- Pravidelně spouštěj bezpečnostní skripty (`./check_requirements_security.sh`, `safety check`).
+- Ověř role, šifrování citlivých dat, auditní logy, HTTPS, GDPR.
+- Proveď penetrační testy (SQLi, XSS, CSRF, brute-force, session hijacking).
+- Ověř možnost exportu/smazání dat klienta (GDPR).
+
+### 4. Onboarding
+- Udržuj aktuální README a ONBOARDING.md – popis instalace, testů, buildů, nasazení, troubleshooting.
+- Přidávej příklady, komentáře a návody pro nové vývojáře.
+- Vysvětluj workflow pro review, merge, CI/CD a nasazení.
+
+### 5. README
+- README musí obsahovat: rychlý start, build, testy, nasazení, CI/CD, bezpečnost, onboarding, troubleshooting.
+- Pravidelně aktualizuj podle změn v projektu a procesů.
 
 ---
 
-## 🖼️ Font Awesome – lokální načítání ikon
-- Ikony Font Awesome jsou nyní načítány lokálně ze složky `static/fontawesome`.
-- Pokud se objeví čtverečky místo ikon, spusť skript:
-  ```zsh
-  ./download_fontawesome.sh
-  ```
-- V šablonách používej třídy `fa-solid`, `fa-regular` dle Font Awesome 6.
-- Pro správné načtení statických souborů ověř, že máš v šabloně `{% load static %}`.
+# Další doporučení pro vývojáře
+- Před každým nasazením proveď zálohu DB a ověř všechny testy.
+- Pravidelně kontroluj bezpečnostní zranitelnosti a aktualizuj závislosti.
+- Všechny změny dokumentuj v ONBOARDING.md a README.
+- Pokud si nejsi jistý dalším krokem, projdi checklist výše nebo se zeptej Copilota.
 
 ---
-
-## 🧹 Údržba workspace a snapshotů
-- Pravidelně spouštěj skripty `cleanup_*`, `run_all_maintenance.sh` a archivuj snapshoty/reporty mimo hlavní workspace.
-- Pro úklid záloh, snapshotů a duplicit používej připravené skripty (viz `ONBOARDING.md`).
-- Pro MacBook Air doporučujeme minimalizovat počet otevřených souborů a rozšíření ve VS Code.
-
----
-
-> Pokud narazíš na problém s ikonami, zpomalením nebo snapshoty, začni od checklistu v `ONBOARDING.md` a spusť úklidové skripty.
 
