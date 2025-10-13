@@ -94,7 +94,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'hypoteky',  # Změňte dle názvu vaší databáze
         'USER': 'root',      # Změňte dle uživatele MySQL
-        'PASSWORD': 'patrikluks',      # Zadejte heslo k MySQL
+        'PASSWORD': 'Jarda2709',      # Zadejte heslo k MySQL
         'HOST': 'localhost',
         'PORT': '3306',
         'OPTIONS': {
