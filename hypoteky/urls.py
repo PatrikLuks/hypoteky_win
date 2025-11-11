@@ -44,5 +44,6 @@ urlpatterns = [
     ),
     path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
     path("account/", include("django.contrib.auth.urls")),
-    path("two_factor/", include("two_factor.urls")),
+    # 2FA URLs – two_factor používá string-based patterns, které nejsou kompatibilní s Django 4.2 path()
+    # path("account/", include("two_factor.urls")),
 ]
