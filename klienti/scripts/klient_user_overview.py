@@ -11,20 +11,22 @@ Použití: python klient_user_overview.py
 POZNÁMKA: Skript předpokládá spuštění v root složce Django projektu.
 """
 
-import os
-import django
-from collections import defaultdict
 import argparse
 import csv
+import os
+from collections import defaultdict
+
+import django
 
 
 def print_klient_user_overview(return_data=False):
     from django.contrib.auth.models import User
+
     from klienti.models import Klient, UserProfile
 
     # Vytvoříme slovník: uživatel -> seznam klientů
     user_klients = defaultdict(list)
-    for klient in Klient.objects.select_related('user').all():
+    for klient in Klient.objects.select_related("user").all():
         if klient.user:
             user_klients[klient.user].append(klient)
         else:
@@ -32,7 +34,7 @@ def print_klient_user_overview(return_data=False):
 
     output = []
     data = []  # Pro CSV
-    output.append("\nPřehled klientů přiřazených uživatelům:\n" + "-"*40)
+    output.append("\nPřehled klientů přiřazených uživatelům:\n" + "-" * 40)
     for user, klienti in user_klients.items():
         if user:
             try:
@@ -52,13 +54,15 @@ def print_klient_user_overview(return_data=False):
         if klienti:
             for k in klienti:
                 output.append(f"  - {k.jmeno} (ID: {k.id})")
-                data.append({
-                    'uzivatel': user_name,
-                    'role': user_role,
-                    'uzivatel_id': user_id,
-                    'klient': k.jmeno,
-                    'klient_id': k.id
-                })
+                data.append(
+                    {
+                        "uzivatel": user_name,
+                        "role": user_role,
+                        "uzivatel_id": user_id,
+                        "klient": k.jmeno,
+                        "klient_id": k.id,
+                    }
+                )
         else:
             output.append("  (žádní klienti)")
         output.append("-")
@@ -70,8 +74,8 @@ def print_klient_user_overview(return_data=False):
 
 
 def export_to_csv(data, filename):
-    with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
-        fieldnames = ['uzivatel', 'role', 'uzivatel_id', 'klient', 'klient_id']
+    with open(filename, "w", newline="", encoding="utf-8") as csvfile:
+        fieldnames = ["uzivatel", "role", "uzivatel_id", "klient", "klient_id"]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         for row in data:
@@ -79,10 +83,14 @@ def export_to_csv(data, filename):
 
 
 if __name__ == "__main__":
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hypoteky.settings')
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hypoteky.settings")
     django.setup()
-    parser = argparse.ArgumentParser(description="Přehled klientů přiřazených uživatelům.")
-    parser.add_argument('--csv', '-o', metavar='soubor.csv', help='Exportovat výstup do CSV souboru')
+    parser = argparse.ArgumentParser(
+        description="Přehled klientů přiřazených uživatelům."
+    )
+    parser.add_argument(
+        "--csv", "-o", metavar="soubor.csv", help="Exportovat výstup do CSV souboru"
+    )
     args = parser.parse_args()
     if args.csv:
         data = print_klient_user_overview(return_data=True)

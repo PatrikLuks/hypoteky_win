@@ -1,25 +1,23 @@
 # -*- coding: utf-8 -*-
-from django.test import TestCase
-from klienti.models import Klient, Poznamka, Zmena
 from django.conf import settings
 from django.db import connection
+from django.test import TestCase
+
+from klienti.models import Klient, Poznamka, Zmena
+
 
 class SifrovaniTestCase(TestCase):
     def setUp(self):
         self.klient = Klient.objects.create(
             jmeno="Testovací Klient",
             co_financuje="Byt v Praze",
-            duvod_zamitnuti="Nedostatečný příjem"
+            duvod_zamitnuti="Nedostatečný příjem",
         )
         self.poznamka = Poznamka.objects.create(
-            klient=self.klient,
-            text="Toto je tajná poznámka",
-            author="admin"
+            klient=self.klient, text="Toto je tajná poznámka", author="admin"
         )
         self.zmena = Zmena.objects.create(
-            klient=self.klient,
-            popis="Změna workflow",
-            author="admin"
+            klient=self.klient, popis="Změna workflow", author="admin"
         )
 
     def test_decrypt_orm(self):
@@ -48,32 +46,38 @@ class SifrovaniTestCase(TestCase):
         self.klient = Klient.objects.create(
             jmeno="Testovací Klient",
             co_financuje="Byt v Praze",
-            duvod_zamitnuti="Nedostatečný příjem"
+            duvod_zamitnuti="Nedostatečný příjem",
         )
         self.poznamka = Poznamka.objects.create(
-            klient=self.klient,
-            text="Toto je tajná poznámka",
-            author="admin"
+            klient=self.klient, text="Toto je tajná poznámka", author="admin"
         )
         self.zmena = Zmena.objects.create(
-            klient=self.klient,
-            popis="Změna workflow",
-            author="admin"
+            klient=self.klient, popis="Změna workflow", author="admin"
         )
         with connection.cursor() as cursor:
-            cursor.execute("SELECT jmeno, co_financuje, duvod_zamitnuti FROM klienti_klient WHERE id = %s", [self.klient.pk])
+            cursor.execute(
+                "SELECT jmeno, co_financuje, duvod_zamitnuti FROM klienti_klient WHERE id = %s",
+                [self.klient.pk],
+            )
             row = cursor.fetchone()
-            self.assertIsNotNone(row, "Klient nebyl nalezen v databázi (pravděpodobně nebyl uložen nebo byl smazán).")
+            self.assertIsNotNone(
+                row,
+                "Klient nebyl nalezen v databázi (pravděpodobně nebyl uložen nebo byl smazán).",
+            )
             for value in row:
                 self.assertNotIn("Testovací Klient", str(value))
                 self.assertNotIn("Byt v Praze", str(value))
                 self.assertNotIn("Nedostatečný příjem", str(value))
-            cursor.execute("SELECT text FROM klienti_poznamka WHERE id = %s", [self.poznamka.pk])
+            cursor.execute(
+                "SELECT text FROM klienti_poznamka WHERE id = %s", [self.poznamka.pk]
+            )
             value = cursor.fetchone()
             self.assertIsNotNone(value, "Poznámka nebyla nalezena v databázi.")
             value = value[0]
             self.assertNotIn("Toto je tajná poznámka", str(value))
-            cursor.execute("SELECT popis FROM klienti_zmena WHERE id = %s", [self.zmena.pk])
+            cursor.execute(
+                "SELECT popis FROM klienti_zmena WHERE id = %s", [self.zmena.pk]
+            )
             value = cursor.fetchone()
             self.assertIsNotNone(value, "Změna nebyla nalezena v databázi.")
             value = value[0]

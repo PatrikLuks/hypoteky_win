@@ -11,16 +11,20 @@ Použití: python rozdel_klienty_mezi_uzivatele.py
 POZNÁMKA: Skript předpokládá spuštění v root složce Django projektu.
 """
 
-import os
-import django
 import argparse
 import csv
+import os
 from itertools import cycle
+
+import django
+
 
 def rozdel_klienty_mezi_uzivatele(dry_run=False, return_data=False):
     from django.contrib.auth.models import User
+
     from klienti.models import Klient
-    user_klients = {p: [] for p in User.objects.filter(userprofile__role='poradce')}
+
+    user_klients = {p: [] for p in User.objects.filter(userprofile__role="poradce")}
     poradci = list(user_klients.keys())
     klienti = list(Klient.objects.all())
     if not poradci:
@@ -35,19 +39,21 @@ def rozdel_klienty_mezi_uzivatele(dry_run=False, return_data=False):
             klient.user = poradce
             klient.save()
     if dry_run:
-        output = ["\nNáhled rozdělení klientů mezi poradce (dry-run):\n" + "-"*40]
+        output = ["\nNáhled rozdělení klientů mezi poradce (dry-run):\n" + "-" * 40]
         data = []
         for poradce, klienti in user_klients.items():
             output.append(f"Poradce: {poradce.username} (ID: {poradce.id})")
             if klienti:
                 for k in klienti:
                     output.append(f"  - {k.jmeno} (ID: {k.id})")
-                    data.append({
-                        'poradce': poradce.username,
-                        'poradce_id': poradce.id,
-                        'klient': k.jmeno,
-                        'klient_id': k.id
-                    })
+                    data.append(
+                        {
+                            "poradce": poradce.username,
+                            "poradce_id": poradce.id,
+                            "klient": k.jmeno,
+                            "klient_id": k.id,
+                        }
+                    )
             else:
                 output.append("  (žádní klienti)")
             output.append("-")
@@ -58,20 +64,31 @@ def rozdel_klienty_mezi_uzivatele(dry_run=False, return_data=False):
     else:
         return f"Přiřazeno {len(klienti)} klientů {len(poradci)} poradcům."
 
+
 def export_rozdeleni_to_csv(data, filename):
-    with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
-        fieldnames = ['poradce', 'poradce_id', 'klient', 'klient_id']
+    with open(filename, "w", newline="", encoding="utf-8") as csvfile:
+        fieldnames = ["poradce", "poradce_id", "klient", "klient_id"]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         for row in data:
             writer.writerow(row)
 
+
 if __name__ == "__main__":
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hypoteky.settings')
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hypoteky.settings")
     django.setup()
     parser = argparse.ArgumentParser(description="Rozdělení klientů mezi poradce.")
-    parser.add_argument('--dry-run', action='store_true', help='Pouze zobrazit rozdělení, neprovádět změny v DB')
-    parser.add_argument('--csv', '-o', metavar='soubor.csv', help='Exportovat rozdělení do CSV (pouze s --dry-run)')
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Pouze zobrazit rozdělení, neprovádět změny v DB",
+    )
+    parser.add_argument(
+        "--csv",
+        "-o",
+        metavar="soubor.csv",
+        help="Exportovat rozdělení do CSV (pouze s --dry-run)",
+    )
     args = parser.parse_args()
     if args.dry_run and args.csv:
         data = rozdel_klienty_mezi_uzivatele(dry_run=True, return_data=True)

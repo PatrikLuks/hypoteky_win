@@ -13,6 +13,7 @@ $ python tests/test_scripts.py
 
 Autor: GitHub Copilot (vysvětlující komentáře pro studenty)
 """
+
 import subprocess
 import sys
 from pathlib import Path
@@ -42,10 +43,10 @@ def check_executable(script_path):
 def check_shebang(script_path):
     """Ověří, že skript začíná správným shebangem."""
     try:
-        with open(script_path, 'r', encoding='utf-8') as f:
+        with open(script_path, "r", encoding="utf-8") as f:
             first_line = f.readline().strip()
-            if first_line.startswith('#!'):
-                if 'bash' in first_line or 'zsh' in first_line:
+            if first_line.startswith("#!"):
+                if "bash" in first_line or "zsh" in first_line:
                     return True, ""
                 else:
                     return False, f"Shebang není bash/zsh: {first_line}"
@@ -65,10 +66,12 @@ def check_not_empty(script_path):
 def check_header(script_path):
     """Ověří, že skript obsahuje komentář s popisem a autorem v prvních 5 řádcích."""
     try:
-        with open(script_path, 'r', encoding='utf-8') as f:
+        with open(script_path, "r", encoding="utf-8") as f:
             lines = [f.readline() for _ in range(5)]
-            joined = ''.join(lines)
-            if 'Autor' in joined and ('popis' in joined or 'Popis' in joined or 'účel' in joined):
+            joined = "".join(lines)
+            if "Autor" in joined and (
+                "popis" in joined or "Popis" in joined or "účel" in joined
+            ):
                 return True, ""
             else:
                 return False, "Chybí komentář s popisem a autorem v prvních 5 řádcích."
@@ -97,12 +100,16 @@ def _test_script(script_name):
             return False
     # --- Spuštění skriptu ---
     try:
-        result = subprocess.run(["zsh", str(script_path)], capture_output=True, text=True)
+        result = subprocess.run(
+            ["zsh", str(script_path)], capture_output=True, text=True
+        )
         if result.returncode == 0:
             print(f"[OK] {script_name} proběhl úspěšně.")
             return True
         else:
-            print(f"[SELHÁNÍ] {script_name} skončil s chybou (kód {result.returncode}):\n{result.stderr}")
+            print(
+                f"[SELHÁNÍ] {script_name} skončil s chybou (kód {result.returncode}):\n{result.stderr}"
+            )
             return False
     except Exception as e:
         print(f"[VÝJIMKA] {script_name}: {e}")
@@ -121,6 +128,7 @@ def main():
     else:
         print("\nNěkteré skripty selhaly. Zkontroluj výstup výše.\n")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

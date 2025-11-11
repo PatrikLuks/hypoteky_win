@@ -1,0 +1,183 @@
+name: CI/CD – Build, Test, Lint, Deploy
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint:
+    name: Code Quality (Black, isort, Flake8)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install black isort flake8 pylint
+      - name: Black formatting check
+        run: black --check klienti/ hypoteky/ tests/ --exclude=migrations
+      - name: isort import check
+        run: isort --check-only klienti/ hypoteky/ tests/ --skip=migrations
+      - name: Flake8 linting
+        run: flake8 klienti/ hypoteky/ tests/ --exclude=migrations,.venv
+        continue-on-error: true
+
+  test:
+    name: Tests (Unit, Integration, Coverage)
+    runs-on: ubuntu-latest
+    needs: lint
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test_hypoteky
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'true'
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      DJANGO_SETTINGS_MODULE: hypoteky.settings_test
+      DEBUG: 'False'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-django pytest-cov coverage
+      - name: Wait for MySQL
+        run: |
+          for i in {1..30}; do
+            mysqladmin ping -h 127.0.0.1 -uroot -proot && break
+            sleep 2
+          done
+      - name: Run Django migrations
+        run: |
+          python manage.py migrate --settings=hypoteky.settings_test
+      - name: Run unit & integration tests
+        run: |
+          pytest klienti/tests/ -v --tb=short
+      - name: Run tests with coverage
+        run: |
+          pytest klienti/tests/ --cov=klienti --cov-report=term-missing --cov-report=html
+        continue-on-error: true
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: false
+        continue-on-error: true
+
+  security:
+    name: Security Checks (Safety, Bandit)
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install safety bandit
+      - name: Run Safety scan (dependency vulnerabilities)
+        run: |
+          safety scan
+        continue-on-error: true
+      - name: Run Bandit (code security)
+        run: |
+          bandit -r klienti/ hypoteky/ -v
+        continue-on-error: true
+
+  build:
+    name: Build (Collectstatic)
+    runs-on: ubuntu-latest
+    needs: [ lint, test ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Collect static files
+        run: |
+          python manage.py collectstatic --noinput --settings=hypoteky.settings_test
+      - name: Upload static files
+        uses: actions/upload-artifact@v3
+        with:
+          name: staticfiles
+          path: staticfiles/
+          retention-days: 5
+        continue-on-error: true
+
+  deploy-staging:
+    name: Deploy to Staging (optional)
+    runs-on: ubuntu-latest
+    needs: [ lint, test, security, build ]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to staging
+        run: |
+          echo "Deploying to staging environment..."
+          # Zde by byl skutečný deploy (SSH, Heroku, Railway, atd.)
+          # Příklad:
+          # ssh -i ${{ secrets.STAGING_SSH_KEY }} user@staging.server "cd /app && git pull && python manage.py migrate && python manage.py collectstatic --noinput"
+        continue-on-error: true
+
+  notify:
+    name: Notification
+    runs-on: ubuntu-latest
+    needs: [ lint, test, security, build ]
+    if: always()
+    steps:
+      - name: Notify on Slack (optional)
+        run: |
+          echo "CI/CD Pipeline completed. Status: ${{ job.status }}"
+          # Příklad:
+          # curl -X POST ${{ secrets.SLACK_WEBHOOK }} -d '{"text":"Build status: ${{ job.status }}"}'
+        continue-on-error: true
+      - name: Create a badge
+        run: |
+          echo "Build: ${{ job.status }}" > build.txt
+      - name: Upload badge
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-status
+          path: build.txt
+        continue-on-error: true
