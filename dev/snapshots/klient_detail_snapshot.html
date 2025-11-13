@@ -11,7 +11,7 @@
     <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"> -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
       body {
         background: #181a1b;
@@ -21,6 +21,7 @@
       .navbar {
         background: #23272b !important;
         box-shadow: 0 2px 8px #0008;
+        z-index: 1050; /* zvýšení z-index pro mobilní menu */
       }
       .navbar .nav-link, .navbar .navbar-brand {
         color: #e0e0e0 !important;
@@ -133,7 +134,7 @@
         bottom: 0;
         left: 0;
         right: 0;
-        z-index: 1030;
+        z-index: 1040; /* vyšší než běžný obsah, nižší než navbar */
         background: #23272b;
         border-top: 1px solid #ffd70033;
         box-shadow: 0 -2px 8px #0008;
@@ -409,28 +410,84 @@
       .form-range::-ms-thumb:active {
         outline: none;
       }
+      @media (max-width: 991.98px) {
+        #mainNavbar.collapse.show {
+          background: rgba(35,39,43,0.98);
+          border-radius: 0 0 18px 18px;
+          box-shadow: 0 8px 32px #000a;
+          padding: 1.2rem 0 1.2rem 0;
+        }
+        #mainNavbar .navbar-nav {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.5rem;
+        }
+        #mainNavbar .navbar-nav .nav-item {
+          width: 100%;
+          display: flex;
+          justify-content: center;
+        }
+        #mainNavbar .navbar-nav .nav-link {
+          font-size: 1.2rem;
+          padding: 1rem 1.5rem;
+          margin-bottom: 0.3rem;
+          border-radius: 8px;
+          width: 100%;
+          text-align: center;
+        }
+        #mainNavbar .navbar-nav.flex-row {
+          flex-direction: column !important;
+          align-items: center !important;
+        }
+        #mainNavbar .navbar-nav.flex-row .nav-item {
+          width: 100% !important;
+          display: flex !important;
+          justify-content: center !important;
+        }
+        #mainNavbar .navbar-nav.flex-row .nav-link {
+          text-align: center !important;
+          width: 100% !important;
+        }
+      }
     </style>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 rounded">
   <div class="container-fluid">
     <a class="navbar-brand fw-bold" href="/">JPL Servis</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Menu">
-      <span class="navbar-toggler-icon"></span>
+    <!-- Hamburger pouze na malých obrazovkách -->
+    <button class="navbar-toggler d-lg-none d-flex align-items-center justify-content-center" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Menu" style="z-index:1060; background:rgba(35,39,43,0.98); border-radius:12px; border:2px solid #ffd700; width:48px; height:48px; box-shadow:0 2px 8px #0006;">
+      <span style="display:inline-block;width:28px;height:28px;">
+        <svg viewBox="0 0 32 32" width="28" height="28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect y="6" width="32" height="4" rx="2" fill="#ffd700"/>
+          <rect y="14" width="32" height="4" rx="2" fill="#ffd700"/>
+          <rect y="22" width="32" height="4" rx="2" fill="#ffd700"/>
+        </svg>
+      </span>
     </button>
     <div class="collapse navbar-collapse" id="mainNavbar">
 
       <div class="d-flex align-items-center ms-auto gap-2">
-        <span class="navbar-text small text-muted">
-          <i class="fa fa-user"></i> detailklient
-          <span class="badge" style="background-color: #003366; color: #fff;">Klient</span>
-        </span>
-        <ul class="navbar-nav flex-row ms-2">
+        <ul class="navbar-nav flex-row ms-2 w-100 justify-content-center">
 
 
-              <li class="nav-item"><a class="nav-link" href="/account/password_change/"><i class="fa fa-key"></i>Změnit heslo</a></li>
+              <li class="nav-item d-flex align-items-center ms-2">
+                <span class="badge" style="background:#23272b; color:#ffd700; font-size:1rem; border-radius:12px; padding:0.5em 1em; box-shadow:0 1px 4px #0002;">Klient</span>
+              </li>
+              <li class="nav-item d-flex align-items-center ms-2">
+                <span class="ms-1" style="color:#ffd700; font-weight:600; font-size:1.08rem; letter-spacing:0.5px;">detailklient</span>
+              </li>
+              <li class="nav-item d-flex align-items-center ms-2">
+                <a class="nav-link px-3 fw-bold" style="color:#ffd700; background:transparent; border:none; font-size:1.08rem; letter-spacing:0.5px; font-weight:600; text-align:center; min-width:unset; border-radius:0; box-shadow:none; padding-left:0; padding-right:0; transition:color 0.2s;"
+                   href="/account/password_change/">
+                  <i class="fa fa-key me-1"></i> Změnit heslo
+                </a>
+              </li>
+              <li class="nav-item d-flex align-items-center ms-2">
+                <a class="nav-link px-3" style="min-width:120px; text-align:center; border-radius:20px; border:2px solid #ffd700; color:#ffd700; background:transparent; transition:background 0.2s, color 0.2s; font-size:1.08rem; letter-spacing:0.5px;" href="/account/logout/"><i class="fa fa-sign-out-alt me-1"></i>Odhlásit</a>
+              </li>
 
-            <li class="nav-item"><a class="nav-link" href="/account/logout/"><i class="fa fa-sign-out-alt"></i>Odhlásit</a></li>
 
         </ul>
       </div>
@@ -812,22 +869,7 @@
 </div>
 
 </div>
-<div class="sticky-bottom-nav d-lg-none">
-  <div class="container-fluid py-2">
-    <div class="row">
-      <div class="col text-center">
-        <a href="/" class="nav-link d-inline-block" title="Klienti">
-          <i class="fa fa-users fa-lg"></i>
-        </a>
-      </div>
-      <div class="col text-center">
-        <a href="/klient/pridat/" class="nav-link d-inline-block" title="Přidat klienta">
-          <i class="fa fa-user-plus fa-lg"></i>
-        </a>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- sticky-bottom-nav a vše s ní spojené bylo odstraněno -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
