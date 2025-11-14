@@ -10,7 +10,7 @@ import openpyxl
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
-from klienti.models import Klient, UserProfile
+from klienti.models import Klient
 
 
 class Command(BaseCommand):

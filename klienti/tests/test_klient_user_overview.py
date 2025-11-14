@@ -19,7 +19,7 @@ from klienti.scripts.klient_user_overview import print_klient_user_overview
 def test_klient_user_overview_output():
     # Vytvoříme testovacího uživatele a klienta
     user = User.objects.create_user(username="testuser", password="testpass")
-    klient = Klient.objects.create(jmeno="Test Klient", user=user)
+    Klient.objects.create(jmeno="Test Klient", user=user)
     # Zavoláme přímo funkci, která vrací výstup
     output = print_klient_user_overview()
     assert "Přehled klientů přiřazených uživatelům" in output

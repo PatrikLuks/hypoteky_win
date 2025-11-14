@@ -20,9 +20,7 @@ import django
 
 
 def print_klient_user_overview(return_data=False):
-    from django.contrib.auth.models import User
-
-    from klienti.models import Klient, UserProfile
+    from klienti.models import Klient
 
     # Vytvoříme slovník: uživatel -> seznam klientů
     user_klients = defaultdict(list)

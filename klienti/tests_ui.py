@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import difflib
-import re
 
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+
+from klienti.models import Klient
 
 
 class DashboardUITestCase(TestCase):
@@ -65,7 +66,7 @@ class DashboardUITestCase(TestCase):
                 with open(snapshot_path, "w", encoding="utf-8") as f:
                     f.write(html)
                 print(
-                    f"Snapshot byl aktualizován podle aktuálního dashboardu. Zkontroluj změny a případně commitni."
+                    "Snapshot byl aktualizován podle aktuálního dashboardu. Zkontroluj změny a případně commitni."
                 )
                 assert (
                     False
@@ -201,8 +202,6 @@ class WorkflowUITestCase(TestCase):
         """
         from django.urls import reverse
 
-        from klienti.models import Klient
-
         # 1. Vytvoření klienta se všemi povinnými poli
         response = self.client.post(
             reverse("klient_create"),
@@ -223,9 +222,8 @@ class WorkflowUITestCase(TestCase):
             print("RESPONSE STATUS:", response.status_code)
             print("RESPONSE BODY:", response.content.decode("utf-8"))
         self.assertEqual(response.status_code, 302)  # redirect po úspěšném vytvoření
-        from klienti.models import Klient
 
-        klient = Klient.objects.get(user=self.user)
+        self.klient_obj = Klient.objects.get(user=self.user)
         # 2. Postupné vyplňování všech kroků workflow
         workflow_fields = [
             ("co_financuje", "Byt v Praze"),
@@ -244,7 +242,7 @@ class WorkflowUITestCase(TestCase):
             ("podminky_pro_splaceni", "Splněno"),
         ]
         for idx, (field, value) in enumerate(workflow_fields, start=2):
-            data = {"jmeno": klient.jmeno, "datum": "2025-05-27"}
+            data = {"jmeno": self.klient_obj.jmeno, "datum": "2025-05-27"}
             # Vyplníme všechny předchozí kroky, jinak validace neprojde
             for prev_idx, (prev_field, prev_value) in enumerate(
                 workflow_fields[: idx - 1]
@@ -252,37 +250,35 @@ class WorkflowUITestCase(TestCase):
                 data[prev_field] = prev_value
             # Aktuální krok
             data[field] = value
-            response = self.client.post(reverse("klient_edit", args=[klient.pk]), data)
+            response = self.client.post(reverse("klient_edit", args=[self.klient_obj.pk]), data)
             # Očekáváme redirect po úspěšném uložení
             self.assertEqual(
                 response.status_code, 302, f"Krok {field} neprošel validací!"
             )
-            klient.refresh_from_db()
-            self.assertEqual(getattr(klient, field), value)
+            self.klient_obj.refresh_from_db()
+            self.assertEqual(getattr(self.klient_obj, field), value)
             # Ověříme, že v detailu klienta je zvýrazněn správný krok
-            detail = self.client.get(reverse("klient_detail", args=[klient.pk]))
+            detail = self.client.get(reverse("klient_detail", args=[self.klient_obj.pk]))
             self.assertEqual(detail.status_code, 200)
             # V HTML by měl být aktivní krok zvýrazněn (border-primary)
             self.assertIn("border-primary", detail.content.decode("utf-8"))
         # 3. Ověření, že po posledním kroku je workflow hotovo
-        klient.refresh_from_db()
+        self.klient_obj.refresh_from_db()
         # Ověř, že poslední krok je vyplněn a zvýrazněn (dokončený workflow)
-        detail = self.client.get(reverse("klient_detail", args=[klient.pk]))
+        detail = self.client.get(reverse("klient_detail", args=[self.klient_obj.pk]))
         self.assertEqual(detail.status_code, 200)
         html = detail.content.decode("utf-8")
         # Ověř, že v HTML je poslední krok workflow zvýrazněn (border-primary) a obsahuje text 'Podmínky pro splacení'
         self.assertIn("border-primary", html)
         self.assertIn("Podmínky pro splacení", html)
         # Ověř, že pole podminky_pro_splaceni je opravdu vyplněno
-        self.assertEqual(klient.podminky_pro_splaceni, "Splněno")
+        self.assertEqual(self.klient_obj.podminky_pro_splaceni, "Splněno")
 
     def test_workflow_validace_nelze_preskocit_krok(self):
         """
         Ověří, že nelze přeskočit krok workflow (validace formuláře).
         """
         from django.urls import reverse
-
-        from klienti.models import Klient
 
         response = self.client.post(
             reverse("klient_create"),
@@ -303,16 +299,15 @@ class WorkflowUITestCase(TestCase):
             print("RESPONSE STATUS:", response.status_code)
             print("RESPONSE BODY:", response.content.decode("utf-8"))
         self.assertEqual(response.status_code, 302)
-        from klienti.models import Klient
 
-        klient = Klient.objects.get(user=self.user)
+        self.klient_obj = Klient.objects.get(user=self.user)
         # Pokusíme se vyplnit 3. krok bez 2. kroku
         data = {
-            "jmeno": klient.jmeno,
+            "jmeno": self.klient_obj.jmeno,
             "datum": "2025-05-27",
             "navrh_financovani": "Hypotéka 80 %",
         }
-        response = self.client.post(reverse("klient_edit", args=[klient.pk]), data)
+        response = self.client.post(reverse("klient_edit", args=[self.klient_obj.pk]), data)
         # Očekáváme, že validace neprojde a stránka se znovu zobrazí s chybou (status 200)
         self.assertEqual(response.status_code, 200)
         html = response.content.decode("utf-8")
@@ -328,7 +323,7 @@ class KlientDetailUITestCase(TestCase):
     def setUp(self):
         from django.contrib.auth.models import User
 
-        from klienti.models import Klient, Poznamka, UserProfile, Zmena
+        from klienti.models import Poznamka, UserProfile, Zmena
 
         # Vytvoř uživatele 'detailklient' s heslem 'testpass' a rolí 'klient'
         self.user = User.objects.create_user(
@@ -399,8 +394,6 @@ class KlientDetailUITestCase(TestCase):
         from django.urls import reverse
 
         from bs4 import BeautifulSoup
-
-        from klienti.models import Zmena
 
         # Nastav klientovi cenu na 6 000 000 před POSTem
         self.klient.cena = 6000000

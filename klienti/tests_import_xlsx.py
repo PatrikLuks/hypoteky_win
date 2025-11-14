@@ -1,4 +1,3 @@
-import io
 import tempfile
 
 from django.test import TestCase
@@ -223,7 +222,7 @@ class ImportKlientuXLSXTestCase(TestCase):
             ],  # SQL injection
         ]
         temp = self.vytvor_xlsx(rows)
-        pocet = import_klienti_from_xlsx(temp.name)
+        import_klienti_from_xlsx(temp.name)
         klienti = list(Klient.objects.all())
         jmena = [k.jmeno for k in klienti]
         # Ověř, že v DB je zkrácená verze dlouhého jména (prvních 100 znaků)

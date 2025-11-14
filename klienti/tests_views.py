@@ -18,7 +18,6 @@ from datetime import date, timedelta
 
 import pytest
 from django.contrib.auth.models import User
-from django.test import Client, TestCase
 from django.urls import reverse
 
 from klienti.models import Klient, UserProfile, Zmena
@@ -200,7 +199,7 @@ class TestKlientEditView:
 
         # View should respond without error
         assert response.status_code == 200
-        
+
         # Klient should still exist
         assert Klient.objects.filter(pk=klient.pk).exists()
 
@@ -231,7 +230,7 @@ class TestKlientEditView:
         response = client.post(
             reverse("klient_edit", kwargs={"pk": klient.pk}), update_data, follow=True
         )
-        
+
         assert response.status_code == 200
 
         # Check that Zmena was created
@@ -531,7 +530,7 @@ class TestViewPermissions:
         profile_k.save()
 
         # Create klient assigned to klient_user
-        klient = Klient.objects.create(
+        Klient.objects.create(
             user=klient_user,
             jmeno="Client Data",
             datum=date.today(),

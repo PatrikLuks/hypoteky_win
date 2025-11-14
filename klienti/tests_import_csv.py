@@ -5,16 +5,12 @@ Doporučení: Pokud import CSV není implementován, tento soubor můžeš smaza
 Pokud import existuje, doplň zde testy podle ukázky níže.
 """
 
-from django.test import Client
-from django.urls import reverse
-
 import pytest
 
 
 @pytest.mark.django_db
 def test_import_csv_valid_file():
     """Ukázkový test: úspěšný import validního CSV souboru."""
-    client = Client()
     # TODO: Připrav testovací CSV soubor a endpoint
     # response = client.post(reverse('import_csv'), {'file': open('test.csv', 'rb')})
     # assert response.status_code == 200
@@ -25,7 +21,6 @@ def test_import_csv_valid_file():
 @pytest.mark.django_db
 def test_import_csv_invalid_file():
     """Ukázkový test: import nevalidního CSV by měl selhat."""
-    client = Client()
     # TODO: Připrav nevalidní CSV soubor a endpoint
     # response = client.post(reverse('import_csv'), {'file': open('invalid.csv', 'rb')})
     # assert response.status_code == 400

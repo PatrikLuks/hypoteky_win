@@ -10,8 +10,6 @@ Spuštění:
   pytest -m e2e -v                         # všechny E2E testy
 """
 
-import asyncio
-import time
 from datetime import date
 
 import pytest
@@ -19,7 +17,7 @@ from django.contrib.auth.models import User
 from playwright.async_api import Page, expect
 from rest_framework.test import APIClient
 
-from klienti.models import Klient, UserProfile
+from klienti.models import UserProfile
 
 
 @pytest.mark.e2e
@@ -156,15 +154,9 @@ class TestWorkflowProgressionE2E:
         response = api_client.post("/api/klienti/", klient_data, format="json")
         klient_id = response.data["id"]
 
-        # Testuj všechny workflow fields
-        workflow_fields = [
-            "termin_podani_zp",
-            "termin_schvaleni_zp",
-            "termin_poskytovani_hypoteky",
-            # ... (další pole podle modelu)
-        ]
-
-        # Ověř, že workflow fields jsou přístupné
+        # Ověř data response
+        assert response.status_code == 201
+        assert response.data["jmeno"] == "Test Klient"
         response = api_client.get(f"/api/klienti/{klient_id}/")
         assert response.status_code == 200
         klient = response.data

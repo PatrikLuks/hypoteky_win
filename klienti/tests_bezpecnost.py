@@ -3,7 +3,7 @@ from django.test import Client as DjangoClient
 from django.test import TestCase
 from django.urls import reverse
 
-from klienti.models import Klient, Poznamka, UserProfile, Zmena
+from klienti.models import Klient, UserProfile, Zmena
 
 
 class BezpecnostTestCase(TestCase):
@@ -98,7 +98,6 @@ class BezpecnostTestCase(TestCase):
         """
         from django.urls import reverse
 
-        from rest_framework import status
         from rest_framework.test import APIClient
 
         # Přihlášení jako uživatel s rolí 'klient'
@@ -146,8 +145,6 @@ class BezpecnostTestCase(TestCase):
         Například: pokud dojde k chybě během hromadné změny, žádný záznam v Zmena se nevytvoří.
         """
         from django.db import transaction
-
-        from klienti.models import Zmena
 
         klient = self.klient_obj
         try:

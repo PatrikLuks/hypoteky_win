@@ -20,7 +20,8 @@ def test_rozdel_klienty_mezi_uzivatele():
     for p in poradci:
         p.userprofile.role = "poradce"
         p.userprofile.save()
-    klienti = [Klient.objects.create(jmeno=f"Klient{i}") for i in range(6)]
+    for i in range(6):
+        Klient.objects.create(jmeno=f"Klient{i}")
     # Spustíme rozdělení
     result = rozdel_klienty_mezi_uzivatele()
     assert "Přiřazeno 6 klientů 3 poradcům" in result

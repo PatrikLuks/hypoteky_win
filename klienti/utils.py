@@ -37,7 +37,7 @@ def odeslat_notifikaci_email(
             html_message=html_message,
             fail_silently=False,
         )
-    except Exception as e:
+    except Exception:
         uspesne = False
     NotifikaceLog.objects.create(
         prijemce=prijemce, typ=typ, klient=klient, obsah=zprava, uspesne=uspesne
@@ -70,12 +70,12 @@ def import_klienti_from_csv(file: IO, encoding: str = "utf-8") -> int:
     try:
         for idx, row in enumerate(reader):
             try:
-                print(f"[IMPORT] Zpracovávám řádek {idx+1}: {row}")
+                print(f"[IMPORT] Zpracovávám řádek {idx + 1}: {row}")
                 if not row.get("jmeno"):
-                    print(f"[IMPORT] Řádek {idx+1} přeskočen - chybí jméno")
+                    print(f"[IMPORT] Řádek {idx + 1} přeskočen - chybí jméno")
                     continue  # povinné pole
                 if not row.get("vyber_banky"):
-                    print(f"[IMPORT] Řádek {idx+1} přeskočen - chybí vyber_banky")
+                    print(f"[IMPORT] Řádek {idx + 1} přeskočen - chybí vyber_banky")
                     continue  # povinné pole
                 # --- Validace povinného pole datum ---
                 jmeno = row["jmeno"].strip() if row.get("jmeno") else ""
@@ -85,18 +85,18 @@ def import_klienti_from_csv(file: IO, encoding: str = "utf-8") -> int:
                 except Exception:
                     print(f"[IMPORT] Chyba při převodu datumu: {datum_str}")
                     print(
-                        f"[IMPORT] Řádek {idx+1} přeskočen - chybí nebo je nevalidní datum"
+                        f"[IMPORT] Řádek {idx + 1} přeskočen - chybí nebo je nevalidní datum"
                     )
                     continue
                 key = (jmeno, datum)
                 if key in imported_keys:
                     print(
-                        f"[IMPORT] Řádek {idx+1} přeskočen - duplicitní klient v dávce (jméno+datum)"
+                        f"[IMPORT] Řádek {idx + 1} přeskočen - duplicitní klient v dávce (jméno+datum)"
                     )
                     continue
                 if Klient.objects.filter(jmeno=jmeno, datum=datum).exists():
                     print(
-                        f"[IMPORT] Řádek {idx+1} přeskočen - duplicitní klient v DB (jméno+datum)"
+                        f"[IMPORT] Řádek {idx + 1} přeskočen - duplicitní klient v DB (jméno+datum)"
                     )
                     continue
                 imported_keys.add(key)
@@ -137,8 +137,8 @@ def import_klienti_from_csv(file: IO, encoding: str = "utf-8") -> int:
                 print(f"[IMPORT] Klient vytvořen: {klient.jmeno}")
                 count += 1
             except Exception as e:
-                logger.error(f"[IMPORT] Chyba při zpracování řádku {idx+1}: {e}")
-                print(f"[IMPORT] Chyba při zpracování řádku {idx+1}: {e}")
+                logger.error(f"[IMPORT] Chyba při zpracování řádku {idx + 1}: {e}")
+                print(f"[IMPORT] Chyba při zpracování řádku {idx + 1}: {e}")
                 continue
     except Exception as e:
         logger.error(f"[IMPORT] Chyba při čtení CSV v průběhu zpracování: {e}")
