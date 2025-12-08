@@ -156,7 +156,7 @@ class TestWorkflowProgressionE2E:
 
         # Ověř data response
         assert response.status_code == 201
-        assert response.data["jmeno"] == "Test Klient"
+        assert response.data["jmeno"] == "Workflow Progress Test"
         response = api_client.get(f"/api/klienti/{klient_id}/")
         assert response.status_code == 200
         klient = response.data

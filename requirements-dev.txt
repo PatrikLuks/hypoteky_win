@@ -2,7 +2,7 @@
 annotated-types==0.7.0
 anyio==4.9.0
 astroid==3.3.10
-Authlib==1.6.0
+Authlib==1.6.5
 backports-datetime-fromisoformat==2.0.3
 beautifulsoup4==4.13.4
 certifi==2025.4.26
@@ -75,5 +75,5 @@ tqdm==4.67.1
 typer==0.16.0
 typing_extensions==4.13.2
 uritemplate==4.1.1
-urllib3==2.4.0
+urllib3==2.5.0
 zipp==3.21.0
