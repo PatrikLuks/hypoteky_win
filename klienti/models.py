@@ -60,10 +60,44 @@ class Klient(models.Model):
         blank=True,
         null=True,
     )
+    vlastni_zdroj = models.DecimalField(
+        "Vlastní zdroj",
+        max_digits=12,
+        decimal_places=2,
+        blank=True,
+        null=True,
+    )
     navrh_financovani_procento = models.DecimalField(
         "Návrh financování v %", max_digits=5, decimal_places=2, blank=True, null=True
     )
     vyber_banky = models.CharField(max_length=255, blank=True)
+    schvalene_financovani = models.CharField(
+        "Schválené financování",
+        max_length=255,
+        blank=True,
+        help_text="Schválené parametry hypotéky po schválení",
+    )
+    schvalena_hypoetka_castka = models.DecimalField(
+        "Schválená výše hypotéky",
+        max_digits=12,
+        decimal_places=2,
+        blank=True,
+        null=True,
+    )
+    schvaleny_vlastni_zdroj = models.DecimalField(
+        "Schválený vlastní zdroj",
+        max_digits=12,
+        decimal_places=2,
+        blank=True,
+        null=True,
+    )
+    schvaleny_ltv_procento = models.DecimalField(
+        "Schválené LTV (%)",
+        max_digits=5,
+        decimal_places=2,
+        blank=True,
+        null=True,
+    )
     duvod_zamitnuti = EncryptedCharField(
         "Důvod zamítnutí",
         max_length=255,
@@ -71,20 +105,21 @@ class Klient(models.Model):
         null=True,
         help_text="Vyplňte pouze v případě zamítnuté hypotéky",
     )
-    priprava_zadosti = EncryptedTextField(blank=True)
-    kompletace_podkladu = EncryptedTextField(blank=True)
-    podani_zadosti = EncryptedTextField(blank=True)
-    odhad = EncryptedTextField(blank=True)
-    schvalovani = EncryptedTextField(blank=True)
-    priprava_uverove_dokumentace = EncryptedTextField(blank=True)
-    podpis_uverove_dokumentace = EncryptedTextField(blank=True)
-    priprava_cerpani = EncryptedTextField(blank=True)
-    cerpani = EncryptedTextField(blank=True)
-    zahajeni_splaceni = EncryptedTextField(blank=True)
-    podminky_pro_splaceni = EncryptedTextField(blank=True)
+    priprava_zadosti = EncryptedTextField(blank=True, default="")
+    kompletace_podkladu = EncryptedTextField(blank=True, default="")
+    podani_zadosti = EncryptedTextField(blank=True, default="")
+    odhad = EncryptedTextField(blank=True, default="")
+    schvalovani = EncryptedTextField(blank=True, default="")
+    priprava_uverove_dokumentace = EncryptedTextField(blank=True, default="")
+    podpis_uverove_dokumentace = EncryptedTextField(blank=True, default="")
+    priprava_cerpani = EncryptedTextField(blank=True, default="")
+    cerpani = EncryptedTextField(blank=True, default="")
+    zahajeni_splaceni = EncryptedTextField(blank=True, default="")
+    podminky_pro_splaceni = EncryptedTextField(blank=True, default="")
     deadline_co_financuje = models.DateField(blank=True, null=True)
     deadline_navrh_financovani = models.DateField(blank=True, null=True)
     deadline_vyber_banky = models.DateField(blank=True, null=True)
+    deadline_schvalene_financovani = models.DateField(blank=True, null=True)
     deadline_priprava_zadosti = models.DateField(blank=True, null=True)
     deadline_kompletace_podkladu = models.DateField(blank=True, null=True)
     deadline_podani_zadosti = models.DateField(blank=True, null=True)
@@ -99,6 +134,7 @@ class Klient(models.Model):
     splneno_co_financuje = models.DateField(blank=True, null=True)
     splneno_navrh_financovani = models.DateField(blank=True, null=True)
     splneno_vyber_banky = models.DateField(blank=True, null=True)
+    splneno_schvalene_financovani = models.DateField(blank=True, null=True)
     splneno_priprava_zadosti = models.DateField(blank=True, null=True)
     splneno_kompletace_podkladu = models.DateField(blank=True, null=True)
     splneno_podani_zadosti = models.DateField(blank=True, null=True)
@@ -180,6 +216,7 @@ class Klient(models.Model):
             ("Co chce klient financovat", self.splneno_co_financuje),
             ("Návrh financování", self.splneno_navrh_financovani),
             ("Výběr banky", self.splneno_vyber_banky),
+            ("Schválené financování", self.splneno_schvalene_financovani),
             ("Příprava žádosti", self.splneno_priprava_zadosti),
             ("Kompletace podkladů", self.splneno_kompletace_podkladu),
             ("Podání žádosti", self.splneno_podani_zadosti),
@@ -190,7 +227,7 @@ class Klient(models.Model):
             ("Příprava čerpání", self.splneno_priprava_cerpani),
             ("Čerpání", self.splneno_cerpani),
             ("Zahájení splácení", self.splneno_zahajeni_splaceni),
-            ("Podmínky pro vyčerpání", self.splneno_podminky_pro_splaceni),
+            ("Podmínky pro splacení", self.splneno_podminky_pro_splaceni),
         ]
         kroky = []
         posledni_splneny_krok_index = None
@@ -243,17 +280,18 @@ class HypotekaWorkflow(models.Model):
             (2, "Co chce klient financovat"),
             (3, "Návrh financování"),
             (4, "Výběr banky"),
-            (5, "Příprava žádosti"),
-            (6, "Kompletace podkladů"),
-            (7, "Podání žádosti"),
-            (8, "Odhad"),
-            (9, "Schvalování"),
-            (10, "Příprava úvěrové dokumentace"),
-            (11, "Podpis úvěrové dokumentace"),
-            (12, "Příprava čerpání"),
-            (13, "Čerpání"),
-            (14, "Zahájení splácení"),
-            (15, "Podmínky pro vyčerpání"),
+            (5, "Schválené financování"),
+            (6, "Příprava žádosti"),
+            (7, "Kompletace podkladů"),
+            (8, "Podání žádosti"),
+            (9, "Odhad"),
+            (10, "Schvalování"),
+            (11, "Příprava úvěrové dokumentace"),
+            (12, "Podpis úvěrové dokumentace"),
+            (13, "Příprava čerpání"),
+            (14, "Čerpání"),
+            (15, "Zahájení splácení"),
+            (16, "Podmínky pro splacení"),
         ]
     )
     datum = models.DateTimeField(auto_now_add=True)

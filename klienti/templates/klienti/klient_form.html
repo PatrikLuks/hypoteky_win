@@ -20,6 +20,54 @@
 
 <style>
   .min-width-250 { min-width: 250px; }
+  /* Zmenšení vstupních polí pro lepší zarovnání */
+  input[type="number"],
+  input[type="text"],
+  select {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.6rem !important;
+  }
+  /* Datumová pole - kompaktní */
+  input[type="date"] {
+    font-size: 0.85rem;
+    padding: 0.35rem 0.4rem !important;
+  }
+  /* Speciální úprava pro textareas - kompaktní rozměry */
+  textarea {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.4rem !important;
+    min-height: 38px;
+    max-height: 38px;
+    resize: none;
+  }
+  .form-label {
+    font-size: 0.8rem;
+    margin-bottom: 0.2rem;
+  }
+  /* Workflow kroky - roztažené na celou šířku */
+  .workflow-row {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .workflow-row > div {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  /* Poznámka (textarea) zabírá více místa */
+  .workflow-row > div:last-child {
+    flex: 2 1 0;
+  }
+  /* Nadpis kroku */
+  h6.text-warning {
+    font-size: 0.9rem;
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.3rem !important;
+  }
+  hr {
+    margin: 0.5rem 0;
+  }
 </style>
 
 <form method="post" class="mb-4">
@@ -36,15 +84,12 @@
     </div>
   </div>
   <hr>
-  <!-- Druhá skupina polí -->
+  <!-- 1. Co chce klient financovat -->
+  <h6 class="mt-3 mb-2 text-warning">1. Co chce klient financovat</h6>
   <div class="d-flex flex-wrap gap-3 mb-3">
     <div class="flex-fill min-width-250">
       <label for="id_co_financuje" class="form-label">Co chce klient financovat</label>
       {{ form.co_financuje }}
-    </div>
-    <div class="flex-fill min-width-250">
-      <label for="id_cena" class="form-label">Cena</label>
-      {{ form.cena }}
     </div>
     <div class="flex-fill min-width-250">
       <label for="id_deadline_co_financuje" class="form-label">Deadline</label>
@@ -56,239 +101,260 @@
     </div>
   </div>
   <hr>
-  <div class="row g-3">
-    <div class="col-12 col-md-4">
-      <label for="id_navrh_financovani" class="form-label">Návrh financování</label>
-      {{ form.navrh_financovani }}
+  <!-- 2. Návrh financování -->
+  <h6 class="mt-3 mb-2 text-warning">2. Návrh financování</h6>
+  <div class="workflow-row">
+    <div>
+      <label for="id_cena" class="form-label">Cena</label>
+      {{ form.cena }}
     </div>
-    <div class="col-12 col-md-4">
-      <label for="id_navrh_financovani_procento" class="form-label">v&nbsp;% hypotečního úvěru</label>
+    <div>
+      <label for="id_navrh_financovani_castka" class="form-label">Výše hypotéky</label>
+      {{ form.navrh_financovani_castka }}
+    </div>
+    <div>
+      <label for="id_vlastni_zdroj" class="form-label">Vlastní zdroj</label>
+      {{ form.vlastni_zdroj }}
+    </div>
+    <div>
+      <label for="id_navrh_financovani_procento" class="form-label">LTV (%)</label>
       {{ form.navrh_financovani_procento }}
     </div>
-    <div class="col-12 col-md-4">
-      <span class="text-success">Hypoteční úvěr: <strong id="hypo-castka-vysledek">
-        {% if form.instance.navrh_financovani_castka %}{{ form.instance.navrh_financovani_castka|floatformat:0 }} Kč{% endif %}
-      </strong></span>
-    </div>
-    <div class="col-12 col-md-4">
+    <div>
       <label for="id_deadline_navrh_financovani" class="form-label">Deadline</label>
       {{ form.deadline_navrh_financovani }}
     </div>
-    <div class="col-12 col-md-4">
+    <div>
       <label for="id_splneno_navrh_financovani" class="form-label">Datum splnění</label>
       {{ form.splneno_navrh_financovani }}
     </div>
   </div>
   <hr>
-  <div class="row g-3">
-    <div class="col-12 col-md-4">
+  <!-- 3. Výběr banky -->
+  <h6 class="mt-3 mb-2 text-warning">3. Výběr banky</h6>
+  <div class="workflow-row">
+    <div>
       <label for="id_vyber_banky" class="form-label">Výběr banky</label>
       {{ form.vyber_banky }}
     </div>
-    <div class="col-12 col-md-4">
+    <div>
       <label for="id_deadline_vyber_banky" class="form-label">Deadline</label>
       {{ form.deadline_vyber_banky }}
     </div>
-    <div class="col-12 col-md-4">
+    <div>
       <label for="id_splneno_vyber_banky" class="form-label">Datum splnění</label>
       {{ form.splneno_vyber_banky }}
     </div>
   </div>
   <hr>
-  {# 5. Příprava žádosti #}
-  <div class="row g-3">
-    <div class="col-md-3">
-      <label for="id_priprava_zadosti" class="form-label">Příprava žádosti</label>
+  <!-- 4. Schválené financování -->
+  <h6 class="mt-3 mb-2 text-warning">4. Schválené financování</h6>
+  <div class="workflow-row">
+    <div>
+      <label for="id_schvalena_hypoetka_castka" class="form-label">Výše schv. hypotéky</label>
+      {{ form.schvalena_hypoetka_castka }}
     </div>
-    <div class="col-md-3">
+    <div>
+      <label for="id_schvaleny_vlastni_zdroj" class="form-label">Schv. vlastní zdroj</label>
+      {{ form.schvaleny_vlastni_zdroj }}
+    </div>
+    <div>
+      <label for="id_schvaleny_ltv_procento" class="form-label">Schv. LTV (%)</label>
+      {{ form.schvaleny_ltv_procento }}
+    </div>
+    <div>
+      <label for="id_deadline_schvalene_financovani" class="form-label">Deadline</label>
+      {{ form.deadline_schvalene_financovani }}
+    </div>
+    <div>
+      <label for="id_splneno_schvalene_financovani" class="form-label">Datum splnění</label>
+      {{ form.splneno_schvalene_financovani }}
+    </div>
+  </div>
+  <hr>
+  <!-- Příprava žádosti -->
+  <h6 class="mt-3 mb-2 text-warning">5. Příprava žádosti</h6>
+  <div class="workflow-row">
+    <div>
       <label for="id_deadline_priprava_zadosti" class="form-label">Deadline</label>
       {{ form.deadline_priprava_zadosti }}
     </div>
-    <div class="col-md-3">
-      <label for="id_splneno_priprava_zadosti" class="form-label">Datum splnění</label>
+    <div>
+      <label for="id_splneno_priprava_zadosti" class="form-label">Splnění</label>
       {{ form.splneno_priprava_zadosti }}
     </div>
-    <div class="col-md-3">
+    <div>
+      <label for="id_priprava_zadosti" class="form-label">Poznámka</label>
       {{ form.priprava_zadosti }}
     </div>
   </div>
   <hr>
-  {# 6. Kompletace podkladů #}
-  <div class="row g-3">
-    <div class="col-md-3">
-      <label for="id_kompletace_podkladu" class="form-label">Kompletace podkladů</label>
-    </div>
-    <div class="col-md-3">
+  <!-- Kompletace podkladů -->
+  <h6 class="mt-3 mb-2 text-warning">6. Kompletace podkladů</h6>
+  <div class="workflow-row">
+    <div>
       <label for="id_deadline_kompletace_podkladu" class="form-label">Deadline</label>
       {{ form.deadline_kompletace_podkladu }}
     </div>
-    <div class="col-md-3">
-      <label for="id_splneno_kompletace_podkladu" class="form-label">Datum splnění</label>
+    <div>
+      <label for="id_splneno_kompletace_podkladu" class="form-label">Splnění</label>
       {{ form.splneno_kompletace_podkladu }}
     </div>
-    <div class="col-md-3">
+    <div>
+      <label for="id_kompletace_podkladu" class="form-label">Poznámka</label>
       {{ form.kompletace_podkladu }}
     </div>
   </div>
   <hr>
-  {# 7. Podání žádosti #}
-  <div class="row g-3">
-    <div class="col-md-3">
-      <label for="id_podani_zadosti" class="form-label">Podání žádosti</label>
-    </div>
-    <div class="col-md-3">
+  <!-- Podání žádosti -->
+  <h6 class="mt-3 mb-2 text-warning">7. Podání žádosti</h6>
+  <div class="workflow-row">
+    <div>
       <label for="id_deadline_podani_zadosti" class="form-label">Deadline</label>
       {{ form.deadline_podani_zadosti }}
     </div>
-    <div class="col-md-3">
-      <label for="id_splneno_podani_zadosti" class="form-label">Datum splnění</label>
+    <div>
+      <label for="id_splneno_podani_zadosti" class="form-label">Splnění</label>
       {{ form.splneno_podani_zadosti }}
     </div>
-    <div class="col-md-3">
+    <div>
+      <label for="id_podani_zadosti" class="form-label">Poznámka</label>
       {{ form.podani_zadosti }}
     </div>
   </div>
   <hr>
-  {# 8. Odhad #}
-  <div class="row g-3">
-    <div class="col-md-3">
-      <label for="id_odhad" class="form-label">Odhad</label>
-    </div>
-    <div class="col-md-3">
+  <!-- Odhad -->
+  <h6 class="mt-3 mb-2 text-warning">8. Odhad</h6>
+  <div class="workflow-row">
+    <div>
       <label for="id_deadline_odhad" class="form-label">Deadline</label>
       {{ form.deadline_odhad }}
     </div>
-    <div class="col-md-3">
-      <label for="id_splneno_odhad" class="form-label">Datum splnění</label>
+    <div>
+      <label for="id_splneno_odhad" class="form-label">Splnění</label>
       {{ form.splneno_odhad }}
     </div>
-    <div class="col-md-3">
+    <div>
+      <label for="id_odhad" class="form-label">Poznámka</label>
       {{ form.odhad }}
     </div>
   </div>
   <hr>
-  {# 9. Schvalování #}
-  <div class="row g-3">
-    <div class="col-md-3">
-      <label for="id_schvalovani" class="form-label">Schvalování</label>
-    </div>
-    <div class="col-md-3">
+  <!-- Schvalování -->
+  <h6 class="mt-3 mb-2 text-warning">9. Schvalování</h6>
+  <div class="workflow-row">
+    <div>
       <label for="id_deadline_schvalovani" class="form-label">Deadline</label>
       {{ form.deadline_schvalovani }}
     </div>
-    <div class="col-md-3">
-      <label for="id_splneno_schvalovani" class="form-label">Datum splnění</label>
+    <div>
+      <label for="id_splneno_schvalovani" class="form-label">Splnění</label>
       {{ form.splneno_schvalovani }}
     </div>
-    <div class="col-md-3">
+    <div>
+      <label for="id_schvalovani" class="form-label">Poznámka</label>
       {{ form.schvalovani }}
     </div>
   </div>
   <hr>
-  {# 10. Příprava úvěrové dokumentace #}
-  <div class="row g-3">
-    <div class="col-md-3">
-      <label for="id_priprava_uverove_dokumentace" class="form-label">Příprava úvěrové dokumentace</label>
-    </div>
-    <div class="col-md-3">
+  <!-- Příprava úvěrové dokumentace -->
+  <h6 class="mt-3 mb-2 text-warning">10. Příprava úvěrové dokumentace</h6>
+  <div class="workflow-row">
+    <div>
       <label for="id_deadline_priprava_uverove_dokumentace" class="form-label">Deadline</label>
       {{ form.deadline_priprava_uverove_dokumentace }}
     </div>
-    <div class="col-md-3">
-      <label for="id_splneno_priprava_uverove_dokumentace" class="form-label">Datum splnění</label>
+    <div>
+      <label for="id_splneno_priprava_uverove_dokumentace" class="form-label">Splnění</label>
       {{ form.splneno_priprava_uverove_dokumentace }}
     </div>
-    <div class="col-md-3">
+    <div>
+      <label for="id_priprava_uverove_dokumentace" class="form-label">Poznámka</label>
       {{ form.priprava_uverove_dokumentace }}
     </div>
   </div>
   <hr>
-  {# 11. Podpis úvěrové dokumentace #}
-  <div class="row g-3">
-    <div class="col-md-3">
-      <label for="id_podpis_uverove_dokumentace" class="form-label">Podpis úvěrové dokumentace</label>
-    </div>
-    <div class="col-md-3">
+  <!-- Podpis úvěrové dokumentace -->
+  <h6 class="mt-3 mb-2 text-warning">11. Podpis úvěrové dokumentace</h6>
+  <div class="workflow-row">
+    <div>
       <label for="id_deadline_podpis_uverove_dokumentace" class="form-label">Deadline</label>
       {{ form.deadline_podpis_uverove_dokumentace }}
     </div>
-    <div class="col-md-3">
-      <label for="id_splneno_podpis_uverove_dokumentace" class="form-label">Datum splnění</label>
+    <div>
+      <label for="id_splneno_podpis_uverove_dokumentace" class="form-label">Splnění</label>
       {{ form.splneno_podpis_uverove_dokumentace }}
     </div>
-    <div class="col-md-3">
+    <div>
+      <label for="id_podpis_uverove_dokumentace" class="form-label">Poznámka</label>
       {{ form.podpis_uverove_dokumentace }}
     </div>
   </div>
   <hr>
-  {# 12. Příprava čerpání #}
-  <div class="row g-3">
-    <div class="col-md-3">
-      <label for="id_priprava_cerpani" class="form-label">Příprava čerpání</label>
-    </div>
-    <div class="col-md-3">
+  <!-- Příprava čerpání -->
+  <h6 class="mt-3 mb-2 text-warning">12. Příprava čerpání</h6>
+  <div class="workflow-row">
+    <div>
       <label for="id_deadline_priprava_cerpani" class="form-label">Deadline</label>
       {{ form.deadline_priprava_cerpani }}
     </div>
-    <div class="col-md-3">
-      <label for="id_splneno_priprava_cerpani" class="form-label">Datum splnění</label>
+    <div>
+      <label for="id_splneno_priprava_cerpani" class="form-label">Splnění</label>
       {{ form.splneno_priprava_cerpani }}
     </div>
-    <div class="col-md-3">
+    <div>
+      <label for="id_priprava_cerpani" class="form-label">Poznámka</label>
       {{ form.priprava_cerpani }}
     </div>
   </div>
   <hr>
-  {# 13. Čerpání #}
-  <div class="row g-3">
-    <div class="col-md-3">
-      <label for="id_cerpani" class="form-label">Čerpání</label>
-    </div>
-    <div class="col-md-3">
+  <!-- Čerpání -->
+  <h6 class="mt-3 mb-2 text-warning">13. Čerpání</h6>
+  <div class="workflow-row">
+    <div>
       <label for="id_deadline_cerpani" class="form-label">Deadline</label>
       {{ form.deadline_cerpani }}
     </div>
-    <div class="col-md-3">
-      <label for="id_splneno_cerpani" class="form-label">Datum splnění</label>
+    <div>
+      <label for="id_splneno_cerpani" class="form-label">Splnění</label>
       {{ form.splneno_cerpani }}
     </div>
-    <div class="col-md-3">
+    <div>
+      <label for="id_cerpani" class="form-label">Poznámka</label>
       {{ form.cerpani }}
     </div>
   </div>
   <hr>
-  {# 14. Zahájení splácení #}
-  <div class="row g-3">
-    <div class="col-md-3">
-      <label for="id_zahajeni_splaceni" class="form-label">Zahájení splácení</label>
-    </div>
-    <div class="col-md-3">
+  <!-- Zahájení splácení -->
+  <h6 class="mt-3 mb-2 text-warning">14. Zahájení splácení</h6>
+  <div class="workflow-row">
+    <div>
       <label for="id_deadline_zahajeni_splaceni" class="form-label">Deadline</label>
       {{ form.deadline_zahajeni_splaceni }}
     </div>
-    <div class="col-md-3">
-      <label for="id_splneno_zahajeni_splaceni" class="form-label">Datum splnění</label>
+    <div>
+      <label for="id_splneno_zahajeni_splaceni" class="form-label">Splnění</label>
       {{ form.splneno_zahajeni_splaceni }}
     </div>
-    <div class="col-md-3">
+    <div>
+      <label for="id_zahajeni_splaceni" class="form-label">Poznámka</label>
       {{ form.zahajeni_splaceni }}
     </div>
   </div>
   <hr>
-  {# 15. Podmínky pro splacení #}
-  <div class="row g-3">
-    <div class="col-md-3">
-      <label for="id_podminky_pro_splaceni" class="form-label">Podmínky pro splacení</label>
-    </div>
-    <div class="col-md-3">
+  <!-- Podmínky pro splacení -->
+  <h6 class="mt-3 mb-2 text-warning">15. Podmínky pro splacení</h6>
+  <div class="workflow-row">
+    <div>
       <label for="id_deadline_podminky_pro_splaceni" class="form-label">Deadline</label>
       {{ form.deadline_podminky_pro_splaceni }}
     </div>
-    <div class="col-md-3">
-      <label for="id_splneno_podminky_pro_splaceni" class="form-label">Datum splnění</label>
+    <div>
+      <label for="id_splneno_podminky_pro_splaceni" class="form-label">Splnění</label>
       {{ form.splneno_podminky_pro_splaceni }}
     </div>
-    <div class="col-md-3">
+    <div>
+      <label for="id_podminky_pro_splaceni" class="form-label">Poznámka</label>
       {{ form.podminky_pro_splaceni }}
     </div>
   </div>
@@ -366,6 +432,59 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
+});
+
+// Automatický výpočet financování: vlastní zdroj a LTV
+document.addEventListener('DOMContentLoaded', function() {
+  const cenaInput = document.getElementById('id_cena');
+  const hypoInput = document.getElementById('id_navrh_financovani_castka');
+  const vlastniInput = document.getElementById('id_vlastni_zdroj');
+  const ltvInput = document.getElementById('id_navrh_financovani_procento');
+
+  function calculateFinancing() {
+    const cena = parseFloat(cenaInput.value) || 0;
+    const hypo = parseFloat(hypoInput.value) || 0;
+
+    // Výpočet vlastního zdroje: cena - hypotéka
+    const vlastni = cena - hypo;
+    vlastniInput.value = vlastni > 0 ? vlastni.toFixed(2) : '';
+
+    // Výpočet LTV: (hypotéka / cena) * 100
+    const ltv = cena > 0 ? ((hypo / cena) * 100).toFixed(2) : '';
+    ltvInput.value = ltv !== '' ? ltv : '';
+  }
+
+  // Triggeruj výpočet když se změní cena nebo hypotéka
+  if (cenaInput) cenaInput.addEventListener('input', calculateFinancing);
+  if (hypoInput) hypoInput.addEventListener('input', calculateFinancing);
+
+  // Výpočet při načtení stránky
+  calculateFinancing();
+
+  // Automatický výpočet schválených financí
+  const schvalenaHypoInput = document.getElementById('id_schvalena_hypoetka_castka');
+  const schvalenyVlasniInput = document.getElementById('id_schvaleny_vlastni_zdroj');
+  const schvalenyLtvInput = document.getElementById('id_schvaleny_ltv_procento');
+
+  function calculateSchvaleneFinancing() {
+    const cena = parseFloat(cenaInput.value) || 0;  // Používáme cenu z návrhu financování
+    const hypo = parseFloat(schvalenaHypoInput.value) || 0;
+
+    // Výpočet vlastního zdroje: cena - hypotéka
+    const vlastni = cena - hypo;
+    schvalenyVlasniInput.value = vlastni > 0 ? vlastni.toFixed(2) : '';
+
+    // Výpočet LTV: (hypotéka / cena) * 100
+    const ltv = cena > 0 ? ((hypo / cena) * 100).toFixed(2) : '';
+    schvalenyLtvInput.value = ltv !== '' ? ltv : '';
+  }
+
+  // Triggeruj výpočet když se změní schválená hypotéka nebo cena
+  if (schvalenaHypoInput) schvalenaHypoInput.addEventListener('input', calculateSchvaleneFinancing);
+  if (cenaInput) cenaInput.addEventListener('input', calculateSchvaleneFinancing);
+
+  // Výpočet při načtení stránky
+  calculateSchvaleneFinancing();
 });
 </script>
 </div>

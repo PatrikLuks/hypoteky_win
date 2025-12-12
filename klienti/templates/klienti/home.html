@@ -362,6 +362,7 @@
     <!-- /Stránkování -->
 {% endif %}
 </div>
+{% if user_role != 'klient' %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {{ workflow_counts|json_script:"workflowCountsData" }}
 {{ workflow_sums|json_script:"workflowSumsData" }}
@@ -369,89 +370,187 @@
 {{ klientiTimeline|json_script:"klientiTimelineData" }}
 {{ objemTimeline|json_script:"objemTimelineData" }}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const workflowCounts = JSON.parse(document.getElementById('workflowCountsData').textContent);
-  const workflowSums = JSON.parse(document.getElementById('workflowSumsData').textContent);
-  const months = JSON.parse(document.getElementById('monthsData').textContent);
-  const klientiTimeline = JSON.parse(document.getElementById('klientiTimelineData').textContent);
-  const objemTimeline = JSON.parse(document.getElementById('objemTimelineData').textContent);
-  const ctxPie = document.getElementById('workflowPieChart');
-  const ctxBar = document.getElementById('workflowBarChart');
-  const ctxLine = document.getElementById('klientiLineChart');
-  const ctxObjem = document.getElementById('objemLineChart');
-  if (!ctxPie) { console.warn('Canvas workflowPieChart nenalezen!'); }
-  if (!ctxBar) { console.warn('Canvas workflowBarChart nenalezen!'); }
-  if (!ctxLine) { console.warn('Canvas klientiLineChart nenalezen!'); }
-  if (!ctxObjem) { console.warn('Canvas objemLineChart nenalezen!'); }
-  // Kontrola dat
-  if (typeof workflowCounts === 'undefined') { console.warn('workflowCounts není definováno!'); }
-  if (typeof workflowSums === 'undefined' ) { console.warn('workflowSums není definováno!'); }
-  if (typeof months === 'undefined' ) { console.warn('months není definováno!'); }
-  if (typeof klientiTimeline === 'undefined' ) { console.warn('klientiTimeline není definováno!'); }
-  if (typeof objemTimeline === 'undefined' ) { console.warn('objemTimeline není definováno!'); }
-  // Pokud vše existuje, vykresli grafy
-  if (ctxPie && ctxBar && ctxLine && ctxObjem && typeof workflowCounts !== 'undefined' && typeof workflowSums !== 'undefined' && typeof months !== 'undefined' && typeof klientiTimeline !== 'undefined' && typeof objemTimeline !== 'undefined') {
+(function() {
+  // Singleton - zabrání vícenásobnému vykreslení
+  if (window._chartsInitialized) return;
+  window._chartsInitialized = true;
+  
+  // Uložení instancí grafů pro případné zničení
+  let chartInstances = {};
+  
+  function destroyExistingCharts() {
+    Object.values(chartInstances).forEach(chart => {
+      if (chart && typeof chart.destroy === 'function') {
+        chart.destroy();
+      }
+    });
+    chartInstances = {};
+  }
+  
+  function initCharts() {
+    // Zničit existující grafy před vytvořením nových
+    destroyExistingCharts();
+    
+    // Bezpečné načtení dat
+    const getJsonData = (id) => {
+      const el = document.getElementById(id);
+      if (!el) return null;
+      try {
+        return JSON.parse(el.textContent);
+      } catch (e) {
+        console.warn('Chyba při parsování dat ' + id + ':', e);
+        return null;
+      }
+    };
+    
+    const workflowCounts = getJsonData('workflowCountsData');
+    const workflowSums = getJsonData('workflowSumsData');
+    const months = getJsonData('monthsData');
+    const klientiTimeline = getJsonData('klientiTimelineData');
+    const objemTimeline = getJsonData('objemTimelineData');
+    
+    const ctxPie = document.getElementById('workflowPieChart');
+    const ctxBar = document.getElementById('workflowBarChart');
+    const ctxLine = document.getElementById('klientiLineChart');
+    const ctxObjem = document.getElementById('objemLineChart');
+    
+    // Kontrola, zda máme všechna potřebná data a elementy
+    if (!ctxPie || !ctxBar || !ctxLine || !ctxObjem) {
+      console.warn('Některé canvas elementy nebyly nalezeny');
+      return;
+    }
+    
+    if (!workflowCounts || !workflowSums || !months || !klientiTimeline || !objemTimeline) {
+      console.warn('Některá data pro grafy nejsou dostupná');
+      return;
+    }
+    
     const workflowLabels = [
-      'Jméno klienta', 'Co chce klient financovat', 'Návrh financování', 'Výběr banky', 'Příprava žádosti',
-      'Kompletace podkladů', 'Podání žádosti', 'Odhad', 'Schvalování', 'Příprava úvěrové dokumentace',
-      'Podpis úvěrové dokumentace', 'Příprava čerpání', 'Čerpání', 'Zahájení splácení', 'Podmínky pro vyčerpání', 'Hotovo'
+      'Jméno klienta', 'Co chce klient financovat', 'Návrh financování', 'Výběr banky', 'Schválené financování',
+      'Příprava žádosti', 'Kompletace podkladů', 'Podání žádosti', 'Odhad', 'Schvalování', 'Příprava úvěrové dokumentace',
+      'Podpis úvěrové dokumentace', 'Příprava čerpání', 'Čerpání', 'Zahájení splácení', 'Podmínky pro splacení', 'Hotovo'
     ];
+    
     const pieColors = [
-      '#0A192F', // tmavě modrá (luxusní základ)
-      '#FFD700', // zlatá (jasná, kontrastní)
-      '#BFA76F', // tmavší champagne (lepší kontrast)
-      '#23272B', // tmavě šedá
-      '#E5E4E2', // světle šedá místo bílé (lepší kontrast)
-      '#50C878', // smaragdová (jasná)
-      '#0F52BA', // safírová (sytá)
-      '#C0C0C0', // stříbrná
-      '#800020', // vínová (tmavá)
-      '#2E8B57', // tmavě zelená (lepší kontrast)
-      '#6C3483', // tmavě fialová (sytější)
-      '#B2BABB', // platinová (světle šedá, kontrastní)
-      '#B76E79', // růžové zlato
-      '#CD7F32', // bronzová
-      '#5DADE2'  // ledově modrá (jasnější)
+      '#0A192F', '#FFD700', '#BFA76F', '#23272B', '#E5E4E2',
+      '#50C878', '#0F52BA', '#C0C0C0', '#800020', '#2E8B57',
+      '#6C3483', '#B2BABB', '#B76E79', '#CD7F32', '#5DADE2',
+      '#9B59B6', '#1ABC9C'
     ];
-    const barColors = pieColors;
-    new Chart(ctxPie, {
+    
+    // Společné nastavení pro všechny grafy
+    const commonOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: {
+        duration: 600,
+        easing: 'easeOutQuart'
+      }
+    };
+    
+    // Pie chart
+    chartInstances.pie = new Chart(ctxPie, {
       type: 'pie',
       data: {
-        labels: workflowLabels, // bez slice(1)
+        labels: workflowLabels,
         datasets: [{ data: workflowCounts, backgroundColor: pieColors }]
       },
       options: {
-        plugins: {legend: {position: 'bottom', labels: {color: '#FFD700'}}},
-        responsive: true,
+        ...commonOptions,
         aspectRatio: 1.2,
-        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: '#FFD700', font: { size: 11 } }
+          }
+        }
       }
     });
-    new Chart(ctxBar, {
+    
+    // Bar chart
+    chartInstances.bar = new Chart(ctxBar, {
       type: 'bar',
       data: {
         labels: workflowLabels.slice(1),
-        datasets: [{ label: 'Objem hypoték (Kč)', data: workflowSums.slice(1), backgroundColor: '#FFD700', borderColor: '#FFD700', borderWidth: 1 }]
+        datasets: [{
+          label: 'Objem hypoték (Kč)',
+          data: workflowSums.slice(1),
+          backgroundColor: '#FFD700',
+          borderColor: '#FFD700',
+          borderWidth: 1
+        }]
       },
-      options: {plugins: {legend: {display: false}}, scales: {y: {beginAtZero: true}}}
+      options: {
+        ...commonOptions,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { color: '#FFD700' } },
+          x: { ticks: { color: '#FFD700', maxRotation: 45, minRotation: 45 } }
+        }
+      }
     });
-    new Chart(ctxLine, {
+    
+    // Line chart - počet klientů
+    chartInstances.line = new Chart(ctxLine, {
       type: 'line',
       data: {
         labels: months,
-        datasets: [{ label: 'Počet klientů', data: klientiTimeline, borderColor: '#FFD700', backgroundColor: 'rgba(255,215,0,0.15)', tension: 0.3, fill: true }]
+        datasets: [{
+          label: 'Počet klientů',
+          data: klientiTimeline,
+          borderColor: '#FFD700',
+          backgroundColor: 'rgba(255,215,0,0.15)',
+          tension: 0.3,
+          fill: true,
+          pointRadius: 4,
+          pointHoverRadius: 6
+        }]
       },
-      options: {plugins: {legend: {display: false}}}
+      options: {
+        ...commonOptions,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { color: '#FFD700' } },
+          x: { ticks: { color: '#FFD700' } }
+        }
+      }
     });
-    new Chart(ctxObjem, {
+    
+    // Line chart - objem
+    chartInstances.objem = new Chart(ctxObjem, {
       type: 'line',
       data: {
         labels: months,
-        datasets: [{ label: 'Objem hypoték (Kč)', data: objemTimeline, borderColor: '#FFD700', backgroundColor: 'rgba(255,215,0,0.15)', tension: 0.3, fill: true }]
+        datasets: [{
+          label: 'Objem hypoték (Kč)',
+          data: objemTimeline,
+          borderColor: '#FFD700',
+          backgroundColor: 'rgba(255,215,0,0.15)',
+          tension: 0.3,
+          fill: true,
+          pointRadius: 4,
+          pointHoverRadius: 6
+        }]
       },
-      options: {plugins: {legend: {display: false}}}
+      options: {
+        ...commonOptions,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { color: '#FFD700' } },
+          x: { ticks: { color: '#FFD700' } }
+        }
+      }
     });
   }
-});
+  
+  // Inicializace po načtení DOM
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCharts);
+  } else {
+    // DOM již načten
+    initCharts();
+  }
+})();
 </script>
+{% endif %}
 {% endblock %}

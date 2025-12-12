@@ -69,12 +69,20 @@ class KlientForm(forms.ModelForm):
             "deadline_co_financuje",
             "splneno_co_financuje",
             "navrh_financovani",
+            "navrh_financovani_castka",
+            "vlastni_zdroj",
             "navrh_financovani_procento",
             "deadline_navrh_financovani",
             "splneno_navrh_financovani",
             "vyber_banky",
             "deadline_vyber_banky",
             "splneno_vyber_banky",
+            "schvalene_financovani",
+            "schvalena_hypoetka_castka",
+            "schvaleny_vlastni_zdroj",
+            "schvaleny_ltv_procento",
+            "deadline_schvalene_financovani",
+            "splneno_schvalene_financovani",
             "priprava_zadosti",
             "deadline_priprava_zadosti",
             "splneno_priprava_zadosti",
@@ -123,18 +131,64 @@ class KlientForm(forms.ModelForm):
                     "class": "form-control",
                 }
             ),
+            "navrh_financovani_castka": forms.NumberInput(
+                attrs={
+                    "step": "0.01",
+                    "min": "0",
+                    "placeholder": "Výpočet: cena - vlastní zdroj",
+                    "class": "form-control",
+                }
+            ),
+            "vlastni_zdroj": forms.NumberInput(
+                attrs={
+                    "step": "0.01",
+                    "min": "0",
+                    "placeholder": "Výpočet: cena - hypotéka",
+                    "class": "form-control",
+                    "readonly": True,
+                }
+            ),
             "navrh_financovani_procento": forms.NumberInput(
                 attrs={
                     "step": "0.01",
                     "min": "0",
                     "max": "100",
-                    "placeholder": "např. 80",
+                    "placeholder": "LTV: (hypotéka/cena)*100",
                     "class": "form-control",
+                    "readonly": True,
                 }
             ),
             "co_financuje": forms.TextInput(attrs={"class": "form-control"}),
             "navrh_financovani": forms.TextInput(attrs={"class": "form-control"}),
             "vyber_banky": forms.TextInput(attrs={"class": "form-control"}),
+            "schvalene_financovani": forms.TextInput(attrs={"class": "form-control"}),
+            "schvalena_hypoetka_castka": forms.NumberInput(
+                attrs={
+                    "step": "0.01",
+                    "min": "0",
+                    "placeholder": "Schválená výše hypotéky",
+                    "class": "form-control",
+                }
+            ),
+            "schvaleny_vlastni_zdroj": forms.NumberInput(
+                attrs={
+                    "step": "0.01",
+                    "min": "0",
+                    "placeholder": "Výpočet: cena - hypotéka",
+                    "class": "form-control",
+                    "readonly": True,
+                }
+            ),
+            "schvaleny_ltv_procento": forms.NumberInput(
+                attrs={
+                    "step": "0.01",
+                    "min": "0",
+                    "max": "100",
+                    "placeholder": "LTV: (hypotéka/cena)*100",
+                    "class": "form-control",
+                    "readonly": True,
+                }
+            ),
             "priprava_zadosti": forms.Textarea(
                 attrs={"class": "form-control", "rows": 2, "placeholder": "poznámka"}
             ),
@@ -177,6 +231,9 @@ class KlientForm(forms.ModelForm):
             "deadline_vyber_banky": forms.DateInput(
                 attrs={"type": "date", "class": "form-control"}
             ),
+            "deadline_schvalene_financovani": forms.DateInput(
+                attrs={"type": "date", "class": "form-control"}
+            ),
             "deadline_priprava_zadosti": forms.DateInput(
                 attrs={"type": "date", "class": "form-control"}
             ),
@@ -217,6 +274,9 @@ class KlientForm(forms.ModelForm):
                 attrs={"type": "date", "class": "form-control"}
             ),
             "splneno_vyber_banky": forms.DateInput(
+                attrs={"type": "date", "class": "form-control"}
+            ),
+            "splneno_schvalene_financovani": forms.DateInput(
                 attrs={"type": "date", "class": "form-control"}
             ),
             "splneno_priprava_zadosti": forms.DateInput(
@@ -281,6 +341,7 @@ class KlientForm(forms.ModelForm):
             "co_financuje",
             "navrh_financovani",
             "vyber_banky",
+            "schvalene_financovani",
             "priprava_zadosti",
             "kompletace_podkladu",
             "podani_zadosti",
@@ -337,19 +398,20 @@ def klient_create(request):
             klient.deadline_co_financuje = base_date + timedelta(days=7)
             klient.deadline_navrh_financovani = base_date + timedelta(days=14)
             klient.deadline_vyber_banky = base_date + timedelta(days=21)
-            klient.deadline_priprava_zadosti = base_date + timedelta(days=28)
-            klient.deadline_kompletace_podkladu = base_date + timedelta(days=35)
-            klient.deadline_podani_zadosti = base_date + timedelta(days=42)
-            klient.deadline_odhad = base_date + timedelta(days=49)
-            klient.deadline_schvalovani = base_date + timedelta(days=56)
+            klient.deadline_schvalene_financovani = base_date + timedelta(days=28)
+            klient.deadline_priprava_zadosti = base_date + timedelta(days=35)
+            klient.deadline_kompletace_podkladu = base_date + timedelta(days=42)
+            klient.deadline_podani_zadosti = base_date + timedelta(days=49)
+            klient.deadline_odhad = base_date + timedelta(days=56)
+            klient.deadline_schvalovani = base_date + timedelta(days=63)
             klient.deadline_priprava_uverove_dokumentace = base_date + timedelta(
-                days=63
+                days=70
             )
-            klient.deadline_podpis_uverove_dokumentace = base_date + timedelta(days=70)
-            klient.deadline_priprava_cerpani = base_date + timedelta(days=77)
-            klient.deadline_cerpani = base_date + timedelta(days=84)
-            klient.deadline_zahajeni_splaceni = base_date + timedelta(days=91)
-            klient.deadline_podminky_pro_splaceni = base_date + timedelta(days=98)
+            klient.deadline_podpis_uverove_dokumentace = base_date + timedelta(days=77)
+            klient.deadline_priprava_cerpani = base_date + timedelta(days=84)
+            klient.deadline_cerpani = base_date + timedelta(days=91)
+            klient.deadline_zahajeni_splaceni = base_date + timedelta(days=98)
+            klient.deadline_podminky_pro_splaceni = base_date + timedelta(days=105)
             klient.save()
             # Audit log - vytvoření klienta
             from .models import Zmena
@@ -368,17 +430,18 @@ def klient_create(request):
             "deadline_co_financuje": today + timedelta(days=7),
             "deadline_navrh_financovani": today + timedelta(days=14),
             "deadline_vyber_banky": today + timedelta(days=21),
-            "deadline_priprava_zadosti": today + timedelta(days=28),
-            "deadline_kompletace_podkladu": today + timedelta(days=35),
-            "deadline_podani_zadosti": today + timedelta(days=42),
-            "deadline_odhad": today + timedelta(days=49),
-            "deadline_schvalovani": today + timedelta(days=56),
-            "deadline_priprava_uverove_dokumentace": today + timedelta(days=63),
-            "deadline_podpis_uverove_dokumentace": today + timedelta(days=70),
-            "deadline_priprava_cerpani": today + timedelta(days=77),
-            "deadline_cerpani": today + timedelta(days=84),
-            "deadline_zahajeni_splaceni": today + timedelta(days=91),
-            "deadline_podminky_pro_splaceni": today + timedelta(days=98),
+            "deadline_schvalene_financovani": today + timedelta(days=28),
+            "deadline_priprava_zadosti": today + timedelta(days=35),
+            "deadline_kompletace_podkladu": today + timedelta(days=42),
+            "deadline_podani_zadosti": today + timedelta(days=49),
+            "deadline_odhad": today + timedelta(days=56),
+            "deadline_schvalovani": today + timedelta(days=63),
+            "deadline_priprava_uverove_dokumentace": today + timedelta(days=70),
+            "deadline_podpis_uverove_dokumentace": today + timedelta(days=77),
+            "deadline_priprava_cerpani": today + timedelta(days=84),
+            "deadline_cerpani": today + timedelta(days=91),
+            "deadline_zahajeni_splaceni": today + timedelta(days=98),
+            "deadline_podminky_pro_splaceni": today + timedelta(days=105),
         }
         klient_form = KlientForm(initial=initial)
     return render(request, "klienti/klient_form.html", {"form": klient_form})
@@ -534,6 +597,11 @@ def home(request):
             "splneno_navrh_financovani",
         ),
         ("vyber_banky", "deadline_vyber_banky", "splneno_vyber_banky"),
+        (
+            "schvalene_financovani",
+            "deadline_schvalene_financovani",
+            "splneno_schvalene_financovani",
+        ),
         ("priprava_zadosti", "deadline_priprava_zadosti", "splneno_priprava_zadosti"),
         (
             "kompletace_podkladu",
@@ -590,14 +658,14 @@ def home(request):
             )
     klienti_deadlines = sorted(klienti_deadlines, key=lambda x: x["deadline"])
 
-    workflow_counts = [0] * 16
-    workflow_sums = [0] * 16
+    workflow_counts = [0] * 17
+    workflow_sums = [0] * 17
     for k in klienti_page:
         progress = k.get_workflow_progress
         idx = (
             progress["prvni_nesplneny_krok_index"] + 1
             if progress["prvni_nesplneny_krok_index"] is not None
-            else 15
+            else 16
         )
         workflow_counts[idx] += 1
         workflow_sums[idx] += float(k.navrh_financovani_castka or 0)
@@ -653,6 +721,7 @@ def dashboard(request):
             "deadline_co_financuje",
             "deadline_navrh_financovani",
             "deadline_vyber_banky",
+            "deadline_schvalene_financovani",
             "deadline_priprava_zadosti",
             "deadline_kompletace_podkladu",
             "deadline_podani_zadosti",
@@ -722,6 +791,7 @@ def dashboard(request):
         "co_financuje",
         "navrh_financovani",
         "vyber_banky",
+        "schvalene_financovani",
         "priprava_zadosti",
         "kompletace_podkladu",
         "podani_zadosti",
@@ -735,14 +805,14 @@ def dashboard(request):
         "podminky_pro_splaceni",
         "hotovo",
     ]
-    workflow_counts = [0] * 16
-    workflow_sums = [0] * 16
+    workflow_counts = [0] * 17
+    workflow_sums = [0] * 17
     for k in klienti:
         progress = k.get_workflow_progress
         idx = (
             progress["prvni_nesplneny_krok_index"] + 1
             if progress["prvni_nesplneny_krok_index"] is not None
-            else 15
+            else 16
         )
         workflow_counts[idx] += 1
         workflow_sums[idx] += float(k.navrh_financovani_castka or 0)
@@ -819,6 +889,7 @@ def export_klient_ical(request, pk):
         ("Co chce klient financovat", klient.deadline_co_financuje),
         ("Návrh financování", klient.deadline_navrh_financovani),
         ("Výběr banky", klient.deadline_vyber_banky),
+        ("Schválené financování", klient.deadline_schvalene_financovani),
         ("Příprava žádosti", klient.deadline_priprava_zadosti),
         ("Kompletace podkladů", klient.deadline_kompletace_podkladu),
         ("Podání žádosti", klient.deadline_podani_zadosti),

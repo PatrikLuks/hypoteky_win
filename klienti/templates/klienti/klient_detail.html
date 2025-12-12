@@ -4,55 +4,104 @@
 {% block content %}
 <div class="container-fluid" role="main" aria-label="Hlavní obsah">
 <h1 class="mb-4"><i class="fa fa-user text-primary"></i> Detail klienta
-  <span class="badge" style="background-color: #003366; color: #fff;">Klient</span> {# a11y: vysoký kontrast badge #}
+  <span class="badge" style="background-color: #003366; color: #fff;">Klient</span>
 </h1>
+
+<h4 class="mb-3"><i class="fa fa-info-circle text-primary"></i> Základní informace</h4>
 <table class="table table-bordered mb-4 table-striped">
   <tr><th>Jméno klienta</th><td>{{ klient.jmeno }}</td></tr>
   <tr><th>Datum založení</th><td>{{ klient.datum|date:"d.m.Y" }}</td></tr>
-  <tr><th>Co financuje</th><td>{{ klient.co_financuje }}</td></tr>
-  <tr><th>Cena</th><td>{{ klient.cena|floatformat:0 }} Kč</td></tr>
-  <tr><th>Návrh financování</th><td>{{ klient.navrh_financovani }}</td></tr>
-  <tr><th>Návrh financování (částka)</th><td>{% if klient.navrh_financovani_castka %}{{ klient.navrh_financovani_castka|floatformat:0 }} Kč{% else %}-{% endif %}</td></tr>
-  <tr><th>Návrh financování (%)</th><td>{% if klient.navrh_financovani_procento %}{{ klient.navrh_financovani_procento|floatformat:2 }} %{% else %}-{% endif %}</td></tr>
-  <tr><th>Výběr banky</th><td>{{ klient.vyber_banky }}</td></tr>
-  <tr><th>Příprava žádosti</th><td>{{ klient.priprava_zadosti }}</td></tr>
-  <tr><th>Kompletace podkladů</th><td>{{ klient.kompletace_podkladu }}</td></tr>
-  <tr><th>Podání žádosti</th><td>{{ klient.podani_zadosti }}</td></tr>
-  <tr><th>Odhad</th><td>{{ klient.odhad }}</td></tr>
-  <tr><th>Schvalování</th><td>{{ klient.schvalovani }}</td></tr>
-  <tr><th>Příprava úvěrové dokumentace</th><td>{{ klient.priprava_uverove_dokumentace }}</td></tr>
-  <tr><th>Podpis úvěrové dokumentace</th><td>{{ klient.podpis_uverove_dokumentace }}</td></tr>
-  <tr><th>Příprava čerpání</th><td>{{ klient.priprava_cerpani }}</td></tr>
-  <tr><th>Čerpání</th><td>{{ klient.cerpani }}</td></tr>
-  <tr><th>Zahájení splácení</th><td>{{ klient.zahajeni_splaceni }}</td></tr>
-  <tr><th>Podmínky pro splacení</th><td>{{ klient.podminky_pro_splaceni }}</td></tr>
+  <tr><th>Co financuje</th><td>{{ klient.co_financuje|default:"-" }}</td></tr>
 </table>
+
+<h4 class="mb-3"><i class="fa fa-money-bill-wave text-success"></i> Návrh financování</h4>
+<table class="table table-bordered mb-4 table-striped">
+  <tr><th>Cena nemovitosti</th><td>{% if klient.cena %}{{ klient.cena|floatformat:0 }} Kč{% else %}-{% endif %}</td></tr>
+  <tr><th>Výše hypotéky</th><td>{% if klient.navrh_financovani_castka %}{{ klient.navrh_financovani_castka|floatformat:0 }} Kč{% else %}-{% endif %}</td></tr>
+  <tr><th>Vlastní zdroj</th><td>{% if klient.vlastni_zdroj %}{{ klient.vlastni_zdroj|floatformat:0 }} Kč{% else %}-{% endif %}</td></tr>
+  <tr><th>LTV (%)</th><td>{% if klient.navrh_financovani_procento %}{{ klient.navrh_financovani_procento|floatformat:2 }} %{% else %}-{% endif %}</td></tr>
+</table>
+
+<h4 class="mb-3"><i class="fa fa-university text-info"></i> Výběr banky a schválené financování</h4>
+<table class="table table-bordered mb-4 table-striped">
+  <tr><th>Výběr banky</th><td>{{ klient.vyber_banky|default:"-" }}</td></tr>
+  <tr><th>Schválená výše hypotéky</th><td>{% if klient.schvalena_hypoetka_castka %}{{ klient.schvalena_hypoetka_castka|floatformat:0 }} Kč{% else %}-{% endif %}</td></tr>
+  <tr><th>Schválený vlastní zdroj</th><td>{% if klient.schvaleny_vlastni_zdroj %}{{ klient.schvaleny_vlastni_zdroj|floatformat:0 }} Kč{% else %}-{% endif %}</td></tr>
+  <tr><th>Schválené LTV (%)</th><td>{% if klient.schvaleny_ltv_procento %}{{ klient.schvaleny_ltv_procento|floatformat:2 }} %{% else %}-{% endif %}</td></tr>
+</table>
+
+{% if klient.duvod_zamitnuti %}
+<div class="alert alert-danger mb-4">
+  <h5><i class="fa fa-exclamation-triangle"></i> Hypotéka zamítnuta</h5>
+  <p class="mb-0"><strong>Důvod:</strong> {{ klient.duvod_zamitnuti }}</p>
+</div>
+{% endif %}
+
 <h4 class="mb-3"><i class="fa fa-calendar-alt text-secondary"></i> Deadliny a data splnění jednotlivých kroků</h4>
 <table class="table table-sm table-striped">
   <thead class="table-light">
     <tr>
+      <th>#</th>
       <th>Krok</th>
       <th>Deadline</th>
       <th>Datum splnění</th>
+      <th>Poznámky</th>
     </tr>
   </thead>
   <tbody>
-    <tr><td>Co chce klient financovat</td><td>{{ klient.deadline_co_financuje|date:"d.m.Y" }}</td><td>{{ klient.splneno_co_financuje|date:"d.m.Y" }}</td></tr>
-    <tr><td>Návrh financování</td><td>{{ klient.deadline_navrh_financovani|date:"d.m.Y" }}</td><td>{{ klient.splneno_navrh_financovani|date:"d.m.Y" }}</td></tr>
-    <tr><td>Výběr banky</td><td>{{ klient.deadline_vyber_banky|date:"d.m.Y" }}</td><td>{{ klient.splneno_vyber_banky|date:"d.m.Y" }}</td></tr>
-    <tr><td>Příprava žádosti</td><td>{{ klient.deadline_priprava_zadosti|date:"d.m.Y" }}</td><td>{{ klient.splneno_priprava_zadosti|date:"d.m.Y" }}</td></tr>
-    <tr><td>Kompletace podkladů</td><td>{{ klient.deadline_kompletace_podkladu|date:"d.m.Y" }}</td><td>{{ klient.splneno_kompletace_podkladu|date:"d.m.Y" }}</td></tr>
-    <tr><td>Podání žádosti</td><td>{{ klient.deadline_podani_zadosti|date:"d.m.Y" }}</td><td>{{ klient.splneno_podani_zadosti|date:"d.m.Y" }}</td></tr>
-    <tr><td>Odhad</td><td>{{ klient.deadline_odhad|date:"d.m.Y" }}</td><td>{{ klient.splneno_odhad|date:"d.m.Y" }}</td></tr>
-    <tr><td>Schvalování</td><td>{{ klient.deadline_schvalovani|date:"d.m.Y" }}</td><td>{{ klient.splneno_schvalovani|date:"d.m.Y" }}</td></tr>
-    <tr><td>Příprava úvěrové dokumentace</td><td>{{ klient.deadline_priprava_uverove_dokumentace|date:"d.m.Y" }}</td><td>{{ klient.splneno_priprava_uverove_dokumentace|date:"d.m.Y" }}</td></tr>
-    <tr><td>Podpis úvěrové dokumentace</td><td>{{ klient.deadline_podpis_uverove_dokumentace|date:"d.m.Y" }}</td><td>{{ klient.splneno_podpis_uverove_dokumentace|date:"d.m.Y" }}</td></tr>
-    <tr><td>Příprava čerpání</td><td>{{ klient.deadline_priprava_cerpani|date:"d.m.Y" }}</td><td>{{ klient.splneno_priprava_cerpani|date:"d.m.Y" }}</td></tr>
-    <tr><td>Čerpání</td><td>{{ klient.deadline_cerpani|date:"d.m.Y" }}</td><td>{{ klient.splneno_cerpani|date:"d.m.Y" }}</td></tr>
-    <tr><td>Zahájení splácení</td><td>{{ klient.deadline_zahajeni_splaceni|date:"d.m.Y" }}</td><td>{{ klient.splneno_zahajeni_splaceni|date:"d.m.Y" }}</td></tr>
-    <tr><td>Podmínky pro splacení</td><td>{{ klient.deadline_podminky_pro_splaceni|date:"d.m.Y" }}</td><td>{{ klient.splneno_podminky_pro_splaceni|date:"d.m.Y" }}</td></tr>
+    <tr><td>1</td><td>Co chce klient financovat</td><td>{{ klient.deadline_co_financuje|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.splneno_co_financuje|date:"d.m.Y"|default:"-" }}</td><td>-</td></tr>
+    <tr><td>2</td><td>Návrh financování</td><td>{{ klient.deadline_navrh_financovani|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.splneno_navrh_financovani|date:"d.m.Y"|default:"-" }}</td><td>-</td></tr>
+    <tr><td>3</td><td>Výběr banky</td><td>{{ klient.deadline_vyber_banky|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.splneno_vyber_banky|date:"d.m.Y"|default:"-" }}</td><td>-</td></tr>
+    <tr><td>4</td><td>Schválené financování</td><td>{{ klient.deadline_schvalene_financovani|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.splneno_schvalene_financovani|date:"d.m.Y"|default:"-" }}</td><td>-</td></tr>
+    <tr><td>5</td><td>Příprava žádosti</td><td>{{ klient.deadline_priprava_zadosti|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.splneno_priprava_zadosti|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.priprava_zadosti|default:"-" }}</td></tr>
+    <tr><td>6</td><td>Kompletace podkladů</td><td>{{ klient.deadline_kompletace_podkladu|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.splneno_kompletace_podkladu|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.kompletace_podkladu|default:"-" }}</td></tr>
+    <tr><td>7</td><td>Podání žádosti</td><td>{{ klient.deadline_podani_zadosti|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.splneno_podani_zadosti|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.podani_zadosti|default:"-" }}</td></tr>
+    <tr><td>8</td><td>Odhad</td><td>{{ klient.deadline_odhad|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.splneno_odhad|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.odhad|default:"-" }}</td></tr>
+    <tr><td>9</td><td>Schvalování</td><td>{{ klient.deadline_schvalovani|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.splneno_schvalovani|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.schvalovani|default:"-" }}</td></tr>
+    <tr><td>10</td><td>Příprava úvěrové dokumentace</td><td>{{ klient.deadline_priprava_uverove_dokumentace|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.splneno_priprava_uverove_dokumentace|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.priprava_uverove_dokumentace|default:"-" }}</td></tr>
+    <tr><td>11</td><td>Podpis úvěrové dokumentace</td><td>{{ klient.deadline_podpis_uverove_dokumentace|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.splneno_podpis_uverove_dokumentace|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.podpis_uverove_dokumentace|default:"-" }}</td></tr>
+    <tr><td>12</td><td>Příprava čerpání</td><td>{{ klient.deadline_priprava_cerpani|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.splneno_priprava_cerpani|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.priprava_cerpani|default:"-" }}</td></tr>
+    <tr><td>13</td><td>Čerpání</td><td>{{ klient.deadline_cerpani|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.splneno_cerpani|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.cerpani|default:"-" }}</td></tr>
+    <tr><td>14</td><td>Zahájení splácení</td><td>{{ klient.deadline_zahajeni_splaceni|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.splneno_zahajeni_splaceni|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.zahajeni_splaceni|default:"-" }}</td></tr>
+    <tr><td>15</td><td>Podmínky pro splacení</td><td>{{ klient.deadline_podminky_pro_splaceni|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.splneno_podminky_pro_splaceni|date:"d.m.Y"|default:"-" }}</td><td>{{ klient.podminky_pro_splaceni|default:"-" }}</td></tr>
   </tbody>
 </table>
+
+<h4 class="mt-4"><i class="fa fa-route text-secondary"></i> Průběh workflow</h4>
+<div class="mb-4">
+  <div class="d-flex flex-row flex-nowrap overflow-auto" style="gap: 1.5rem;">
+    {% for step in workflow_steps %}
+      <div class="text-center {% if forloop.counter0 == aktivni_krok %}border border-3 border-primary shadow bg-white{% endif %}"
+           style="min-width: 120px; border-radius: 12px; padding: 4px 0 8px 0; position: relative;">
+        {% if step.splneno %}
+          <div class="rounded-circle bg-success text-white mx-auto mb-1"
+               style="width: 36px; height: 36px; line-height: 36px; font-size: 1.2em;"
+               data-bs-toggle="tooltip" data-bs-placement="top"
+               title="Krok splněn: {{ step.nazev }}{% if step.datum %} ({{ step.datum|date:'d.m.Y' }}){% endif %}">
+            <i class="fa fa-check"></i>
+          </div>
+        {% else %}
+          <div class="rounded-circle mx-auto mb-1 bg-light border text-secondary"
+            style="width: 36px; height: 36px; line-height: 36px; font-size: 1.2em; position: relative;"
+            data-bs-toggle="tooltip" data-bs-placement="top"
+            title="{{ step.nazev }}">
+            <i class="fa fa-circle"></i>
+          </div>
+        {% endif %}
+        <div style="font-size: 0.95em; color: #fff; background: #23272b; padding: 2px 4px; border-radius: 4px;">{{ step.nazev }}</div>
+        <div class="small text-muted">
+          {% if step.datum %}
+            <span class="text-success fw-bold">{{ step.datum|date:"d.m.Y" }}</span>
+          {% endif %}
+        </div>
+      </div>
+      {% if not forloop.last %}
+        <div class="align-self-center" style="width: 32px; height: 2px; background: #bbb;"></div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+
 <h4 class="mt-4"><i class="fa fa-sticky-note text-secondary"></i> Poznámky ke klientovi</h4>
 <div class="mb-3">
   <form method="post" class="mb-2">
@@ -82,6 +131,7 @@
     <div class="text-muted">Žádné poznámky.</div>
   {% endif %}
 </div>
+
 <h4 class="mt-4"><i class="fa fa-history text-secondary"></i> Historie změn (auditní log)</h4>
 <table class="table table-sm table-striped">
   <thead class="table-light">
@@ -103,41 +153,7 @@
     {% endfor %}
   </tbody>
 </table>
-<h4 class="mt-4"><i class="fa fa-route text-secondary"></i> Průběh workflow</h4>
-<div class="mb-4">
-  <div class="d-flex flex-row flex-nowrap overflow-auto" style="gap: 1.5rem;">
-    {% comment %} Timeline workflow bez bloku with, pouze for cyklus {% endcomment %}
-    {% for step in workflow_steps %}
-      <div class="text-center {% if forloop.counter0 == aktivni_krok %}border border-3 border-primary shadow bg-white{% endif %}"
-           style="min-width: 120px; border-radius: 12px; padding: 4px 0 8px 0; position: relative;">
-        {% if step.splneno %}
-          <div class="rounded-circle bg-success text-white mx-auto mb-1"
-               style="width: 36px; height: 36px; line-height: 36px; font-size: 1.2em;"
-               data-bs-toggle="tooltip" data-bs-placement="top"
-               title="Krok splněn\n{{ step.nazev }}\n{% if step.datum %}Splněno: {{ step.datum|date:'d.m.Y' }}{% endif %}">
-            <i class="fa fa-check"></i>
-          </div>
-        {% else %}
-          <div class="rounded-circle mx-auto mb-1 bg-light border text-secondary"
-            style="width: 36px; height: 36px; line-height: 36px; font-size: 1.2em; position: relative;"
-            data-bs-toggle="tooltip" data-bs-placement="top"
-            title="{{ step.nazev }}">
-            <i class="fa fa-circle"></i>
-          </div>
-        {% endif %}
-        <div style="font-size: 0.95em; color: #fff; background: #23272b;">{{ step.nazev }}</div>
-        <div class="small text-muted">
-          {% if step.datum %}
-            <span class="text-success fw-bold">Splněno: {{ step.datum|date:"d.m.Y" }}</span>
-          {% endif %}
-        </div>
-      </div>
-      {% if not forloop.last %}
-        <div class="align-self-center" style="width: 32px; height: 2px; background: #bbb;"></div>
-      {% endif %}
-    {% endfor %}
-  </div>
-</div>
+
 <div class="mt-4">
   <a href="{% url 'klient_edit' klient.pk %}" class="btn btn-primary"><i class="fa fa-edit"></i> Upravit</a>
   <a href="{% url 'klient_delete' klient.pk %}" class="btn btn-danger"><i class="fa fa-trash"></i> Smazat</a>
