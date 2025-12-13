@@ -28,15 +28,17 @@ hypoteky_win/
 │   └── asgi.py                     ASGI konfigurace
 │
 ├── klienti/                      ← Django aplikace pro správu klientů
-│   ├── models.py                   Datové modely
-│   ├── views.py                    Pohledy (view functions)
-│   ├── forms.py                    Django formuláře
+│   ├── models.py                   Datové modely (6 modelů)
+│   ├── views.py                    Pohledy (1175 řádků)
+│   ├── api_views.py                REST API ViewSets
 │   ├── serializers.py              DRF serializéry
+│   ├── permissions.py              RBAC oprávnění
+│   ├── utils.py                    Import/export, notifikace
 │   ├── urls.py                     URL routing aplikace
 │   ├── admin.py                    Django admin
 │   ├── tests_views.py              View layer testy (23 testů)
-│   ├── tests_e2e.py                End-to-end testy (4 testy)
-│   └── tests/                      Test moduly
+│   ├── tests_e2e.py                End-to-end testy (5 testů)
+│   └── tests_*.py                  12 testových souborů
 │
 ├── static/                       ← Statické soubory (CSS, JS, obrázky)
 │   ├── css/
@@ -44,9 +46,11 @@ hypoteky_win/
 │   ├── images/
 │   └── fonts/
 │
-├── tests/                        ← Integrační testy
-│   ├── conftest.py                 Pytest konfigurace
-│   └── test_*.py                   Integrační testy
+├── tests/                        ← Shell a template testy
+│   ├── test_scripts.py             Testy shell skriptů
+│   ├── test_shell_scripts.py       Testy shell skriptů
+│   ├── test_sql_scripts.py         Testy SQL skriptů
+│   └── test_template.py            Testy šablon
 │
 ├── .github/                      ← GitHub workflows
 │   └── workflows/                  CI/CD pipeline
@@ -94,13 +98,14 @@ hypoteky_win/
 - `TestWorkflowProgressionE2E` - Komplexní scénáře
 - `TestSecurityE2E` - Bezpečnostní testy
 
-**Výsledek:** 4/5 testů (1 skipped) ✅
+**Výsledek:** 5/5 testů ✅
 
-### Integrační Testy (`tests/test_*.py`)
-- Ověření celkové integrity systému
-- API v kontextu celé aplikace
+### Shell a Template Testy (`tests/test_*.py`)
+- Ověření shell skriptů
+- Ověření SQL skriptů
+- Ověření šablon
 
-**Výsledek:** 11/11 testů ✅
+**Výsledek:** 4 testové soubory ✅
 
 ### Celková Pokrytí Kódem
 - **Overall Coverage:** 85% (cíl: >70%) ✅

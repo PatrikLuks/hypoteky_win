@@ -194,3 +194,24 @@ if not FIELD_ENCRYPTION_KEY:
         "a přidej do .env: ENCRYPTED_MODEL_FIELDS_KEY=<klíč>"
     )
 ENCRYPTED_MODEL_FIELDS_KEY = FIELD_ENCRYPTION_KEY
+
+# =============================================================================
+# BEZPEČNOSTNÍ NASTAVENÍ PRO PRODUKCI
+# =============================================================================
+# Tato nastavení jsou aktivní pouze když DEBUG=False
+
+if not DEBUG:
+    # HTTPS nastavení
+    SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "True").lower() in ("true", "1", "yes")
+    SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "31536000"))  # 1 rok
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    
+    # Cookie bezpečnost
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    
+    # Další bezpečnostní nastavení
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    X_FRAME_OPTIONS = "DENY"

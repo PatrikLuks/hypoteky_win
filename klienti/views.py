@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 from collections import defaultdict
 from datetime import date, datetime, timedelta
 
@@ -12,6 +13,8 @@ from django.utils import timezone
 
 from .models import Klient, Poznamka, Zmena
 from .utils import odeslat_notifikaci_email
+
+logger = logging.getLogger("klienti.views")
 
 
 class KlientForm(forms.ModelForm):
@@ -527,9 +530,6 @@ def klient_detail(request, pk):
     poznamky = klient.poznamky.order_by("-created")
     zmeny = klient.zmeny.order_by("-created")
     if request.method == "POST" and "nova_poznamka" in request.POST:
-        print(
-            f"[DEBUG] Přidání poznámky: user={request.user.username}, authenticated={request.user.is_authenticated}"
-        )
         text = request.POST.get("text", "").strip()
         if text:
             from .models import Poznamka, Zmena
@@ -544,9 +544,6 @@ def klient_detail(request, pk):
                 klient=klient,
                 popis=popis,
                 author=request.user.username if request.user.is_authenticated else "",
-            )
-            print(
-                f"[DEBUG] Poznámka a auditní log vytvořeny pro user={request.user.username}"
             )
             return redirect("klient_detail", pk=pk)
     # Nová logika: použij pouze get_workflow_progress
@@ -784,7 +781,7 @@ def dashboard(request):
                             klient=ud["klient"],
                         )
                     except Exception as e:
-                        print(f"Chyba při odesílání e-mailu: {e}")
+                        logger.error(f"Chyba při odesílání e-mailu: {e}")
     # Workflow rozložení
     workflow_labels = [
         "jmeno_klienta",
@@ -848,9 +845,6 @@ def smazat_poznamku(request, klient_id, poznamka_id):
     klient = get_object_or_404(Klient, pk=klient_id)
     poznamka = get_object_or_404(Poznamka, pk=poznamka_id, klient=klient)
     if request.method == "POST":
-        print(
-            f"[DEBUG] Smazání poznámky: user={request.user.username}, authenticated={request.user.is_authenticated}"
-        )
         text = poznamka.text
         poznamka.delete()
         popis = f"Smazána poznámka: '{text[:50]}{'...' if len(text) > 50 else ''}'"
@@ -858,9 +852,6 @@ def smazat_poznamku(request, klient_id, poznamka_id):
             klient=klient,
             popis=popis,
             author=request.user.username if request.user.is_authenticated else "",
-        )
-        print(
-            f"[DEBUG] Auditní log po smazání poznámky vytvořen pro user={request.user.username}"
         )
         return redirect("klient_detail", pk=klient_id)
     return redirect("klient_detail", pk=klient_id)

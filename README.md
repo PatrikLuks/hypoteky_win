@@ -1,9 +1,9 @@
 # 🏡 Hypoteky - Django Aplikace pro Správu Hypotečních Klientů
 
-[![Tests](https://img.shields.io/badge/tests-112_passed-brightgreen)]() 
+[![Tests](https://img.shields.io/badge/tests-93_passed-brightgreen)]() 
 [![Coverage](https://img.shields.io/badge/coverage-85%25-green)]()
 [![Python](https://img.shields.io/badge/python-3.12.3-blue)]()
-[![Django](https://img.shields.io/badge/django-4.2.21-darkgreen)]()
+[![Django](https://img.shields.io/badge/django-4.2.27-darkgreen)]()
 [![License](https://img.shields.io/badge/license-MIT-blue)]()
 
 Komplexní Django aplikace pro správu hypotečních klientů s:
@@ -14,7 +14,7 @@ Komplexní Django aplikace pro správu hypotečních klientů s:
 - ✅ Šifrování citlivých dat
 - ✅ Auditní logy
 - ✅ Email notifikace
-- ✅ 85% code coverage (112/115 testů)
+- ✅ 85% code coverage (93 testů)
 
 ---
 
@@ -69,13 +69,13 @@ hypoteky_win/
 │   ├── README.md              Úvodní guide
 │   ├── PROJECT_STRUCTURE.md   Popis struktur
 │   ├── ONBOARDING.md          Onboarding guide
-│   └── ... 20+ dalších docs
+│   └── ... 31 dokumentů
 │
 ├── dev/                     🛠️  Vývojové skripty
 │   ├── snapshots/             HTML test artifacts
 │   ├── data/                  Testovací data
 │   ├── check_*.sh             Diagnostické skripty
-│   └── ... 70+ dev scriptů
+│   └── ... 56 shell skriptů
 │
 ├── hypoteky/                🎯 Django main app
 │   ├── settings.py
@@ -85,15 +85,17 @@ hypoteky_win/
 ├── klienti/                 👥 Klienti app
 │   ├── models.py
 │   ├── views.py
-│   ├── forms.py
 │   ├── serializers.py
+│   ├── api_views.py
+│   ├── permissions.py
 │   ├── admin.py
+│   ├── utils.py
 │   ├── tests_views.py       ✅ 23 view testů
-│   ├── tests_e2e.py         ✅ 4 e2e testů
-│   └── tests/               ✅ Integrační testy
+│   ├── tests_e2e.py         ✅ 5 e2e testů
+│   └── tests_*.py           ✅ 12 testových souborů
 │
 ├── static/                  🎨 CSS, JS, obrázky
-├── tests/                   ✅ Integration testy
+├── tests/                   ✅ Shell a template testy
 ├── .github/                 🔄 CI/CD workflows
 │
 ├── manage.py                Django management
@@ -146,14 +148,14 @@ hypoteky_win/
 
 ### Test Results
 ```
-Collected 115 items
+Collected 93 items
 klienti/tests_views.py ..................       [23/23 PASSED] ✅
-klienti/tests_e2e.py ....s                     [4/5 PASSED, 1 skipped] ✅
-klienti/tests_api.py ..................        [18/18 PASSED] ✅
+klienti/tests_e2e.py .....                     [5/5 PASSED] ✅
+klienti/tests_api.py ...........               [11/11 PASSED] ✅
 klienti/tests_bezpecnost.py ........            [8/8 PASSED] ✅
-... + 68 dalších testů ...
+... + dalších testů (notifikace, import, šifrování, reporting) ...
 
-TOTAL: 112 passed, 3 skipped in 70.06s ✅
+TOTAL: 93 passed ✅
 ```
 
 ### Spuštění Specifických Testů
@@ -182,30 +184,43 @@ pytest --cov=klienti --cov-report=html
 ```
 Klient
 ├── id
-├── jmeno
-├── prijmeni
-├── email
-├── telefon
-├── adresy (M2M)
-├── hypoteky (FK)
-└── created_at, updated_at
+├── jmeno (šifrované)
+├── datum
+├── co_financuje (šifrované)
+├── cena, navrh_financovani_castka, vlastni_zdroj
+├── vyber_banky, schvalene_financovani
+├── duvod_zamitnuti (šifrované)
+├── deadline_* (15 polí pro workflow)
+├── splneno_* (15 polí pro workflow)
+├── user (FK → User)
+└── workflow properties
 
-Hypoteka
+HypotekaWorkflow
 ├── id
 ├── klient (FK → Klient)
-├── banka
-├── vyvoj (Choice)
-├── hodnota
-├── sazba
-├── status (Choice)
-└── timestamps
+├── krok (16 kroků workflow)
+├── datum
+└── poznamka
 
-Adresa
+Poznamka
 ├── id
-├── klient (M2M)
-├── mesto
-├── psc
-└── ...
+├── klient (FK)
+├── text (šifrované)
+└── created, author
+
+Zmena (Auditní log)
+├── id
+├── klient (FK)
+├── popis (šifrované)
+└── created, author
+
+UserProfile
+├── user (FK → User)
+└── role (poradce/klient)
+
+NotifikaceLog
+├── prijemce, typ, klient
+└── datum, obsah, uspesne
 ```
 
 ### API Endpoints
@@ -216,9 +231,10 @@ GET    /api/klienti/{id}/          - Detail client
 PUT    /api/klienti/{id}/          - Update client
 DELETE /api/klienti/{id}/          - Delete client
 
-GET    /api/hypoteky/              - List mortgages
-POST   /api/hypoteky/              - Create mortgage
-... + dalších endpoints
+GET    /api/poznamky/              - Poznámky ke klientům
+GET    /api/zmeny/                 - Auditní log (read-only)
+GET    /api/workflow/              - Workflow kroky
+POST   /api/token/                 - JWT autentizace
 ```
 
 ### Features
@@ -244,7 +260,7 @@ POST   /api/hypoteky/              - Create mortgage
 - ✅ Audit logging všech akcí
 
 ### Data Protection
-- ✅ Šifrování citlivých polí (jméno, email, telefon)
+- ✅ Šifrování citlivých polí (jméno, co_financuje, duvod_zamitnuti, poznámky, změny)
 - ✅ HTTPS-only (v produkci)
 - ✅ CSRF protection
 - ✅ XSS prevention

@@ -180,14 +180,21 @@ class Klient(models.Model):
             while User.objects.filter(username=username).exists():
                 username = f"{base_username}{i}"
                 i += 1
-            temp_password = username
+            # Generování bezpečného náhodného hesla
+            import secrets
+            import string
+            alphabet = string.ascii_letters + string.digits + string.punctuation
+            temp_password = ''.join(secrets.choice(alphabet) for _ in range(16))
             user = User.objects.create_user(username=username, password=temp_password)
             user.first_name = self.jmeno
             if hasattr(self, "email") and self.email:
                 user.email = self.email
             user.save()
             self.user = user
-            print(f"[DEBUG] Vytvoren uzivatel: {username} / heslo: {temp_password}")
+            # Bezpečnostní logování bez hesla
+            import logging
+            logger = logging.getLogger('klienti')
+            logger.info(f"Vytvořen uživatel: {username} pro klienta {self.jmeno}")
         super().save(*args, **kwargs)
 
     @property

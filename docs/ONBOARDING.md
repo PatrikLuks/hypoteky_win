@@ -8,8 +8,8 @@ Tento soubor slouží jako stručný rozcestník pro nové členy týmu i studen
 
 1. **Klonuj repozitář a přejdi do složky:**
    ```zsh
-   git clone https://github.com/PatrikLuks/hypoteky_django.git
-   cd hypoteky
+   git clone https://github.com/PatrikLuks/hypoteky_win.git
+   cd hypoteky_win
    ```
 2. **Vytvoř a aktivuj virtuální prostředí:**
    ```zsh
