@@ -30,8 +30,7 @@
             <td>{{ klient.datum|date:"d.m.Y" }}</td>
             <td>{{ klient.co_financuje|default_if_none:'-' }}</td>
             <td>{% if klient.navrh_financovani_procento %}{{ klient.navrh_financovani_procento|floatformat:2 }} %{% else %}-{% endif %}</td>
-            <td>{% if klient.navrh_financovani_castka %}{{ klient.navrh_financovani_castka|floatformat:0 }} Kč{% else %}-{% endif %}</td>
-            <td>
+            <td>{% if klient.navrh_financovani_castka %}{{ klient.navrh_financovani_castka|floatformat:0 }} Kč{% else %}-{% endif %}</td>            <td>{{ klient.vyber_banky|default:'-' }}</td>            <td>
               {% with progress=klient.get_workflow_progress %}
                 {% if not progress.prvni_nesplneny_krok_nazev %}
                   <span class="badge bg-success">Hotovo</span>
@@ -250,6 +249,7 @@
           <th>Co financuje</th>
           <th>Návrh financování (%)</th>
           <th>Návrh financování (částka)</th>
+          <th>Banka</th>
           <th>Stav</th>
           <th><span class="text-primary">Další krok</span></th>
           <th>Akce</th>
@@ -261,8 +261,9 @@
             <td><a href="{% url 'klient_detail' klient.pk %}">{{ klient.jmeno }}</a></td>
             <td>{{ klient.datum|date:"d.m.Y" }}</td>
             <td>{{ klient.co_financuje|default_if_none:'-' }}</td>
-            <td>{% if klient.navrh_financovani_procento %}{{ klient.navrh_financovani_procento|floatformat:2 }} %{% else %}-{% endif %}</td>
+            <td>{% if klient.navrh_financovani_procento %}{{ klient.navrh_financovani_procento|floatformat:2 }} %{% else %}-{% endif %}</td>
             <td>{% if klient.navrh_financovani_castka %}{{ klient.navrh_financovani_castka|floatformat:0 }} Kč{% else %}-{% endif %}</td>
+            <td>{{ klient.vyber_banky|default:'-' }}</td>
             <td>
               {% with progress=klient.get_workflow_progress %}
                 {% if not progress.prvni_nesplneny_krok_nazev %}

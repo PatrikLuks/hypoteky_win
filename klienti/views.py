@@ -655,14 +655,14 @@ def home(request):
             )
     klienti_deadlines = sorted(klienti_deadlines, key=lambda x: x["deadline"])
 
-    workflow_counts = [0] * 17
-    workflow_sums = [0] * 17
+    workflow_counts = [0] * 16
+    workflow_sums = [0] * 16
     for k in klienti_page:
         progress = k.get_workflow_progress
         idx = (
             progress["prvni_nesplneny_krok_index"] + 1
             if progress["prvni_nesplneny_krok_index"] is not None
-            else 16
+            else 15
         )
         workflow_counts[idx] += 1
         workflow_sums[idx] += float(k.navrh_financovani_castka or 0)
@@ -784,7 +784,6 @@ def dashboard(request):
                         logger.error(f"Chyba při odesílání e-mailu: {e}")
     # Workflow rozložení
     workflow_labels = [
-        "jmeno_klienta",
         "co_financuje",
         "navrh_financovani",
         "vyber_banky",
@@ -802,14 +801,14 @@ def dashboard(request):
         "podminky_pro_splaceni",
         "hotovo",
     ]
-    workflow_counts = [0] * 17
-    workflow_sums = [0] * 17
+    workflow_counts = [0] * 16
+    workflow_sums = [0] * 16
     for k in klienti:
         progress = k.get_workflow_progress
         idx = (
             progress["prvni_nesplneny_krok_index"] + 1
             if progress["prvni_nesplneny_krok_index"] is not None
-            else 16
+            else 15
         )
         workflow_counts[idx] += 1
         workflow_sums[idx] += float(k.navrh_financovani_castka or 0)

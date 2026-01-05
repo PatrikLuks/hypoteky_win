@@ -22,6 +22,8 @@ Tento soubor slouží jako stručný rozcestník pro nové členy týmu i studen
    pip install playwright
    python -m playwright install --with-deps
    ```
+   - Vytvoř `.env` a doplň minimálně: `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`, `DB_*`, `EMAIL_*` a **ENCRYPTED_MODEL_FIELDS_KEY** (Fernet klíč pro šifrovaná pole).
+   - Přihlášení vede přes 2FA (`/account/` → two_factor login); bez e-mailu/TOTP se uživatel nepřihlásí.
 4. **Nastav MySQL a proveď migrace:**
    - Viz `DB_SETUP_MYSQL.md`
    - 
@@ -32,6 +34,8 @@ Tento soubor slouží jako stručný rozcestník pro nové členy týmu i studen
    ```zsh
    python manage.py runserver
    ```
+   - Automatické e-maily: zamítnutí a nově splněné kroky workflow se odesílají poradci/klientovi; deadliny běží z dashboardu/commandu `send_deadline_notifications`.
+   - Týdenní reporting posílej cronem přes `python manage.py send_reporting_email` (příjemci: poradci + staff/superusers s e-mailem).
 6. **Spusť testy a údržbu workspace:**
    ```zsh
    ./run_all_checks.sh

@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import EmailMessage
 from django.core.management.base import BaseCommand
+from django.db.models import Q
 
 import openpyxl
 from reportlab.lib.pagesizes import A4
@@ -19,15 +20,18 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # Získání příjemců (manažeři a administrátoři)
         User = get_user_model()
-        prijemci = list(
-            User.objects.filter(
-                userprofile__role__in=["manažer", "administrátor"], is_active=True
-            ).values_list("email", flat=True)
-        )
+            prijemci = list(
+                User.objects.filter(
+                    Q(userprofile__role="poradce") | Q(is_staff=True) | Q(is_superuser=True),
+                    is_active=True,
+                )
+                .exclude(email="")
+                .values_list("email", flat=True)
+            )
         if not prijemci:
             self.stdout.write(
                 self.style.WARNING(
-                    "Žádní příjemci reportu (role manažer/administrátor)"
+                    "Žádní příjemci reportu (poradce/staff/superuser s e-mailem)"
                 )
             )
             return

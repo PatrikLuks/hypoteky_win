@@ -60,9 +60,11 @@ hypoteky/settings_prod.py
 *.orig
 
 # Exporty a generované soubory
-*.pdf
 *.xlsx
 *.csv
+
+# PDF soubory (kromě dokumentace)
+# hypoteky.pdf a přílohy jsou verzovány
 
 # Ostatní
 TO_BE_DELETED.txt

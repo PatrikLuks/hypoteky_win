@@ -159,6 +159,34 @@ class Klient(models.Model):
         pass  # odstraněn unikátní constraint, řeší se na úrovni importu
 
     def save(self, *args, **kwargs):
+        # Před uložením si načti původní hodnoty pro audit/notifikace
+        prev = None
+        prev_duvod = None
+        splneno_fields = [
+            "splneno_co_financuje",
+            "splneno_navrh_financovani",
+            "splneno_vyber_banky",
+            "splneno_schvalene_financovani",
+            "splneno_priprava_zadosti",
+            "splneno_kompletace_podkladu",
+            "splneno_podani_zadosti",
+            "splneno_odhad",
+            "splneno_schvalovani",
+            "splneno_priprava_uverove_dokumentace",
+            "splneno_podpis_uverove_dokumentace",
+            "splneno_priprava_cerpani",
+            "splneno_cerpani",
+            "splneno_zahajeni_splaceni",
+            "splneno_podminky_pro_splaceni",
+        ]
+        prev_splneno = {}
+        if self.pk:
+            try:
+                prev = Klient.objects.get(pk=self.pk)
+                prev_duvod = prev.duvod_zamitnuti
+                prev_splneno = {f: getattr(prev, f) for f in splneno_fields}
+            except Klient.DoesNotExist:
+                prev = None
         self.jmeno_index = self.jmeno
         if not self.user:
             from django.contrib.auth.models import User
@@ -196,6 +224,85 @@ class Klient(models.Model):
             logger = logging.getLogger('klienti')
             logger.info(f"Vytvořen uživatel: {username} pro klienta {self.jmeno}")
         super().save(*args, **kwargs)
+        # --- Notifikace po uložení ---
+        try:
+            from django.contrib.auth.models import User
+            from .utils import odeslat_notifikaci_email
+        except Exception:
+            odeslat_notifikaci_email = None
+        if odeslat_notifikaci_email:
+            poradci_qs = User.objects.filter(userprofile__role="poradce").exclude(email="")
+            poradci_emails = [u.email for u in poradci_qs if u.email]
+            klient_email = self.user.email if self.user and self.user.email else None
+            # Zamítnutí hypotéky – nově vyplněný důvod
+            if self.duvod_zamitnuti and (self.duvod_zamitnuti != (prev_duvod or "")):
+                predmet = "Zamítnutí hypotéky"
+                zprava = (
+                    f"U klienta {self.jmeno} byl zadán důvod zamítnutí: {self.duvod_zamitnuti}.\n"
+                    "Přihlaste se do systému pro detailní informace."
+                )
+                for prijemce in poradci_emails:
+                    odeslat_notifikaci_email(
+                        prijemce=prijemce,
+                        predmet=predmet,
+                        zprava=zprava,
+                        typ="zamítnutí",
+                        klient=self,
+                    )
+                if klient_email:
+                    odeslat_notifikaci_email(
+                        prijemce=klient_email,
+                        predmet=predmet,
+                        zprava=zprava,
+                        typ="zamítnutí",
+                        klient=self,
+                    )
+            # Změna stavu – nový splněný krok
+            changed_kroky = [
+                f
+                for f in splneno_fields
+                if getattr(self, f) is not None and not prev_splneno.get(f)
+            ]
+            if changed_kroky:
+                label_map = {
+                    "splneno_co_financuje": "Co chce klient financovat",
+                    "splneno_navrh_financovani": "Návrh financování",
+                    "splneno_vyber_banky": "Výběr banky",
+                    "splneno_schvalene_financovani": "Schválené financování",
+                    "splneno_priprava_zadosti": "Příprava žádosti",
+                    "splneno_kompletace_podkladu": "Kompletace podkladů",
+                    "splneno_podani_zadosti": "Podání žádosti",
+                    "splneno_odhad": "Odhad",
+                    "splneno_schvalovani": "Schvalování",
+                    "splneno_priprava_uverove_dokumentace": "Příprava úvěrové dokumentace",
+                    "splneno_podpis_uverove_dokumentace": "Podpis úvěrové dokumentace",
+                    "splneno_priprava_cerpani": "Příprava čerpání",
+                    "splneno_cerpani": "Čerpání",
+                    "splneno_zahajeni_splaceni": "Zahájení splácení",
+                    "splneno_podminky_pro_splaceni": "Podmínky pro splacení",
+                }
+                kroky_popis = ", ".join(label_map.get(f, f) for f in changed_kroky)
+                predmet = "Změna stavu hypotéky"
+                zprava = (
+                    f"U klienta {self.jmeno} byl označen jako splněný krok/kroky: {kroky_popis}.\n"
+                    "Přihlaste se do systému pro detailní informace."
+                )
+                for prijemce in poradci_emails:
+                    odeslat_notifikaci_email(
+                        prijemce=prijemce,
+                        predmet=predmet,
+                        zprava=zprava,
+                        typ="stav",
+                        klient=self,
+                    )
+                if klient_email:
+                    odeslat_notifikaci_email(
+                        prijemce=klient_email,
+                        predmet=predmet,
+                        zprava=zprava,
+                        typ="stav",
+                        klient=self,
+                    )
 
     @property
     def is_hotovo(self):
@@ -283,22 +390,21 @@ class HypotekaWorkflow(models.Model):
     )
     krok = models.PositiveSmallIntegerField(
         choices=[
-            (1, "Jméno klienta"),
-            (2, "Co chce klient financovat"),
-            (3, "Návrh financování"),
-            (4, "Výběr banky"),
-            (5, "Schválené financování"),
-            (6, "Příprava žádosti"),
-            (7, "Kompletace podkladů"),
-            (8, "Podání žádosti"),
-            (9, "Odhad"),
-            (10, "Schvalování"),
-            (11, "Příprava úvěrové dokumentace"),
-            (12, "Podpis úvěrové dokumentace"),
-            (13, "Příprava čerpání"),
-            (14, "Čerpání"),
-            (15, "Zahájení splácení"),
-            (16, "Podmínky pro splacení"),
+            (1, "Co chce klient financovat"),
+            (2, "Návrh financování"),
+            (3, "Výběr banky"),
+            (4, "Schválené financování"),
+            (5, "Příprava žádosti"),
+            (6, "Kompletace podkladů"),
+            (7, "Podání žádosti"),
+            (8, "Odhad"),
+            (9, "Schvalování"),
+            (10, "Příprava úvěrové dokumentace"),
+            (11, "Podpis úvěrové dokumentace"),
+            (12, "Příprava čerpání"),
+            (13, "Čerpání"),
+            (14, "Zahájení splácení"),
+            (15, "Podmínky pro splacení"),
         ]
     )
     datum = models.DateTimeField(auto_now_add=True)

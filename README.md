@@ -39,6 +39,8 @@ python manage.py createsuperuser
 python manage.py collectstatic --noinput
 ```
 
+**Env klíče (povinné):** přidej do `.env` alespoň `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`, `DB_*`, `EMAIL_*` a **ENCRYPTED_MODEL_FIELDS_KEY** (Fernet pro šifrovaná pole). Přihlášení vede přes 2FA (two_factor), takže uživatel musí mít OTP zařízení a e-mail.
+
 ### 2. Spuštění Aplikace
 ```bash
 # Spustí server na http://localhost:8000
@@ -121,6 +123,8 @@ hypoteky_win/
 - [`docs/CODE_REVIEW_CHECKLIST.md`](docs/CODE_REVIEW_CHECKLIST.md) - Code review checklist
 - [`docs/E2E_TESTING_CHECKLIST.md`](docs/E2E_TESTING_CHECKLIST.md) - E2E testing guide
 - [`docs/TROUBLESHOOTING_GUIDE.md`](docs/TROUBLESHOOTING_GUIDE.md) - Řešení problémů
+- [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md) - Database schema documentation
+- [`docs/00_DATABASE_DIAGRAM_SUMMARY.md`](docs/00_DATABASE_DIAGRAM_SUMMARY.md) - ER diagram summary
 
 ### Pro DevOps / Deployment
 - [`docs/DEPLOYMENT_CHECKLIST.md`](docs/DEPLOYMENT_CHECKLIST.md) - Pre-deployment checklist
@@ -249,6 +253,11 @@ POST   /api/token/                 - JWT autentizace
 - ✅ **PDF Reports** - Generování reportů
 - ✅ **Dashboard** - Overview + statistiky
 
+**Notifikace (automatizace):**
+- Zamítnutí i nově splněné kroky workflow spouští e-mail (poradci + klient, pokud má e-mail).
+- Deadliny <3 dny: dashboard + `python manage.py send_deadline_notifications`.
+- Týdenní reporting: spouštěj cronem `python manage.py send_reporting_email` (příjemci: poradci + staff/superusers s e-mailem).
+
 ---
 
 ## 🔐 Bezpečnost
@@ -258,6 +267,7 @@ POST   /api/token/                 - JWT autentizace
 - ✅ Role-based access control (RBAC)
 - ✅ Permission checks na všech views
 - ✅ Audit logging všech akcí
+- ✅ 2FA (two_factor + OTP middleware) pro přihlášení
 
 ### Data Protection
 - ✅ Šifrování citlivých polí (jméno, co_financuje, duvod_zamitnuti, poznámky, změny)
