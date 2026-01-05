@@ -77,7 +77,7 @@ class Klient(models.Model):
         blank=True,
         help_text="Schválené parametry hypotéky po schválení",
     )
-    schvalena_hypoetka_castka = models.DecimalField(
+    schvalena_hypoteka_castka = models.DecimalField(
         "Schválená výše hypotéky",
         max_digits=12,
         decimal_places=2,
@@ -146,6 +146,12 @@ class Klient(models.Model):
     splneno_cerpani = models.DateField(blank=True, null=True)
     splneno_zahajeni_splaceni = models.DateField(blank=True, null=True)
     splneno_podminky_pro_splaceni = models.DateField(blank=True, null=True)
+    email = models.EmailField(
+        "E-mail klienta",
+        max_length=255,
+        blank=True,
+        help_text="E-mailová adresa pro odeslání přihlašovacích údajů",
+    )
     user = models.ForeignKey(
         "auth.User",
         on_delete=models.SET_NULL,
@@ -162,6 +168,10 @@ class Klient(models.Model):
         # Před uložením si načti původní hodnoty pro audit/notifikace
         prev = None
         prev_duvod = None
+        is_new_user = False  # Flag pro sledování nově vytvořeného uživatele
+        new_user_email = None  # Email pro welcome email
+        new_user_username = None  # Username pro welcome email
+        
         splneno_fields = [
             "splneno_co_financuje",
             "splneno_navrh_financovani",
@@ -190,40 +200,142 @@ class Klient(models.Model):
         self.jmeno_index = self.jmeno
         if not self.user:
             from django.contrib.auth.models import User
+            from django.core.exceptions import ValidationError
 
-            # Odstranění diakritiky a speciálních znaků
-            def normalize_username(name):
-                name = (
-                    unicodedata.normalize("NFKD", name)
-                    .encode("ascii", "ignore")
-                    .decode("ascii")
-                )
-                return "".join(
-                    c for c in name.lower().replace(" ", "_") if c.isalnum() or c == "_"
-                )
-
-            base_username = normalize_username(self.jmeno)
-            username = base_username
-            i = 1
-            while User.objects.filter(username=username).exists():
-                username = f"{base_username}{i}"
-                i += 1
-            # Generování bezpečného náhodného hesla
-            import secrets
-            import string
-            alphabet = string.ascii_letters + string.digits + string.punctuation
-            temp_password = ''.join(secrets.choice(alphabet) for _ in range(16))
-            user = User.objects.create_user(username=username, password=temp_password)
-            user.first_name = self.jmeno
+            existing_user = None  # Inicializace proměnné
+            username = None  # Inicializace proměnné
+            
+            # Pro klienty používáme email jako username (pokud je k dispozici)
+            # Jinak generujeme z jména jako fallback
             if hasattr(self, "email") and self.email:
-                user.email = self.email
-            user.save()
-            self.user = user
+                # Zkontroluj zda email už není použit
+                existing_user = User.objects.filter(username=self.email).first()
+                
+                if existing_user:
+                    # Email již existuje jako username
+                    # Zkontroluj zda má přiřazeného klienta (kromě aktuální instance)
+                    existing_klienti = self.__class__.objects.filter(user=existing_user)
+                    # Pokud se edituje existující klient, vyfiltruj ho
+                    if self.pk:
+                        existing_klienti = existing_klienti.exclude(pk=self.pk)
+                    
+                    if existing_klienti.exists():
+                        raise ValidationError(
+                            f"Email {self.email} je již používán jiným klientem. "
+                            "Každý email může být použit pouze jednou."
+                        )
+                    else:
+                        # User existuje, ale nemá klienta - můžeme ho použít
+                        self.user = existing_user
+                        # Aktualizuj jméno
+                        existing_user.first_name = self.jmeno
+                        existing_user.email = self.email
+                        existing_user.save()
+                        import logging
+                        logger = logging.getLogger("klienti.models")
+                        logger.info(f"Použit existující uživatel {self.email} pro nového klienta {self.jmeno}")
+                else:
+                    # Email je volný - vytvoř nového uživatele
+                    username = self.email
+            else:
+                # Fallback - normalizuj jméno pokud není email
+                def normalize_username(name):
+                    name = (
+                        unicodedata.normalize("NFKD", name)
+                        .encode("ascii", "ignore")
+                        .decode("ascii")
+                    )
+                    return "".join(
+                        c for c in name.lower().replace(" ", "_") if c.isalnum() or c == "_"
+                    )
+                base_username = normalize_username(self.jmeno)
+                username = base_username
+                i = 1
+                while User.objects.filter(username=username).exists():
+                    username = f"{base_username}{i}"
+                    i += 1
+            
+            # Vytvoř nového uživatele pouze pokud self.user nebyl nastaven výše
+            if not self.user:
+                # Generování bezpečného náhodného hesla
+                import secrets
+                import string
+                alphabet = string.ascii_letters + string.digits + string.punctuation
+                temp_password = ''.join(secrets.choice(alphabet) for _ in range(16))
+                user = User.objects.create_user(username=username, password=temp_password)
+                user.first_name = self.jmeno
+                if hasattr(self, "email") and self.email:
+                    user.email = self.email
+                user.save()
+                self.user = user
             # Bezpečnostní logování bez hesla
             import logging
             logger = logging.getLogger('klienti')
-            logger.info(f"Vytvořen uživatel: {username} pro klienta {self.jmeno}")
+            # Loguj pouze pokud byl vytvořen nový uživatel (ne při znovupoužití)
+            if self.user and not existing_user:
+                logger.info(f"Vytvořen uživatel: {self.user.username} pro klienta {self.jmeno}")
+            
+            # Welcome email posíláme vždy pro nového klienta
+            # (i když se znovupoužil existující User po smazání předchozího klienta)
+            is_new_user = True
+            new_user_email = self.user.email if self.user else None
+            new_user_username = self.user.username if self.user else None
+        
+        # DŮLEŽITÉ: Nejdřív ulož Klient objekt do DB, pak teprve posílej email
         super().save(*args, **kwargs)
+        
+        # Odeslání welcome emailu AŽ PO uložení do DB (pouze pro nově vytvořené uživatele)
+        if is_new_user and new_user_email:
+            try:
+                from django.contrib.auth.tokens import default_token_generator
+                from django.utils.http import urlsafe_base64_encode
+                from django.utils.encoding import force_bytes
+                from django.template import loader
+                from django.core.mail import send_mail
+                from django.conf import settings
+                import logging
+                logger = logging.getLogger('klienti')
+                
+                # Znovu načti uživatele z DB pro jistotu, že má správné heslo v DB
+                from django.contrib.auth.models import User
+                user = User.objects.get(pk=self.user.pk)
+                
+                # Vygeneruj token
+                token = default_token_generator.make_token(user)
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                
+                # Určení domény
+                if settings.DEBUG:
+                    domain = 'localhost:8000'
+                else:
+                    domain = settings.ALLOWED_HOSTS[0] if settings.ALLOWED_HOSTS else 'localhost'
+                
+                # Načti šablony
+                subject = loader.render_to_string('registration/welcome_subject.txt').strip()
+                message = loader.render_to_string(
+                    'registration/welcome_email.html',
+                    {
+                        'username': new_user_username,
+                        'uid': uid,
+                        'token': token,
+                        'protocol': 'https' if settings.SECURE_SSL_REDIRECT else 'http',
+                        'domain': domain,
+                        'user': user,
+                    }
+                )
+                
+                # Odešli email
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [new_user_email],
+                    fail_silently=False,
+                )
+                logger.info(f"Welcome email odeslán na {new_user_email} pro uživatele {new_user_username}")
+            except Exception as e:
+                logger.error(f"Chyba při odesílání welcome emailu: {str(e)}")
+        
         # --- Notifikace po uložení ---
         try:
             from django.contrib.auth.models import User

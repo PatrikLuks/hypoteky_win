@@ -20,14 +20,14 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # Získání příjemců (manažeři a administrátoři)
         User = get_user_model()
-            prijemci = list(
-                User.objects.filter(
-                    Q(userprofile__role="poradce") | Q(is_staff=True) | Q(is_superuser=True),
-                    is_active=True,
-                )
-                .exclude(email="")
-                .values_list("email", flat=True)
+        prijemci = list(
+            User.objects.filter(
+                Q(userprofile__role="poradce") | Q(is_staff=True) | Q(is_superuser=True),
+                is_active=True,
             )
+            .exclude(email="")
+            .values_list("email", flat=True)
+        )
         if not prijemci:
             self.stdout.write(
                 self.style.WARNING(

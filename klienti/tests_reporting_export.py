@@ -259,15 +259,29 @@ class ReportingExportXLSXTestCase(TestCase):
         Ověří, že management command send_reporting_email vygeneruje a odešle reportingový e-mail s přílohou (XLSX nebo PDF).
         Ověří i edge-case: prázdná data (report se odešle, příloha existuje, ale je prázdná).
         """
+        from django.contrib.auth.models import User
         from django.core import mail
         from django.core.management import call_command
+        from django.test import override_settings
 
-        # Smaž všechny klienty (prázdná data)
-        from klienti.models import Klient
+        from klienti.models import Klient, UserProfile
+
+        # Vytvoř poradce s platným e-mailem (příjemce reportu)
+        poradce_user = User.objects.create_user(
+            username="poradce_report", email="poradce@example.com", password="testpass"
+        )
+        poradce_user.is_staff = True  # nebo role="poradce"
+        poradce_user.save()
+        profile, _ = UserProfile.objects.get_or_create(
+            user=poradce_user, defaults={"role": "poradce"}
+        )
+        profile.role = "poradce"
+        profile.save()
 
         Klient.objects.all().delete()
-        # Spusť command
-        call_command("send_reporting_email")
+        # Spusť command s locmem email backend
+        with override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            call_command("send_reporting_email")
         # Ověř, že byl odeslán e-mail
         self.assertEqual(len(mail.outbox), 1)
         email = mail.outbox[0]
@@ -384,13 +398,28 @@ class ReportingExportEdgeCaseTestCase(TestCase):
         """
         Ověří, že při generování reportu e-mailem s prázdnými daty se odešle správná zpráva a příloha je validní.
         """
+        from django.contrib.auth.models import User
         from django.core import mail
         from django.core.management import call_command
+        from django.test import override_settings
 
-        from klienti.models import Klient
+        from klienti.models import Klient, UserProfile
+
+        # Vytvoř poradce s platným e-mailem (příjemce reportu)
+        poradce_user, _ = User.objects.get_or_create(
+            username="poradce_prazdny", defaults={"email": "poradce_prazdny@example.com"}
+        )
+        poradce_user.is_staff = True
+        poradce_user.save()
+        profile, _ = UserProfile.objects.get_or_create(
+            user=poradce_user, defaults={"role": "poradce"}
+        )
+        profile.role = "poradce"
+        profile.save()
 
         Klient.objects.all().delete()  # Zajistí prázdná data
-        call_command("send_reporting_email")
+        with override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            call_command("send_reporting_email")
         self.assertEqual(len(mail.outbox), 1)
         email = mail.outbox[0]
         self.assertIn("report", email.subject.lower())
@@ -412,6 +441,7 @@ class ReportingExportEdgeCaseTestCase(TestCase):
         Ověří, že pokud je v systému neexistující e-mail, report se neodešle a zaloguje se chyba.
         """
         from django.core.management import call_command
+        from django.test import override_settings
 
         from klienti.models import UserProfile
 
@@ -420,7 +450,8 @@ class ReportingExportEdgeCaseTestCase(TestCase):
             profile.user.email = ""
             profile.user.save()
         # Očekáváme, že command zaloguje chybu, ale nespadne
-        try:
-            call_command("send_reporting_email")
-        except Exception as e:
-            self.fail(f"Command selhal: {e}")
+        with override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            try:
+                call_command("send_reporting_email")
+            except Exception as e:
+                self.fail(f"Command selhal: {e}")

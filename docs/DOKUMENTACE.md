@@ -116,6 +116,19 @@ Formulář reprezentuje kompletní životní cyklus hypotéčního případu jed
 
 Vyplněním formuláře vzniká záznam hypotéčního klienta. V případě vyplnění pole „Důvod zamítnutí hypotéky" je hypotéční případ automaticky označen jako zamítnutý. Veškeré změny jsou zaznamenávány v auditním logu (`Zmena` model).
 
+#### Automatické vytvoření uživatelského účtu
+
+Při vytvoření nového klienta finančním poradcem:
+
+1. **Automatické generování účtu** – systém automaticky vytvoří uživatelský účet pro klienta
+2. **Normalizace username** – uživatelské jméno je odvozeno z pole `jmeno` (odstranění diakritiky, mezery nahrazeny podtržítkem)
+3. **Bezpečné heslo** – generuje se náhodné 16místné heslo (písmena + čísla + speciální znaky)
+4. **Role klient** – automaticky se přiřadí role `klient` přes `UserProfile`
+5. **Welcome email** – pokud je vyplněn email klienta, systém automaticky odešle uvítací email s odkazem na nastavení hesla
+6. **Password reset mechanismus** – klient si může nastavit vlastní heslo pomocí odkazu v emailu
+
+Po nastavení hesla se klient může přihlásit do aplikace a vidět stav své hypotéky v reálném čase.
+
 ### Seznamy a přehledy
 
 Seznam hypotéčních klientů je dostupný v sekci **Klienti**. Tato sekce kromě tabulky klientů obsahuje:
@@ -148,8 +161,9 @@ Hlavní entita aplikace reprezentující jednoho hypotéčního klienta.
 
 **Základní údaje:**
 - `jmeno` – šifrované jméno klienta (EncryptedCharField, indexované)
+- `email` – emailová adresa klienta (EmailField, blank=True) – používá se pro automatické odeslání welcome emailu s přihlašovacími údaji
 - `datum` – datum vytvoření záznamu (default: dnes)
-- `user` – vztah na Django uživatele (ForeignKey)
+- `user` – vztah na Django uživatele (ForeignKey) – automaticky generován při vytvoření klienta finančním poradcem
 
 **Finanční údaje:**
 - `cena` – cena nemovitosti
@@ -161,7 +175,7 @@ Hlavní entita aplikace reprezentující jednoho hypotéčního klienta.
 
 **Schválené hodnoty:**
 - `schvalene_financovani` – parametry po schválení
-- `schvalena_hypoetka_castka` – schválená výše hypotéky
+- `schvalena_hypoteka_castka` – schválená výše hypotéky
 - `schvaleny_vlastni_zdroj` – schválený vlastní zdroj
 - `schvaleny_ltv_procento` – schválené LTV (Loan-to-Value)
 

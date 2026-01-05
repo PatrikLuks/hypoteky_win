@@ -12,13 +12,14 @@ Tento projekt je moderní webová aplikace pro správu hypoték určená finanč
 
 ## 🚀 Hlavní funkce
 - **Kompletní workflow hypotéky** (15 kroků, deadliny, poznámky, úkoly)
+- **Automatické vytvoření účtu pro klienty** – při vytvoření klienta finančním poradcem se automaticky generuje uživatelský účet a odešle se welcome email s odkazem na nastavení hesla
 - **Pokročilý reporting a statistiky** (grafy, trendy, heatmapy, export do PDF)
 - **Automatizované reporty e-mailem** (management command)
 - **Auditní log všech změn** (kdo, kdy, co upravil)
 - **Role a oprávnění** (poradce, administrátor, manažer, klient)
 - **Dvoufaktorová autentizace (2FA)**
 - **REST API** (DRF, JWT, Swagger, Redoc)
-- **Notifikace e-mailem** (deadliny, změny, zamítnutí)
+- **Notifikace e-mailem** (deadliny, změny, zamítnutí, welcome email)
 - **Export deadlinů do iCal** (Google/Outlook)
 - **Responsivní moderní UI** (Bootstrap 5, tmavý režim)
 - **Testy (unit/integration)**

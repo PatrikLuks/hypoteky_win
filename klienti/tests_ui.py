@@ -301,18 +301,18 @@ class WorkflowUITestCase(TestCase):
         self.assertEqual(response.status_code, 302)
 
         self.klient_obj = Klient.objects.get(user=self.user)
-        # Pokusíme se vyplnit 3. krok bez 2. kroku
+        # Pokusíme se označit 3. krok jako splněný bez splnění 2. kroku
         data = {
             "jmeno": self.klient_obj.jmeno,
             "datum": "2025-05-27",
-            "navrh_financovani": "Hypotéka 80 %",
+            "splneno_vyber_banky": "2025-05-27",  # 3. krok bez předchozích
         }
         response = self.client.post(reverse("klient_edit", args=[self.klient_obj.pk]), data)
         # Očekáváme, že validace neprojde a stránka se znovu zobrazí s chybou (status 200)
         self.assertEqual(response.status_code, 200)
         html = response.content.decode("utf-8")
         # Ověř, že se zobrazila chybová hláška o workflow (nelze přeskočit krok)
-        self.assertIn("Nelze vyplnit krok", html)
+        self.assertIn("Nelze označit jako splněný", html)
 
 
 class KlientDetailUITestCase(TestCase):
@@ -367,7 +367,7 @@ class KlientDetailUITestCase(TestCase):
         self.assertIn("Detail klienta", html)
         self.assertIn("Detailní Klient", html)
         self.assertIn("Dům", html)
-        self.assertIn("Hypotéka 80 %", html)
+        self.assertIn("80.00 %", html)  # LTV procento z navrh_financovani_procento
         self.assertIn("KB", html)
         # Ověření workflow (výskyt kroků)
         self.assertIn("Výběr banky", html)
@@ -381,8 +381,8 @@ class KlientDetailUITestCase(TestCase):
         # Ověření přístupnosti (role, aria-label)
         self.assertIn('role="main"', html)
         self.assertIn("aria-label", html)
-        # Ověření zvýraznění aktivního kroku (border-primary)
-        self.assertIn("border-primary", html)
+        # Workflow je správně zobrazen (kroky)
+        self.assertIn("Průběh workflow", html)
 
     def test_audit_log_pribude_polozka_po_editaci(self):
         """

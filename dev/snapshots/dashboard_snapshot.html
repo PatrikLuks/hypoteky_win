@@ -496,7 +496,6 @@
 </nav>
 <div class="container mt-4">
 
-<div class="container-fluid" role="main">
 <h1 class="mb-4"><i class="fa fa-tachometer-alt text-primary"></i> Dashboard</h1>
 
 
@@ -504,7 +503,7 @@
 
 <div class="row mb-4 g-4">
   <div class="col-lg-3 col-md-6">
-    <div class="card shadow-sm border-0 text-center h-100 bg-gradient" style="background:linear-gradient(135deg,#23272b 60%,#0d6efd 100%)">
+    <div class="card shadow-sm border-0 text-center bg-gradient" style="background:linear-gradient(135deg,#23272b 60%,#0d6efd 100%)">
       <div class="card-body">
         <h6 class="card-title text-secondary">Počet klientů</h6>
         <div class="display-4 fw-bold text-warning">__POCET__</div>
@@ -513,7 +512,7 @@
     </div>
   </div>
   <div class="col-lg-3 col-md-6">
-    <div class="card shadow-sm border-0 text-center h-100 bg-gradient" style="background:linear-gradient(135deg,#23272b 60%,#20c997 100%)">
+    <div class="card shadow-sm border-0 text-center bg-gradient" style="background:linear-gradient(135deg,#23272b 60%,#20c997 100%)">
       <div class="card-body">
         <h6 class="card-title text-secondary">Objem hypoték</h6>
         <div class="display-4 fw-bold text-success" style="letter-spacing:1px;white-space:nowrap;max-width:100%;display:inline-block;font-size:clamp(1.5rem,6vw,2.7rem);">
@@ -526,7 +525,7 @@
     </div>
   </div>
   <div class="col-lg-3 col-md-6">
-    <div class="card shadow-sm border-0 text-center h-100 bg-gradient" style="background:linear-gradient(135deg,#23272b 60%,#ffc107 100%)">
+    <div class="card shadow-sm border-0 text-center bg-gradient" style="background:linear-gradient(135deg,#23272b 60%,#ffc107 100%)">
       <div class="card-body">
         <h6 class="card-title text-secondary">Urgentní deadliny (do 3 dnů)</h6>
         <div class="display-4 fw-bold text-danger">__URGENT__</div>
@@ -534,11 +533,11 @@
     </div>
   </div>
   <div class="col-lg-3 col-md-6">
-    <div class="card shadow-sm border-0 text-center h-100 bg-gradient" style="background:linear-gradient(135deg,#23272b 60%,#6610f2 100%)">
+    <div class="card shadow-sm border-0 text-center bg-gradient" style="background:linear-gradient(135deg,#23272b 60%,#6610f2 100%)">
       <div class="card-body">
         <h6 class="card-title text-secondary">Workflow rozložení</h6>
-        <canvas id="workflowPieChart" height="120"></canvas>
-        <div id="workflowPieLegendContainer"></div>
+        <canvas id="workflowPieChart" style="max-height:150px;"></canvas>
+        <div id="workflowPieLegendContainer" style="max-height:80px;overflow-y:auto;"></div>
       </div>
     </div>
   </div>
@@ -647,7 +646,7 @@
 </div>
 
 <div style="display:none;">
-  <pre>['jmeno_klienta', 'co_financuje', 'navrh_financovani', 'vyber_banky', 'priprava_zadosti', 'kompletace_podkladu', 'podani_zadosti', 'odhad', 'schvalovani', 'priprava_uverove_dokumentace', 'podpis_uverove_dokumentace', 'priprava_cerpani', 'cerpani', 'zahajeni_splaceni', 'podminky_pro_splaceni', 'hotovo']</pre>
+  <pre>['co_financuje', 'navrh_financovani', 'vyber_banky', 'schvalene_financovani', 'priprava_zadosti', 'kompletace_podkladu', 'podani_zadosti', 'odhad', 'schvalovani', 'priprava_uverove_dokumentace', 'podpis_uverove_dokumentace', 'priprava_cerpani', 'cerpani', 'zahajeni_splaceni', 'podminky_pro_splaceni', 'hotovo']</pre>
   <pre>[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]</pre>
 </div>
 
@@ -686,76 +685,117 @@
   border-radius: 12px !important;
 }
 </style>
-<!--
-Pro univerzální luxusní vzhled scrollbarů napříč prohlížeči doporučuji použít knihovnu SimpleBar:
-1. npm install simplebar
-2. import 'simplebar/dist/simplebar.css';
-3. Přidej atribut data-simplebar na div: <div id="workflowPieLegendContainer" data-simplebar>
--->
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Chart.js HTML legend plugin
-const htmlLegendPlugin = {
-  id: 'htmlLegend',
-  afterUpdate(chart, args, options) {
-    const legendContainer = document.getElementById(options.containerID);
-    while (legendContainer.firstChild) {
-      legendContainer.firstChild.remove();
+(function() {
+  try {
+    // Singleton - zabrání vícenásobnému vykreslení
+    if (window._dashboardChartInitialized) return;
+    window._dashboardChartInitialized = true;
+
+    let pieChartInstance = null;
+
+    // Chart.js HTML legend plugin
+    const htmlLegendPlugin = {
+    id: 'htmlLegend',
+    afterUpdate(chart, args, options) {
+      const legendContainer = document.getElementById(options.containerID);
+      if (!legendContainer) return;
+      while (legendContainer.firstChild) {
+        legendContainer.firstChild.remove();
+      }
+      const list = document.createElement('ul');
+      list.style.display = 'flex';
+      list.style.flexDirection = 'column';
+      list.style.margin = '0';
+      list.style.padding = '0';
+      list.style.listStyle = 'none';
+      chart.data.labels.forEach((label, i) => {
+        const li = document.createElement('li');
+        li.style.display = 'flex';
+        li.style.alignItems = 'center';
+        li.style.marginBottom = '4px';
+        const box = document.createElement('span');
+        box.style.display = 'inline-block';
+        box.style.width = '16px';
+        box.style.height = '16px';
+        box.style.marginRight = '8px';
+        box.style.background = chart.data.datasets[0].backgroundColor[i];
+        box.style.borderRadius = '3px';
+        li.appendChild(box);
+        const text = document.createElement('span');
+        text.style.fontSize = '13px';
+        text.style.color = '#e0e0e0';
+        text.textContent = label;
+        li.appendChild(text);
+        list.appendChild(li);
+      });
+      legendContainer.appendChild(list);
     }
-    const list = document.createElement('ul');
-    list.style.display = 'flex';
-    list.style.flexDirection = 'column';
-    list.style.margin = '0';
-    list.style.padding = '0';
-    list.style.listStyle = 'none';
-    chart.data.labels.forEach((label, i) => {
-      const li = document.createElement('li');
-      li.style.display = 'flex';
-      li.style.alignItems = 'center';
-      li.style.marginBottom = '4px';
-      const box = document.createElement('span');
-      box.style.display = 'inline-block';
-      box.style.width = '16px';
-      box.style.height = '16px';
-      box.style.marginRight = '8px';
-      box.style.background = chart.data.datasets[0].backgroundColor[i];
-      box.style.borderRadius = '3px';
-      li.appendChild(box);
-      const text = document.createElement('span');
-      text.style.fontSize = '13px';
-      text.style.color = '#e0e0e0';
-      text.textContent = label;
-      li.appendChild(text);
-      list.appendChild(li);
+  };
+
+  function initDashboardChart() {
+    // Zničit existující graf
+    if (pieChartInstance && typeof pieChartInstance.destroy === 'function') {
+      pieChartInstance.destroy();
+      pieChartInstance = null;
+    }
+
+    const ctxPieElement = document.getElementById('workflowPieChart');
+    if (!ctxPieElement) {
+      console.warn('Canvas workflowPieChart nenalezen');
+      return;
+    }
+
+    const workflowLabels = ['co_financuje', 'navrh_financovani', 'vyber_banky', 'schvalene_financovani', 'priprava_zadosti', 'kompletace_podkladu', 'podani_zadosti', 'odhad', 'schvalovani', 'priprava_uverove_dokumentace', 'podpis_uverove_dokumentace', 'priprava_cerpani', 'cerpani', 'zahajeni_splaceni', 'podminky_pro_splaceni', 'hotovo'];
+    const workflowCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    if (!workflowLabels || !workflowCounts) {
+      console.warn('Data pro dashboard graf nejsou dostupná');
+      return;
+    }
+
+    const ctxPie = ctxPieElement.getContext('2d');
+
+    pieChartInstance = new Chart(ctxPie, {
+      type: 'pie',
+      data: {
+        labels: workflowLabels.map(l => l.replace(/_/g, ' ').replace('hotovo', 'Hotovo').replace(/\b\w/g, c => c.toUpperCase())),
+        datasets: [{
+          data: workflowCounts,
+          backgroundColor: [
+            '#0d6efd','#6c757d','#198754','#ffc107','#dc3545','#20c997','#6610f2','#fd7e14','#6f42c1','#0dcaf0','#adb5bd','#f8d7da','#b6d4fe','#d1e7dd','#198754','#9B59B6','#1ABC9C'
+          ],
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+          duration: 600,
+          easing: 'easeOutQuart'
+        },
+        plugins: {
+          legend: {display: false},
+          htmlLegend: {containerID: 'workflowPieLegendContainer'}
+        }
+      },
+      plugins: [htmlLegendPlugin]
     });
-    legendContainer.appendChild(list);
   }
-};
-const workflowLabels = ['jmeno_klienta', 'co_financuje', 'navrh_financovani', 'vyber_banky', 'priprava_zadosti', 'kompletace_podkladu', 'podani_zadosti', 'odhad', 'schvalovani', 'priprava_uverove_dokumentace', 'podpis_uverove_dokumentace', 'priprava_cerpani', 'cerpani', 'zahajeni_splaceni', 'podminky_pro_splaceni', 'hotovo'];
-const workflowCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-const ctxPie = document.getElementById('workflowPieChart').getContext('2d');
-const pieChart = new Chart(ctxPie, {
-  type: 'pie',
-  data: {
-    labels: workflowLabels.map(l => l.replace(/_/g, ' ').replace('hotovo', 'Hotovo').replace(/\b\w/g, c => c.toUpperCase())),
-    datasets: [{
-      data: workflowCounts,
-      backgroundColor: [
-        '#0d6efd','#6c757d','#198754','#ffc107','#dc3545','#20c997','#6610f2','#fd7e14','#6f42c1','#0dcaf0','#adb5bd','#f8d7da','#b6d4fe','#d1e7dd','#198754'
-      ],
-    }]
-  },
-  options: {
-    plugins: {
-      legend: {display: false},
-      htmlLegend: {containerID: 'workflowPieLegendContainer'}
-    }
-  },
-  plugins: [htmlLegendPlugin]
-});
+
+  // Inicializace po načtení DOM
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDashboardChart);
+  } else {
+    initDashboardChart();
+  }
+  } catch (e) {
+    console.error('Dashboard chart error:', e);
+  }
+})();
 </script>
-</div>
 
 </div>
 <!-- sticky-bottom-nav a vše s ní spojené bylo odstraněno -->

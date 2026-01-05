@@ -81,3 +81,12 @@ pa11y_a11y_reports_*
 
 # Lokální nastavení VS Code
 .vscode/
+# Ignore local database used for tests
+*.sqlite3
+
+# Ignore large generated snapshots and reports (keep in repo only if intentionally committed)
+dev/snapshots/*.html
+*.pdf
+__pycache__/
+.env
+.env.*

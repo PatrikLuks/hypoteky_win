@@ -295,14 +295,14 @@ class WorkflowUITestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         from klienti.models import Klient
         klient = Klient.objects.get(user=self.user)
-        # Pokusíme se vyplnit 3. krok bez 2. kroku
-        data = {'jmeno': klient.jmeno, 'datum': '2025-05-27', 'navrh_financovani': 'Hypotéka 80 %'}
+        # Pokusíme se označit 3. krok jako splněný bez splnění 2. kroku
+        data = {'jmeno': klient.jmeno, 'datum': '2025-05-27', 'splneno_vyber_banky': '2025-05-27'}
         response = self.client.post(reverse('klient_edit', args=[klient.pk]), data)
         # Očekáváme, že validace neprojde a stránka se znovu zobrazí s chybou (status 200)
         self.assertEqual(response.status_code, 200)
         html = response.content.decode('utf-8')
         # Ověř, že se zobrazila chybová hláška o workflow (nelze přeskočit krok)
-        self.assertIn('Nelze vyplnit krok', html)
+        self.assertIn('Nelze označit jako splněný', html)
 
 class KlientDetailUITestCase(TestCase):
     """

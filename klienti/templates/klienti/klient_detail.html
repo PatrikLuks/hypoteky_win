@@ -25,7 +25,7 @@
 <h4 class="mb-3"><i class="fa fa-university text-info"></i> Výběr banky a schválené financování</h4>
 <table class="table table-bordered mb-4 table-striped">
   <tr><th>Výběr banky</th><td>{{ klient.vyber_banky|default:"-" }}</td></tr>
-  <tr><th>Schválená výše hypotéky</th><td>{% if klient.schvalena_hypoetka_castka %}{{ klient.schvalena_hypoetka_castka|floatformat:0 }} Kč{% else %}-{% endif %}</td></tr>
+  <tr><th>Schválená výše hypotéky</th><td>{% if klient.schvalena_hypoteka_castka %}{{ klient.schvalena_hypoteka_castka|floatformat:0 }} Kč{% else %}-{% endif %}</td></tr>
   <tr><th>Schválený vlastní zdroj</th><td>{% if klient.schvaleny_vlastni_zdroj %}{{ klient.schvaleny_vlastni_zdroj|floatformat:0 }} Kč{% else %}-{% endif %}</td></tr>
   <tr><th>Schválené LTV (%)</th><td>{% if klient.schvaleny_ltv_procento %}{{ klient.schvaleny_ltv_procento|floatformat:2 }} %{% else %}-{% endif %}</td></tr>
 </table>

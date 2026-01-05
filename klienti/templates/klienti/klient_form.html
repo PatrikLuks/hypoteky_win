@@ -79,6 +79,11 @@
       {{ form.jmeno }}
     </div>
     <div class="flex-fill min-width-250">
+      <label for="id_email" class="form-label">E-mail klienta</label>
+      {{ form.email }}
+      <small class="form-text text-muted">Pro odeslání přihlašovacích údajů</small>
+    </div>
+    <div class="flex-fill min-width-250">
       <label for="id_datum" class="form-label">Datum</label>
       {{ form.datum }}
     </div>
@@ -151,8 +156,8 @@
   <h6 class="mt-3 mb-2 text-warning">4. Schválené financování</h6>
   <div class="workflow-row">
     <div>
-      <label for="id_schvalena_hypoetka_castka" class="form-label">Výše schv. hypotéky</label>
-      {{ form.schvalena_hypoetka_castka }}
+      <label for="id_schvalena_hypoteka_castka" class="form-label">Výše schv. hypotéky</label>
+      {{ form.schvalena_hypoteka_castka }}
     </div>
     <div>
       <label for="id_schvaleny_vlastni_zdroj" class="form-label">Schv. vlastní zdroj</label>
@@ -404,6 +409,7 @@ document.addEventListener('DOMContentLoaded', function() {
     'id_deadline_co_financuje',
     'id_deadline_navrh_financovani',
     'id_deadline_vyber_banky',
+    'id_deadline_schvalene_financovani',
     'id_deadline_priprava_zadosti',
     'id_deadline_kompletace_podkladu',
     'id_deadline_podani_zadosti',
@@ -462,7 +468,7 @@ document.addEventListener('DOMContentLoaded', function() {
   calculateFinancing();
 
   // Automatický výpočet schválených financí
-  const schvalenaHypoInput = document.getElementById('id_schvalena_hypoetka_castka');
+  const schvalenaHypoInput = document.getElementById('id_schvalena_hypoteka_castka');
   const schvalenyVlasniInput = document.getElementById('id_schvaleny_vlastni_zdroj');
   const schvalenyLtvInput = document.getElementById('id_schvaleny_ltv_procento');
 

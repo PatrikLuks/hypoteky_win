@@ -114,20 +114,18 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
+# Zmírněná validace pro lepší UX, ale stále bezpečná
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {
+            "min_length": 8,  # Minimálně 8 znaků pro bezpečnost
+        }
     },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    # UserAttributeSimilarityValidator odstraněn - povolí hesla podobná jménu
+    # CommonPasswordValidator odstraněn - povolí běžná hesla (ale doporučujeme silná)
+    # NumericPasswordValidator odstraněn - povolí čistě numerická hesla
 ]
 
 

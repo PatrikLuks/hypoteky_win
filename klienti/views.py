@@ -66,6 +66,7 @@ class KlientForm(forms.ModelForm):
         model = Klient
         fields = [
             "jmeno",
+            "email",
             "datum",
             "co_financuje",
             "cena",
@@ -81,7 +82,7 @@ class KlientForm(forms.ModelForm):
             "deadline_vyber_banky",
             "splneno_vyber_banky",
             "schvalene_financovani",
-            "schvalena_hypoetka_castka",
+            "schvalena_hypoteka_castka",
             "schvaleny_vlastni_zdroj",
             "schvaleny_ltv_procento",
             "deadline_schvalene_financovani",
@@ -125,6 +126,9 @@ class KlientForm(forms.ModelForm):
             "jmeno": forms.TextInput(
                 attrs={"class": "form-control"}
             ),  # přidáno pro správné barvy
+            "email": forms.EmailInput(
+                attrs={"class": "form-control", "placeholder": "klient@example.com"}
+            ),
             "datum": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "cena": forms.TextInput(
                 attrs={
@@ -165,7 +169,7 @@ class KlientForm(forms.ModelForm):
             "navrh_financovani": forms.TextInput(attrs={"class": "form-control"}),
             "vyber_banky": forms.TextInput(attrs={"class": "form-control"}),
             "schvalene_financovani": forms.TextInput(attrs={"class": "form-control"}),
-            "schvalena_hypoetka_castka": forms.NumberInput(
+            "schvalena_hypoteka_castka": forms.NumberInput(
                 attrs={
                     "step": "0.01",
                     "min": "0",
@@ -331,39 +335,66 @@ class KlientForm(forms.ModelForm):
         if isinstance(data, str):
             data = data.replace(" ", "").replace("\xa0", "").replace(",", ".")
         try:
-            return float(data)
-        except Exception:
+            value = float(data)
+            # Validace maximální hodnoty (max_digits=12, decimal_places=2 → max 9999999999.99)
+            if value > 9999999999.99:
+                raise forms.ValidationError(
+                    "Cena je příliš vysoká. Maximální hodnota je 9 999 999 999,99 Kč."
+                )
+            if value < 0:
+                raise forms.ValidationError("Cena nemůže být záporná.")
+            return value
+        except ValueError:
             raise forms.ValidationError(
                 "Zadejte částku ve správném formátu, např. 12 200 000"
             )
 
     def clean(self):
         cleaned_data = super().clean()
-        # Definice pořadí workflow kroků podle zadání
-        workflow_fields = [
-            "co_financuje",
-            "navrh_financovani",
-            "vyber_banky",
-            "schvalene_financovani",
-            "priprava_zadosti",
-            "kompletace_podkladu",
-            "podani_zadosti",
-            "odhad",
-            "schvalovani",
-            "priprava_uverove_dokumentace",
-            "podpis_uverove_dokumentace",
-            "priprava_cerpani",
-            "cerpani",
-            "zahajeni_splaceni",
-            "podminky_pro_splaceni",
+        # Definice pořadí workflow kroků podle zadání - kontrolujeme splnění (datum)
+        workflow_splneno_fields = [
+            "splneno_co_financuje",
+            "splneno_navrh_financovani",
+            "splneno_vyber_banky",
+            "splneno_schvalene_financovani",
+            "splneno_priprava_zadosti",
+            "splneno_kompletace_podkladu",
+            "splneno_podani_zadosti",
+            "splneno_odhad",
+            "splneno_schvalovani",
+            "splneno_priprava_uverove_dokumentace",
+            "splneno_podpis_uverove_dokumentace",
+            "splneno_priprava_cerpani",
+            "splneno_cerpani",
+            "splneno_zahajeni_splaceni",
+            "splneno_podminky_pro_splaceni",
         ]
-        # Pro každý krok ověř, že předchozí je vyplněn
-        for idx, field in enumerate(workflow_fields[1:], start=1):
-            prev_field = workflow_fields[idx - 1]
+        # Mapování pro uživatelsky přívětivé názvy
+        field_names = {
+            "splneno_co_financuje": "Co chce klient financovat",
+            "splneno_navrh_financovani": "Návrh financování",
+            "splneno_vyber_banky": "Výběr banky",
+            "splneno_schvalene_financovani": "Schválené financování",
+            "splneno_priprava_zadosti": "Příprava žádosti",
+            "splneno_kompletace_podkladu": "Kompletace podkladů",
+            "splneno_podani_zadosti": "Podání žádosti",
+            "splneno_odhad": "Odhad",
+            "splneno_schvalovani": "Schvalování",
+            "splneno_priprava_uverove_dokumentace": "Příprava úvěrové dokumentace",
+            "splneno_podpis_uverove_dokumentace": "Podpis úvěrové dokumentace",
+            "splneno_priprava_cerpani": "Příprava čerpání",
+            "splneno_cerpani": "Čerpání",
+            "splneno_zahajeni_splaceni": "Zahájení splácení",
+            "splneno_podminky_pro_splaceni": "Podmínky pro splácení",
+        }
+        # Pro každý krok ověř, že předchozí je splněn (má datum splnění)
+        for idx, field in enumerate(workflow_splneno_fields[1:], start=1):
+            prev_field = workflow_splneno_fields[idx - 1]
             if cleaned_data.get(field) and not cleaned_data.get(prev_field):
+                prev_name = field_names.get(prev_field, prev_field)
                 self.add_error(
                     field,
-                    f'Nelze vyplnit krok "{field}", dokud není vyplněn předchozí krok.',
+                    f'Nelze označit jako splněný, dokud není splněn předchozí krok "{prev_name}".',
                 )
         return cleaned_data
 
@@ -572,7 +603,7 @@ def home(request):
     except Exception:
         role = None
     if user.is_authenticated and role == "klient":
-        klienti = Klient.objects.filter(user=user)
+        klienti = Klient.objects.filter(user=user).order_by("-datum")
     elif user.is_authenticated and role == "poradce":
         klienti = Klient.objects.all().order_by("-datum")
     else:
