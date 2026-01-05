@@ -738,6 +738,17 @@ def home(request):
 
 @login_required
 def dashboard(request):
+    # Role guard: pouze poradce a admin mají přístup k dashboardu
+    user = request.user
+    try:
+        role = user.userprofile.role
+    except Exception:
+        role = None
+    if not (user.is_staff or user.is_superuser or role == "poradce"):
+        from django.contrib import messages
+        messages.warning(request, "Dashboard je dostupný pouze pro poradce.")
+        return redirect("home")
+    
     klienti = Klient.objects.all()
     pocet_klientu = klienti.count()
     objem_hypotek = sum([k.navrh_financovani_castka or 0 for k in klienti])
@@ -944,6 +955,17 @@ def export_klient_ical(request, pk):
 
 @login_required
 def reporting(request):
+    # Role guard: pouze poradce a admin mají přístup k reportingu
+    user = request.user
+    try:
+        role = user.userprofile.role
+    except Exception:
+        role = None
+    if not (user.is_staff or user.is_superuser or role == "poradce"):
+        from django.contrib import messages
+        messages.warning(request, "Reporting je dostupný pouze pro poradce.")
+        return redirect("home")
+    
     today = timezone.now().date()
     # ZOBRAZIT VŠECHNY KLIENTY BEZ FILTRU NA DATUM
     klienti = Klient.objects.all()
@@ -1062,6 +1084,17 @@ def reporting_export_pdf(request):
     from reportlab.pdfgen import canvas
 
     from .models import Klient
+
+    # Role guard: pouze poradce a admin mají přístup
+    user = request.user
+    try:
+        role = user.userprofile.role
+    except Exception:
+        role = None
+    if not (user.is_staff or user.is_superuser or role == "poradce"):
+        from django.contrib import messages
+        messages.warning(request, "Export je dostupný pouze pro poradce.")
+        return redirect("reporting")
 
     # --- Filtrování podle období ---
     today = timezone.now().date()
@@ -1192,4 +1225,154 @@ def reporting_export_pdf(request):
     buffer.seek(0)
     response = HttpResponse(buffer, content_type="application/pdf")
     response["Content-Disposition"] = 'attachment; filename="reporting.pdf"'
+    return response
+
+
+@login_required
+def reporting_export_xlsx(request):
+    """
+    View pro export reportingu do XLSX včetně tabulky klientů a statistik.
+    Využívá openpyxl pro generování Excel souboru.
+    """
+    import io
+    from collections import Counter
+
+    from django.utils import timezone
+
+    import openpyxl
+    from openpyxl.styles import Alignment, Font, PatternFill
+    from openpyxl.utils import get_column_letter
+
+    from .models import Klient
+
+    # Role guard: pouze poradce a admin mají přístup
+    user = request.user
+    try:
+        role = user.userprofile.role
+    except Exception:
+        role = None
+    if not (user.is_staff or user.is_superuser or role == "poradce"):
+        from django.contrib import messages
+        messages.warning(request, "Export je dostupný pouze pro poradce.")
+        return redirect("reporting")
+
+    # --- Filtrování podle období ---
+    today = timezone.now().date()
+    first_day = today.replace(day=1)
+    datum_od = request.GET.get("datum_od")
+    datum_do = request.GET.get("datum_do")
+    klienti = Klient.objects.all()
+    if datum_od:
+        klienti = klienti.filter(datum__gte=datum_od)
+    if datum_do:
+        klienti = klienti.filter(datum__lte=datum_do)
+
+    # --- Připrav data ---
+    klienti_with_status = []
+    for k in klienti:
+        if k.duvod_zamitnuti and str(k.duvod_zamitnuti).strip():
+            stav = "Zamítnuto"
+        else:
+            progress = k.get_workflow_progress
+            if all(krok["splneno"] for krok in progress["kroky"]):
+                stav = "Schváleno"
+            else:
+                stav = "V procesu"
+        klienti_with_status.append({
+            "jmeno": k.jmeno,
+            "datum": k.datum,
+            "banka": k.vyber_banky or "",
+            "castka": k.navrh_financovani_castka or 0,
+            "stav": stav,
+            "procenta": k.get_workflow_progress["procenta_dokonceni"],
+        })
+
+    # --- Statistika podle banky ---
+    banky = [k.vyber_banky for k in klienti if k.vyber_banky]
+    rozlozeni_banky = Counter(banky)
+    banky_labels = list(rozlozeni_banky.keys())
+    schvalene = klienti.filter(duvod_zamitnuti__isnull=True, vyber_banky__isnull=False)
+    zamitnute = klienti.filter(duvod_zamitnuti__isnull=False, vyber_banky__isnull=False)
+    schvalenost = [schvalene.filter(vyber_banky=b).count() for b in banky_labels]
+    zamitnutost = [zamitnute.filter(vyber_banky=b).count() for b in banky_labels]
+
+    # --- Vytvoř Excel ---
+    wb = openpyxl.Workbook()
+    
+    # List 1: Přehled klientů
+    ws1 = wb.active
+    ws1.title = "Klienti"
+    
+    # Hlavička
+    headers = ["Jméno", "Datum", "Banka", "Částka (Kč)", "Stav", "Dokončení (%)"]
+    header_fill = PatternFill(start_color="FFD700", end_color="FFD700", fill_type="solid")
+    header_font = Font(bold=True, color="000000")
+    
+    for col, header in enumerate(headers, 1):
+        cell = ws1.cell(row=1, column=col, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="center")
+    
+    # Data
+    for row_idx, klient_data in enumerate(klienti_with_status, 2):
+        ws1.cell(row=row_idx, column=1, value=klient_data["jmeno"])
+        ws1.cell(row=row_idx, column=2, value=klient_data["datum"].strftime("%d.%m.%Y") if klient_data["datum"] else "")
+        ws1.cell(row=row_idx, column=3, value=klient_data["banka"])
+        ws1.cell(row=row_idx, column=4, value=float(klient_data["castka"]))
+        ws1.cell(row=row_idx, column=5, value=klient_data["stav"])
+        ws1.cell(row=row_idx, column=6, value=klient_data["procenta"])
+    
+    # Šířka sloupců
+    for col in range(1, 7):
+        ws1.column_dimensions[get_column_letter(col)].width = 18
+
+    # List 2: Statistika podle banky
+    ws2 = wb.create_sheet("Statistika podle banky")
+    
+    stat_headers = ["Banka", "Schváleno", "Zamítnuto", "Celkem"]
+    for col, header in enumerate(stat_headers, 1):
+        cell = ws2.cell(row=1, column=col, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="center")
+    
+    for row_idx, banka in enumerate(banky_labels, 2):
+        idx = row_idx - 2
+        ws2.cell(row=row_idx, column=1, value=banka)
+        ws2.cell(row=row_idx, column=2, value=schvalenost[idx])
+        ws2.cell(row=row_idx, column=3, value=zamitnutost[idx])
+        ws2.cell(row=row_idx, column=4, value=schvalenost[idx] + zamitnutost[idx])
+    
+    for col in range(1, 5):
+        ws2.column_dimensions[get_column_letter(col)].width = 15
+
+    # List 3: Souhrn
+    ws3 = wb.create_sheet("Souhrn")
+    ws3.cell(row=1, column=1, value="Metrika").font = header_font
+    ws3.cell(row=1, column=2, value="Hodnota").font = header_font
+    ws3.cell(row=2, column=1, value="Celkem klientů")
+    ws3.cell(row=2, column=2, value=len(klienti_with_status))
+    ws3.cell(row=3, column=1, value="Schválených")
+    ws3.cell(row=3, column=2, value=sum(1 for k in klienti_with_status if k["stav"] == "Schváleno"))
+    ws3.cell(row=4, column=1, value="Zamítnutých")
+    ws3.cell(row=4, column=2, value=sum(1 for k in klienti_with_status if k["stav"] == "Zamítnuto"))
+    ws3.cell(row=5, column=1, value="V procesu")
+    ws3.cell(row=5, column=2, value=sum(1 for k in klienti_with_status if k["stav"] == "V procesu"))
+    ws3.cell(row=6, column=1, value="Celkový objem (Kč)")
+    ws3.cell(row=6, column=2, value=sum(float(k["castka"]) for k in klienti_with_status))
+    
+    for col in range(1, 3):
+        ws3.column_dimensions[get_column_letter(col)].width = 20
+
+    # --- Export ---
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    
+    response = HttpResponse(
+        buffer,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="reporting.xlsx"'
     return response

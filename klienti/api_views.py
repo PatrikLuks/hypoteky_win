@@ -1,3 +1,5 @@
+import logging
+
 from django_filters.rest_framework import (
     CharFilter,
     DateFilter,
@@ -9,6 +11,8 @@ from rest_framework import filters, permissions, viewsets
 
 from .models import HypotekaWorkflow, Klient, Poznamka, Zmena
 from .permissions import IsPoradceOrAdmin
+
+logger = logging.getLogger("klienti.api")
 from .serializers import (
     HypotekaWorkflowSerializer,
     KlientSerializer,
@@ -97,6 +101,42 @@ class KlientViewSet(viewsets.ModelViewSet):
             return [IsPoradceOrAdmin()]
         return [permissions.IsAuthenticated()]
 
+    def perform_create(self, serializer):
+        """Auditní log při vytvoření klienta přes API."""
+        instance = serializer.save()
+        author = self.request.user.username if self.request.user.is_authenticated else "API"
+        Zmena.objects.create(
+            klient=instance,
+            popis=f"[API] Vytvořen klient: {instance.jmeno} (ID {instance.pk})",
+            author=author,
+        )
+        logger.info(f"[API AUDIT] Klient vytvořen: {instance.pk} uživatelem {author}")
+
+    def perform_update(self, serializer):
+        """Auditní log při aktualizaci klienta přes API."""
+        instance = serializer.save()
+        author = self.request.user.username if self.request.user.is_authenticated else "API"
+        Zmena.objects.create(
+            klient=instance,
+            popis=f"[API] Aktualizován klient: {instance.jmeno} (ID {instance.pk})",
+            author=author,
+        )
+        logger.info(f"[API AUDIT] Klient aktualizován: {instance.pk} uživatelem {author}")
+
+    def perform_destroy(self, instance):
+        """Auditní log při smazání klienta přes API."""
+        author = self.request.user.username if self.request.user.is_authenticated else "API"
+        klient_jmeno = instance.jmeno
+        klient_pk = instance.pk
+        # Vytvoř log před smazáním (klient už nebude existovat)
+        Zmena.objects.create(
+            klient=instance,
+            popis=f"[API] Smazán klient: {klient_jmeno} (ID {klient_pk})",
+            author=author,
+        )
+        logger.info(f"[API AUDIT] Klient smazán: {klient_pk} uživatelem {author}")
+        instance.delete()
+
 
 class PoznamkaViewSet(viewsets.ModelViewSet):
     queryset = Poznamka.objects.all()  # <-- přidáno pro DRF router
@@ -116,6 +156,41 @@ class PoznamkaViewSet(viewsets.ModelViewSet):
         if role == "klient":
             return Poznamka.objects.filter(klient__user=user)
         return Poznamka.objects.all()
+
+    def perform_create(self, serializer):
+        """Auditní log při vytvoření poznámky přes API."""
+        instance = serializer.save()
+        author = self.request.user.username if self.request.user.is_authenticated else "API"
+        Zmena.objects.create(
+            klient=instance.klient,
+            popis=f"[API] Přidána poznámka (ID {instance.pk})",
+            author=author,
+        )
+        logger.info(f"[API AUDIT] Poznámka vytvořena: {instance.pk} uživatelem {author}")
+
+    def perform_update(self, serializer):
+        """Auditní log při aktualizaci poznámky přes API."""
+        instance = serializer.save()
+        author = self.request.user.username if self.request.user.is_authenticated else "API"
+        Zmena.objects.create(
+            klient=instance.klient,
+            popis=f"[API] Aktualizována poznámka (ID {instance.pk})",
+            author=author,
+        )
+        logger.info(f"[API AUDIT] Poznámka aktualizována: {instance.pk} uživatelem {author}")
+
+    def perform_destroy(self, instance):
+        """Auditní log při smazání poznámky přes API."""
+        author = self.request.user.username if self.request.user.is_authenticated else "API"
+        klient = instance.klient
+        poznamka_pk = instance.pk
+        Zmena.objects.create(
+            klient=klient,
+            popis=f"[API] Smazána poznámka (ID {poznamka_pk})",
+            author=author,
+        )
+        logger.info(f"[API AUDIT] Poznámka smazána: {poznamka_pk} uživatelem {author}")
+        instance.delete()
 
 
 class ZmenaViewSet(viewsets.ReadOnlyModelViewSet):
@@ -152,3 +227,39 @@ class HypotekaWorkflowViewSet(viewsets.ModelViewSet):
         if role == "klient":
             return HypotekaWorkflow.objects.filter(klient__user=user)
         return HypotekaWorkflow.objects.all()
+
+    def perform_create(self, serializer):
+        """Auditní log při vytvoření workflow kroku přes API."""
+        instance = serializer.save()
+        author = self.request.user.username if self.request.user.is_authenticated else "API"
+        Zmena.objects.create(
+            klient=instance.klient,
+            popis=f"[API] Přidán workflow krok {instance.get_krok_display()} (ID {instance.pk})",
+            author=author,
+        )
+        logger.info(f"[API AUDIT] Workflow krok vytvořen: {instance.pk} uživatelem {author}")
+
+    def perform_update(self, serializer):
+        """Auditní log při aktualizaci workflow kroku přes API."""
+        instance = serializer.save()
+        author = self.request.user.username if self.request.user.is_authenticated else "API"
+        Zmena.objects.create(
+            klient=instance.klient,
+            popis=f"[API] Aktualizován workflow krok {instance.get_krok_display()} (ID {instance.pk})",
+            author=author,
+        )
+        logger.info(f"[API AUDIT] Workflow krok aktualizován: {instance.pk} uživatelem {author}")
+
+    def perform_destroy(self, instance):
+        """Auditní log při smazání workflow kroku přes API."""
+        author = self.request.user.username if self.request.user.is_authenticated else "API"
+        klient = instance.klient
+        krok_display = instance.get_krok_display()
+        workflow_pk = instance.pk
+        Zmena.objects.create(
+            klient=klient,
+            popis=f"[API] Smazán workflow krok {krok_display} (ID {workflow_pk})",
+            author=author,
+        )
+        logger.info(f"[API AUDIT] Workflow krok smazán: {workflow_pk} uživatelem {author}")
+        instance.delete()

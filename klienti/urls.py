@@ -2,7 +2,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 
 from . import views
-from .views import reporting, reporting_export_pdf
+from .views import reporting, reporting_export_pdf, reporting_export_xlsx
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -35,5 +35,5 @@ urlpatterns = [
 urlpatterns += [
     path("reporting/", reporting, name="reporting"),
     path("reporting/export/pdf/", reporting_export_pdf, name="reporting_export_pdf"),
-    # path('reporting/export/xlsx/', reporting_export_xlsx, name='reporting_export_xlsx'),  # dočasně zakomentováno
+    path("reporting/export/xlsx/", reporting_export_xlsx, name="reporting_export_xlsx"),
 ]
