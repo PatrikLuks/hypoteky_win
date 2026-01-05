@@ -1,0 +1,807 @@
+\documentclass[12pt, a4paper, oneside]{report}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[czech]{babel}
+\usepackage{lmodern}
+\usepackage{tikz}
+\usepackage{etoolbox}
+
+\newcommand\obor{INFORMAČNÍ TECHNOLOGIE}
+\newcommand\kodOboru{18-20-M/01}
+\newcommand\zamereni{se zaměřením na počítačové sítě a programování}
+\newcommand\skola{Střední škola průmyslová a umělecká, Opava}
+\newcommand\trida{IT4}
+\newcommand\jmenoAutora{Patrik Luks}
+\newcommand\skolniRok{2025/2026}
+\newcommand\datumOdevzdani{5. 1. 2026}
+\newcommand\nazevPrace{Hypotéky}
+
+\title{\nazevPrace}
+\author{\jmenoAutora}
+\date{\datumOdevzdani}
+
+\usepackage[top=2.5cm, bottom=2.5cm, left=3.5cm, right=1.5cm]{geometry}
+\usepackage{cmap}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{hyperref}
+
+\linespread{1.25}
+\setlength{\parskip}{0.5em}
+
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+\tolerance=1000
+\emergencystretch=3em
+
+\usepackage[pagestyles]{titlesec}
+
+\titleformat{\chapter}[hang]
+  {\rmfamily\bfseries\Large}
+  {\thechapter}
+  {1em}
+  {}
+
+\titleformat{\section}[hang]
+  {\rmfamily\bfseries\large}
+  {\thesection}
+  {1em}
+  {}
+
+\titleformat{\subsection}[hang]
+  {\rmfamily\bfseries\normalsize}
+  {\thesubsection}
+  {1em}
+  {}
+
+\titlespacing*{\chapter}{0pt}{-30pt}{8pt}
+\titlespacing*{\section}{0pt}{12pt}{4pt}
+\titlespacing*{\subsection}{0pt}{12pt}{4pt}
+
+\titleformat{name=\chapter,numberless}[hang]
+  {\rmfamily\bfseries\Large}
+  {}
+  {0pt}
+  {}
+
+\titleformat{name=\section,numberless}[hang]
+  {\rmfamily\bfseries\large}
+  {}
+  {0pt}
+  {}
+
+\titlespacing*{name=\chapter,numberless}{0pt}{0pt}{8pt}
+\titlespacing*{name=\section,numberless}{0pt}{12pt}{4pt}
+
+\usepackage{tocloft}
+\usepackage{needspace}
+\setlength{\cftbeforechapskip}{10pt}
+\setlength{\cftbeforesecskip}{3pt}
+
+\preto\cftchapfont{\needspace{4\baselineskip}}
+
+\renewcommand{\cfttoctitlefont}{\rmfamily\LARGE\bfseries}
+\renewcommand{\cftchapfont}{\rmfamily\bfseries}
+\renewcommand{\cftsecfont}{\rmfamily}
+\renewcommand{\cftsubsecfont}{\rmfamily}
+
+\renewcommand{\cftchappresnum}{\rmfamily\bfseries}
+\renewcommand{\cftsecpresnum}{\rmfamily}
+\renewcommand{\cftsubsecpresnum}{\rmfamily}
+
+\cftsetindents{chapter}{0em}{2.5em}
+\cftsetindents{section}{2.5em}{3em}
+\cftsetindents{subsection}{5.5em}{3.7em}
+\renewcommand{\cftdotsep}{2}
+\renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}}
+
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{2}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage{pdfpages}
+\usepackage{upgreek}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{esint}
+\usepackage{mathrsfs}
+\usepackage{helvet}
+\usepackage{mathptmx}
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+\renewcommand{\lstlistingname}{Kód}
+\renewcommand{\lstlistlistingname}{Seznam programových kódů}
+
+\definecolor{mediumgray}{rgb}{0.3, 0.4, 0.4}
+\definecolor{mediumblue}{rgb}{0.0, 0.0, 0.8}
+\definecolor{forestgreen}{rgb}{0.13, 0.55, 0.13}
+\definecolor{darkviolet}{rgb}{0.58, 0.0, 0.83}
+\definecolor{royalblue}{rgb}{0.25, 0.41, 0.88}
+\definecolor{crimson}{rgb}{0.86, 0.8, 0.24}
+
+\lstdefinestyle{Python}{
+	language=Python,
+	backgroundcolor=\color{white},
+	basicstyle=\ttfamily,
+	breakatwhitespace=false,
+	breaklines=false,
+	captionpos=b,
+	columns=fullflexible,
+	commentstyle=\color{mediumgray}\upshape,
+	emph={},
+	emphstyle=\color{crimson},
+	extendedchars=true,
+	fontadjust=true,
+	frame=single,
+	identifierstyle=\color{black},
+	keepspaces=true,
+	keywordstyle=\color{mediumblue},
+	keywordstyle={[2]\color{darkviolet}},
+	keywordstyle={[3]\color{royalblue}},
+	literate=%
+	{á}{{\'a}}1 {č}{{\v{c}}}1 {ď}{{\v{d}}}1 {é}{{\'e}}1 {ě}{{\v{e}}}1
+	{í}{{\'i}}1 {ň}{{\v{n}}}1 {ó}{{\'o}}1 {ř}{{\v{r}}}1 {š}{{\v{s}}}1
+	{ť}{{\v{t}}}1 {ú}{{\'u}}1 {ů}{{\r{u}}}1 {ý}{{\'y}}1 {ž}{{\v{z}}}1,		
+	numbers=left,
+	numbersep=5pt,
+	numberstyle=\tiny\color{black},
+	rulecolor=\color{black},
+	showlines=true,
+	showspaces=false,
+	showstringspaces=false,
+	showtabs=false,
+	stringstyle=\color{forestgreen},
+	tabsize=2,
+	title=\lstname,
+	upquote=true
+}
+
+\begin{document}
+	
+\pagestyle{empty}
+\pagenumbering{arabic}
+
+{\fontfamily{phv}\selectfont
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.5\textwidth]{logo.png}
+	\end{figure}
+	
+	\vspace{1cm}
+	
+	\begin{center}
+		{\LARGE \textbf{ZÁVĚREČNÁ STUDIJNÍ PRÁCE}}\\[0.3cm]
+		{\large dokumentace}\\[1.5cm]
+		{\Huge \textbf{Hypotéky}}\\[0.5cm]
+		{\Large \jmenoAutora}
+	\end{center}
+	
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.8\textwidth]{uvod.png}
+	\end{figure}
+	
+	\vfill
+	
+	\begin{table}[h]
+		\begin{tabular}{ll}
+			\textbf{Autor:} & \jmenoAutora\\
+			\textbf{Obor:} & \kodOboru~\obor\\
+			& \zamereni\\
+			\textbf{Třída:} & \trida\\
+			\textbf{Školní rok:} & \skolniRok\\
+		\end{tabular}		
+	\end{table}		
+}
+
+\newpage
+
+\pagestyle{fancy}
+\tableofcontents
+\newpage
+
+\vspace*{0.5\textheight}
+
+\noindent{\large{\bfseries{Prohlášení}\\}}
+\noindent{Prohlašuji, že jsem závěrečnou práci vypracoval samostatně a uvedl veškeré použité informační zdroje.\\}
+
+\noindent{Souhlasím, aby tato studijní práce byla použita k výukovým a prezentačním účelům na Střední průmyslové a umělecké škole v Opavě, Praskova 399/8.}
+\vfill
+\noindent{V Opavě \datumOdevzdani\\}
+\noindent
+\begin{minipage}{\linewidth}
+	\hspace{9.5cm} 
+	\begin{tabular}{@{}p{6cm}@{}}
+		\dotfill \\
+		podpis autora práce
+	\end{tabular}
+\end{minipage}
+
+\newpage
+\pagestyle{fancy}
+
+\noindent{\Large{\bfseries{ANOTACE}\\}}
+\addcontentsline{toc}{chapter}{Anotace}
+\noindent Cílem projektu je vytvoření webové aplikace pro správu hypotéčních klientů určené pro finanční poradenství. Aplikace umožňuje kompletní správu klientů pomocí CRUD operací, sledování stavu hypotéčních případů a generování reportů. Systém implementuje role-based access control RBAC pro řízení přístupu uživatelů. Citlivé osobní údaje klientů jsou chráněny šifrováním a veškeré operace s daty jsou zaznamenávány do auditních logů. Aplikace obsahuje dashboard pro přehled klíčových metrik a automatické email notifikace pro sledování změn stavů hypoték. Základem projektu je framework Django v jazyce Python a Bootstrap framework pro uživatelské rozhraní.
+
+\vspace{18pt}
+\noindent{\large{\bfseries{Klíčová slova}}}
+
+\noindent Django, Python, hypotéka, CRM, klient, CRUD, RBAC, šifrování, auditní log, Bootstrap
+
+\vspace{24pt}
+\noindent{\Large{\bfseries{ABSTRACT}\\}}
+\addcontentsline{toc}{chapter}{Abstract}
+\noindent The goal of this project is to develop a web application for managing mortgage clients designed for financial advisory services. The application enables complete client management through CRUD operations, tracking the status of mortgage cases, and generating reports. The system implements role-based access control (RBAC) for managing user access. Sensitive personal client data is protected by encryption, and all data operations are recorded in audit logs. The application includes a dashboard for an overview of key metrics and automatic email notifications for tracking mortgage status changes. The project is built on the Django framework in Python and the Bootstrap framework for the user interface.
+
+\vspace{18pt}
+\noindent{\large{\bfseries{Keywords}}}
+
+\noindent Django, Python, mortgage, CRM, client, CRUD, RBAC, encryption, audit log, Bootstrap
+
+\chapter*{Úvod}
+\addcontentsline{toc}{chapter}{Úvod}
+
+Můj projekt vychází z potřeby finančního poradce. Hypotéční poradenství je obor, kde je potřeba efektivně spravovat velké množství dat, sledovat průběh jednotlivých případů a mít přehled o stavu celého portfolia. Potřeba byla nahradit nepřehledné Excel tabulky aplikací, do které se navíc může hypotéční klient podívat na stav své hypotéky.
+
+Tento systém poradcům usnadní každodenní práci a nahradí nepřehledné Excel tabulky profesionálním řešením. Cílem projektu je umožnit poradcům evidovat hypotéční klienty, sledovat jejich stav a zobrazit data přehledně. Aplikace zajišťuje bezpečné ukládání citlivých osobních údajů pomocí šifrování a zaznamenává veškeré operace do auditních logů.
+
+
+\chapter*{Systém finančních poradců při vytvoření hypotéky}
+\addcontentsline{toc}{chapter}{Systém finančních poradců při vytvoření hypotéky}
+
+Finanční poradci dělí proces zajištění hypotéky do patnácti kroků.
+
+\section*{Kroky finančního poradce}
+\addcontentsline{toc}{section}{Kroky finančního poradce}
+\begin{samepage}
+\begin{enumerate}
+	\item Co chce klient financovat,
+	\item Návrh financování,
+	\item Výběr banky,
+	\item Schválené financování,
+	\item Příprava žádosti,
+	\item Kompletace podkladů,
+	\item Podání žádosti,
+	\item Odhad,
+	\item Schvalování,
+	\item Příprava úvěrové dokumentace,
+	\item Podpis úvěrové dokumentace,
+	\item Příprava čerpání,
+	\item Čerpání,
+	\item Zahájení splácení,
+	\item Podmínky ke splacení.
+\end{enumerate}
+\end{samepage}
+
+Tyto kroky s informací, že každý krok trvá přibližně sedm dní, sloužily jako zadání projektu. Potřeba byla vytvořit software, který nahradí Excel přehlednějším a funkčně bohatším řešením. Přání bylo také, aby hypotéční klienti mohli vidět stav svých hypoték, ideálně z pohodlí domova prostřednictvím svého telefonu.
+
+\newpage
+\chapter*{Přihlášení do aplikace}
+\addcontentsline{toc}{chapter}{Přihlášení do aplikace}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.9\textwidth]{login.pdf}
+	\caption{Přihlašovací obrazovka}
+	\label{fig:login}
+\end{figure}
+
+Aplikace vyžaduje přihlášení uživatele před vstupem do systému. Přihlašovací obrazovka obsahuje formulář pro zadání uživatelského jména a hesla. Systém rozlišuje dvě základní role:
+
+\begin{samepage}
+\begin{itemize}
+	\item \textbf{Poradce} -- má přístup ke všem funkcím aplikace včetně správy klientů, dashboardu a reportingu,
+	\item \textbf{Klient} -- má omezený přístup pouze ke svým údajům a stavu své hypotéky.
+\end{itemize}
+\end{samepage}
+
+Po úspěšném přihlášení je uživatel přesměrován na příslušnou sekci podle své role. Aplikace podporuje dvoufaktorové ověřování (2FA) pro zvýšení bezpečnosti přístupu -- tato funkcionalita je připravena a lze ji aktivovat v konfiguraci.
+
+\newpage
+\chapter*{Návrh architektury}
+\addcontentsline{toc}{chapter}{Návrh architektury}
+
+Aplikace se skládá ze sekcí:
+\begin{samepage}
+\begin{itemize}
+	\item Klienti,
+	\item Přidat klienta,
+	\item Dashboard,
+	\item Reporting,
+	\item Samostatná sekce určená pro hypotéční klienty.
+\end{itemize}
+\end{samepage}
+
+Základním stavebním kamenem aplikace je klientský formulář. Na tomto formuláři stojí většina business logiky aplikace -- workflow, finanční výpočty, stav hypotéky i časové řízení jednotlivých kroků.
+
+Formulář reprezentuje kompletní životní cyklus hypotéčního případu jednoho hypotéčního klienta, od prvního kontaktu až po zahájení splácení nebo zamítnutí.
+
+Vyplněním formuláře vzniká záznam hypotéčního klienta. V případě vyplnění pole „Důvod zamítnutí hypotéky" je hypotéční případ automaticky označen jako zamítnutý.
+
+Seznam hypotéčních klientů si finanční poradce může zobrazit v sekci Klienti, která kromě propracované tabulky hypotéčních klientů obsahuje také tabulku nejbližších deadlinů nebo užitečné grafy zpracující makro data o hypotéčních klientech.
+
+Sekce Dashboard slouží jako analytický a přehledový modul aplikace. Finančním poradcům poskytuje informace o počtu klientů, objemu hypoték, počtu urgentních případů, grafické rozložení workflow, průměrné výši hypoték a historii logů.
+
+Sekce Reporting zobrazuje detailní tabulku všech hypotéčních klientů a statistiku schválených a zamítnutých hypotéčních případů.
+
+\newpage
+\chapter*{Formulář}
+\addcontentsline{toc}{chapter}{Formulář}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.9\textwidth]{formular.pdf}
+	\caption{Klientský formulář}
+	\label{fig:formular}
+\end{figure}
+
+\section*{Účel formuláře}
+\addcontentsline{toc}{section}{Účel formuláře}
+
+Formulář slouží k:
+\begin{samepage}
+\begin{itemize}
+	\item evidenci hypotéčního klienta,
+	\item řízení procesu hypotéky v definovaných krocích,
+	\item sledování termínů a jejich plnění,
+	\item uchování citlivých údajů v šifrované podobě,
+	\item výpočtům klíčových finančních ukazatelů (LTV, vlastní zdroje).
+\end{itemize}
+\end{samepage}
+
+Vyplněním formuláře vzniká plnohodnotný záznam hypotéčního klienta, se kterým aplikace dále pracuje.
+
+\section*{Základní struktura formuláře}
+\addcontentsline{toc}{section}{Základní struktura formuláře}
+
+Formulář se skládá z 56 polí (14 z nich je šifrováno), která jsou logicky rozdělena do 15 navazujících workflow kroků. Jednotlivé kroky jsou od sebe časově oddělené (výchozí hodnota je sedm dní) a reflektují reálný postup při sjednání hypotéky.
+
+\subsection*{Základní identifikační údaje}
+\addcontentsline{toc}{subsection}{Základní identifikační údaje}
+\begin{samepage}
+\begin{itemize}
+	\item Jméno klienta -- šifrováno pomocí Fernet; pro účely vyhledávání existuje pomocné pole \texttt{jmeno\_index} (plaintext), které je automaticky synchronizováno při každé změně jména,
+	\item Mail klienta -- šifrováno pomocí Fernet; slouží pro přístup klienta do klientské části aplikace,
+	\item Datum založení záznamu -- výchozí referenční datum celého procesu.
+\end{itemize}
+\end{samepage}
+
+Tyto údaje tvoří hlavičku formuláře a jsou povinné.
+
+\section*{Workflow kroky hypotéky}
+\addcontentsline{toc}{section}{Workflow kroky hypotéky}
+\begin{samepage}
+\begin{enumerate}
+	\item Co chce klient financovat (šifrováno), datum deadline, splnění,
+	\item Cena, Výše hypotéky, Vlastní zdroj, LTV, datum deadline, splnění,
+	\item Výběr banky, datum deadline, splnění,
+	\item Výše schválené hypotéky, Schválený vlastní zdroj, Schválené LTV, datum deadline, splnění,
+	\item Příprava žádosti (šifrováno) -- datum deadline, splnění + poznámka,
+	\item Kompletace podkladů (šifrováno) -- datum deadline, splnění + poznámka,
+	\item Podání žádosti (šifrováno) -- datum deadline, splnění + poznámka,
+	\item Odhad (šifrováno) -- datum deadline, splnění + poznámka,
+	\item Schvalování (šifrováno) -- datum deadline, splnění + poznámka,
+	\item Příprava úvěrové dokumentace (šifrováno) -- datum deadline, splnění + poznámka,
+	\item Podpis úvěrové dokumentace (šifrováno) -- datum deadline, splnění + poznámka,
+	\item Příprava čerpání (šifrováno) -- datum deadline, splnění + poznámka,
+	\item Čerpání (šifrováno) -- datum deadline, splnění + poznámka,
+	\item Zahájení splácení (šifrováno) -- datum deadline, splnění + poznámka,
+	\item Podmínky pro splácení (šifrováno) -- datum deadline, splnění + poznámka.
+\end{enumerate}
+\end{samepage}
+
+Formulář obsahuje validační logiku, která zajišťuje správné pořadí workflow kroků. Není možné označit pozdější krok jako splněný bez splnění předchozího kroku. Tím je zajištěna logická návaznost jednotlivých fází hypotéčního procesu.
+
+Finanční hodnoty (výše hypoték, vlastní zdroje a LTV) jsou automaticky počítány a u odvozených polí není povolena ruční editace, čímž se minimalizuje riziko chyb.
+
+\newpage
+\chapter*{Klienti}
+\addcontentsline{toc}{chapter}{Klienti}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.9\textwidth]{klienti.pdf}
+	\caption{Klienti}
+	\label{fig:klienti}
+\end{figure}
+
+\section*{Centrum aplikace -- Klienti}
+\addcontentsline{toc}{section}{Centrum aplikace -- Klienti}
+
+V horní části centra aplikace se nachází tlačítko Přidat klienta, pod ním grafy. Pro grafy používám knihovnu Chart.js. Je v plánu barvy v budoucnu nahradit firemními.
+
+\subsection*{Grafy}
+\addcontentsline{toc}{subsection}{Grafy}
+\begin{samepage}
+\begin{itemize}
+	\item koláčový graf znázorňující rozložení workflow klientů,
+	\item sloupcový graf Objem hypoték podle stavu,
+	\item graf Vývoj počtu klientů v čase,
+	\item graf Vývoj objemu hypoték v čase.
+\end{itemize}
+\end{samepage}
+
+Pod těmito grafy se nachází tabulka Nejbližší deadliny. Tabulka zobrazuje Top 5 klientů s nejbližším deadline, pracuje na základě dat z formuláře. Řazeno vzestupně.
+
+\subsection*{Sloupce tabulky nejbližších deadlinů}
+\addcontentsline{toc}{subsection}{Sloupce tabulky nejbližších deadlinů}
+\begin{samepage}
+\begin{itemize}
+	\item jméno klienta,
+	\item nejbližší krok,
+	\item termín,
+	\item kolik zbývá dní,
+	\item co financuje,
+	\item návrh financování,
+	\item tlačítka: detail + upravit.
+\end{itemize}
+\end{samepage}
+
+\subsection*{Barevné kódy pro deadline}
+\addcontentsline{toc}{subsection}{Barevné kódy pro deadline}
+Aplikace používá pro deadline barevné kódy:
+\begin{samepage}
+\begin{itemize}
+	\item Zelená pro deadline > 3 dny,
+	\item Oranžová pro deadline <= 3 dny,
+	\item Červená pro kroky po termínu.
+\end{itemize}
+\end{samepage}
+
+Dále se nachází tabulka všech klientů, obohacena o hledání dle jména a stránkování. Důležité je zobrazit aktuální stav co nejpřehledněji, proto se pod každým hypotéčním klientem ukazuje progress bar.
+
+\subsection*{Sloupce hlavní tabulky klientů}
+\addcontentsline{toc}{subsection}{Sloupce hlavní tabulky klientů}
+\begin{samepage}
+\begin{itemize}
+	\item jméno klienta,
+	\item datum založení,
+	\item co financuje,
+	\item návrh financování,
+	\item stav,
+	\item další krok,
+	\item akce -- Detail, Upravit, Smazat.
+\end{itemize}
+\end{samepage}
+
+
+\chapter*{Detail klienta}
+\addcontentsline{toc}{chapter}{Detail klienta}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.9\textwidth]{detail.pdf}
+	\caption{Detail klienta}
+	\label{fig:detail_klienta}
+\end{figure}
+
+Detail klienta shrnuje důležité informace o hypotéčních klientech. Přehledně je zde zpracované workflow klienta. Finanční poradce vyčte všechny důležité informace o stavu hypotéky.
+
+Poznámky ke klientovi budou, v kontextu stránky Detail, vhodné zejména při osobní schůzce. Funkce „Export deadlinů do kalendáře" umožňuje vytvoření událostí v~kalendáři firmy~Apple.
+
+
+\chapter*{Dashboard}
+\addcontentsline{toc}{chapter}{Dashboard}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.9\textwidth]{dashboard.pdf}
+	\caption{Dashboard}
+	\label{fig:dashboard}
+\end{figure}
+
+Dashboard slouží jako analytický a přehledový modul aplikace. Finančním poradcům poskytuje informace o:
+\begin{samepage}
+\begin{itemize}
+	\item počtu klientů,
+	\item objemu hypoték,
+	\item počtu urgentních případů,
+	\item grafické rozložení workflow,
+	\item průměrné výši hypoték,
+	\item historii logů.
+\end{itemize}
+\end{samepage}
+
+
+\chapter*{Reporting}
+\addcontentsline{toc}{chapter}{Reporting}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.9\textwidth]{reporting.pdf}
+	\caption{Reporting}
+	\label{fig:reporting}
+\end{figure}
+
+Reporting umožňuje finančním poradcům vidět počet celkových, schválených a zamítnutých hypoték.
+
+Zamítnuta hypotéka je ta, která má pole „Důvod zamítnutí hypotéky" vyplněno.
+
+
+\chapter*{Klientská část}
+\addcontentsline{toc}{chapter}{Klientská část}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.9\textwidth]{klientska.pdf}
+	\caption{Klientská část}
+	\label{fig:klientska_cast}
+\end{figure}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.9\textwidth]{klientskadetail.pdf}
+	\caption{Klientská část -- Detail}
+	\label{fig:klientska_cast_detail}
+\end{figure}
+
+Hypotéční klient je schopen v klientské části aplikace získat aktuální informace o své hypotéce, změnit si heslo, importovat deadliny do kalendáře, připsat si poznámky nebo upravit svůj záznam.
+
+\newpage
+\chapter*{Použité technologie}
+\addcontentsline{toc}{chapter}{Použité technologie}
+
+Tato kapitola popisuje technologie použité při vývoji.
+
+\section*{Backend}
+\addcontentsline{toc}{section}{Backend}
+
+Backend aplikace je implementován v programovacím jazyce Python (verze 3.12) s využitím webového frameworku Django (verze 4.2 LTS). Django poskytuje robustní architekturu typu Model-View-Template (MVT), vestavěný autentizační systém, ORM vrstvu pro práci s databází a vysokou úroveň zabezpečení.
+
+Pro tvorbu aplikační logiky, práci s databází a validaci dat je využíváno Django ORM, které abstrahuje databázové operace a minimalizuje riziko SQL injection útoků.
+
+Součástí backendu je také Django REST Framework, který slouží pro tvorbu REST API rozhraní. API je využívané pro budoucí rozšiřitelnost aplikace a integraci s externími systémy.
+
+\section*{Frontend}
+\addcontentsline{toc}{section}{Frontend}
+
+Uživatelské rozhraní aplikace je postaveno na technologiích HTML5, CSS3 a JavaScript. Pro jednotný vzhled a responzivní chování aplikace je použit framework Bootstrap 5, který umožňuje optimalizaci aplikace pro desktopová i mobilní zařízení.
+
+Pro vizualizaci dat, zejména v sekcích Dashboard a Klienti, je využita JavaScriptová knihovna Chart.js, která umožňuje zobrazování sloupcových, koláčových a spojnicových grafů.
+
+Ikony v aplikaci jsou realizovány pomocí knihovny FontAwesome a typografie je řešena pomocí fontu Inter z Google Fonts. Aplikace podporuje vlastní tmavý motiv vytvořený pomocí vlastních CSS stylů.
+
+\section*{Databáze}
+\addcontentsline{toc}{section}{Databáze}
+
+Jako primární databázový systém je v produkčním prostředí použita databáze MySQL 8, která nabízí vysoký výkon, stabilitu a širokou podporu. Databáze je nakonfigurována s kódováním UTF-8MB4, což umožňuje správné ukládání všech znaků včetně diakritiky.
+
+Pro testovací účely je využívána databáze SQLite, která umožňuje rychlé spouštění automatizovaných testů bez nutnosti externí databázové služby.
+
+\subsection*{Schéma databáze -- ER diagram}
+\addcontentsline{toc}{subsection}{Schéma databáze -- ER diagram}
+
+Aplikace využívá sedm databázových tabulek propojených relacemi. Hlavní tabulka \texttt{klienti\_klient} obsahuje 56 polí, z nichž 14 je šifrováno. Šifrované tabulky jsou v diagramu označeny červeným přerušovaným okrajem.
+
+\begin{figure}[ht]
+	\centering
+	\resizebox{\textwidth}{!}{%
+	\begin{tikzpicture}[
+		entity/.style={
+			rectangle,
+			draw=black,
+			thick,
+			minimum width=4.2cm,
+			minimum height=1.8cm,
+			align=center,
+			font=\footnotesize
+		},
+		encrypted/.style={
+			entity,
+			draw=red,
+			dashed
+		},
+		arrow/.style={->, thick, >=stealth}
+	]
+	
+	% Row 1: User
+	\node[entity] (User) at (0, 6) {\textbf{auth\_user}\\id (PK), username\\email, password};
+	
+	% Row 2: UserProfile
+	\node[entity] (UserProfile) at (0, 3) {\textbf{klienti\_userprofile}\\id (PK), user\_id (FK)\\role: poradce/klient};
+	
+	% Row 3: Main entities - spread horizontally
+	\node[encrypted] (Poznamka) at (-7, 0) {\textbf{klienti\_poznamka}\\id (PK), klient\_id (FK)\\text (ENCRYPTED)};
+	
+	\node[entity] (Klient) at (0, 0) {\textbf{klienti\_klient}\\id (PK), 56 polí\\14 šifrovaných polí};
+	
+	\node[entity] (Workflow) at (7, 0) {\textbf{klienti\_hypoteka}\\id (PK), klient\_id (FK)\\krok 1-15, datum};
+	
+	% Row 4: Bottom entities
+	\node[entity] (Notifikace) at (-7, -3) {\textbf{klienti\_notifikace}\\id (PK), klient\_id (FK)\\prijemce, typ, datum};
+	
+	\node[encrypted] (Zmena) at (7, -3) {\textbf{klienti\_zmena}\\id (PK), klient\_id (FK)\\popis (ENCRYPTED)};
+	
+	% Relationships with labels
+	\draw[arrow] (User) -- (UserProfile) node[midway, right] {\scriptsize 1:1};
+	\draw[arrow] (UserProfile) -- (Klient) node[midway, right] {\scriptsize 1:N};
+	\draw[arrow] (Klient) -- (Poznamka) node[midway, above] {\scriptsize 1:N};
+	\draw[arrow] (Klient) -- (Workflow) node[midway, above] {\scriptsize 1:N};
+	\draw[arrow] (Klient) -- (Notifikace) node[midway, left] {\scriptsize 1:N};
+	\draw[arrow] (Klient) -- (Zmena) node[midway, right] {\scriptsize 1:N};
+	
+	\end{tikzpicture}%
+	}
+	\caption{ER diagram databázového schématu -- červeně označeny tabulky se šifrovanými poli}
+	\label{fig:er_diagram}
+\end{figure}
+
+\section*{Bezpečnost a šifrování}
+\addcontentsline{toc}{section}{Bezpečnost a šifrování}
+
+Aplikace klade důraz na ochranu citlivých osobních a finančních údajů. Vybraná pole databáze jsou ukládána v šifrované podobě pomocí knihovny django-encrypted-model-fields, která využívá symetrické šifrování Fernet z balíčku cryptography.
+
+Autentizace uživatelů je řešena pomocí vestavěného Django systému, rozšířeného o:
+\begin{samepage}
+\begin{itemize}
+	\item JWT autentizaci pro REST API,
+	\item OTP (One-Time Password) -- připraveno k aktivaci,
+	\item dvoufaktorové ověřování (2FA) -- připraveno k aktivaci.
+\end{itemize}
+\end{samepage}
+
+\noindent\textbf{Poznámka:} Moduly pro 2FA a OTP (\texttt{django\_otp}, \texttt{two\_factor}) jsou instalovány a připraveny k použití. Pro aktivaci je nutné odkomentovat příslušné URL cesty v \texttt{hypoteky/urls.py}.
+
+Aplikace dále využívá bezpečnostní mechanismy frameworku Django:
+\begin{samepage}
+\begin{itemize}
+	\item CSRF ochrana -- automatická ochrana proti Cross-Site Request Forgery útokům pomocí tokenů,
+	\item XSS ochrana -- automatické escapování výstupů v šablonách,
+	\item SQL injection ochrana -- parametrizované dotazy přes Django ORM,
+	\item Clickjacking ochrana -- X-Frame-Options hlavička,
+	\item Bezpečné session cookies -- HttpOnly a Secure flags.
+\end{itemize}
+\end{samepage}
+
+\section*{Export dat a reporting}
+\addcontentsline{toc}{section}{Export dat a reporting}
+
+Aplikace umožňuje export dat do souborů ve formátu Excel (XLSX) pomocí knihovny openpyxl.
+
+\section*{Verzování a vývoj}
+\addcontentsline{toc}{section}{Verzování a vývoj}
+
+Pro správu verzí zdrojového kódu je použit systém Git s hostingem na platformě GitHub. Projekt využívá kontinuální integraci (CI) pomocí GitHub Actions, která automaticky spouští testy a kontroluje kvalitu kódu při každém commitu.
+
+\section*{Testování}
+\addcontentsline{toc}{section}{Testování}
+
+Aplikace je pokryta automatizovanými testy pomocí frameworku pytest. Testovací sada zahrnuje:
+\begin{samepage}
+\begin{itemize}
+	\item Unit testy -- testování jednotlivých funkcí a metod,
+	\item Integrační testy -- testování spolupráce komponent,
+	\item E2E testy -- testování kompletních uživatelských scénářů pomocí Playwright,
+	\item Bezpečnostní testy -- ověření šifrování a přístupových práv.
+\end{itemize}
+\end{samepage}
+
+Testy jsou automaticky spouštěny při každém commitu a před nasazením do produkce.
+
+\section*{Instalace a spuštění}
+\addcontentsline{toc}{section}{Instalace a spuštění}
+
+Aplikace vyžaduje Python 3.12 a MySQL 8. Instalace probíhá následujícími kroky:
+\begin{samepage}
+\begin{enumerate}
+	\item Klonování repozitáře: \texttt{git clone <repository-url>}
+	\item Vytvoření virtuálního prostředí: \texttt{python -m venv .venv}
+	\item Aktivace prostředí: \texttt{source .venv/bin/activate}
+	\item Instalace závislostí: \texttt{pip install -r requirements.txt}
+	\item Konfigurace proměnných prostředí v souboru \texttt{.env}
+	\item Migrace databáze: \texttt{python manage.py migrate}
+	\item Spuštění serveru: \texttt{python manage.py runserver}
+\end{enumerate}
+\end{samepage}
+
+\noindent\textbf{Důležité nastavení šifrovacího klíče:}\\
+Aplikace používá knihovnu \texttt{django-encrypted-model-fields} pro šifrování citlivých polí v databázi. Před prvním spuštěním je nutné nastavit proměnnou prostředí \texttt{ENCRYPTED\_MODEL\_FIELDS\_KEY} obsahující base64-enkódovaný 32-bajtový klíč. Klíč lze vygenerovat pomocí:
+\begin{verbatim}
+python -c "from cryptography.fernet import Fernet; 
+print(Fernet.generate_key().decode())"
+\end{verbatim}
+\noindent Tento klíč bezpečně uložte -- bez něj nebude možné dešifrovat data v databázi.
+
+\newpage
+\section*{E-mailová upozornění}
+\addcontentsline{toc}{section}{E-mailová upozornění}
+
+E-mailové notifikace jsou v aplikaci realizovány pomocí vestavěného Django Email Backendu s využitím SMTP protokolu. Odesílání e-mailů je řízeno pomocí Django signals a workflow logiky aplikace. Konfigurace SMTP serveru je řešena přes proměnné prostředí a podporuje jak Gmail SMTP, tak vlastní SMTP servery. Komunikace je zabezpečena pomocí TLS a správná funkčnost e-mailových notifikací je ověřována automatizovanými testy.
+
+\subsection*{Typy notifikací}
+\addcontentsline{toc}{subsection}{Typy notifikací}
+\begin{samepage}
+\begin{enumerate}
+	\item Welcome e-mail -- hypotéční klient obdrží uvítací e-mail s přihlašovacími údaji a link pro změnu hesla,
+	\item Změna stavu hypotéky -- poradce a klient,
+	\item Blížící se deadline -- poradce a klient,
+	\item Urgentní případ -- poradce (deadline < 3 dny),
+	\item Zamítnutí žádosti -- klient,
+	\item Týdenní reporting -- poradce.
+\end{enumerate}
+\end{samepage}
+
+
+\newpage
+\chapter*{Závěr}
+\addcontentsline{toc}{chapter}{Závěr}
+
+Cílem bylo navrhnout a implementovat webovou aplikaci pro správu hypotéčních klientů určenou pro potřeby finančního poradenství. Tento cíl byl splněn vytvořením funkčního informačního systému, který umožňuje evidenci klientů, řízení hypotéčního procesu v definovaných krocích a přehlednou práci s daty.
+
+Aplikace nahrazuje původní neefektivní řešení založené na Excelu moderním systémem, který zvyšuje přehlednost, snižuje chybovost a zlepšuje organizaci práce finančních poradců.
+
+\section*{Splněné cíle}
+\addcontentsline{toc}{section}{Splněné cíle}
+\begin{samepage}
+\begin{itemize}
+	\item Kompletní CRUD operace pro správu hypotéčních klientů,
+	\item 15kroký workflow proces s automatickým sledováním deadlinů,
+	\item Šifrování 14 citlivých polí pomocí Fernet šifrování,
+	\item Role-based access control (RBAC) s rolemi poradce a klient,
+	\item Dashboard s analytickými přehledy a grafy,
+	\item E-mailové notifikace pro sledování změn stavů,
+	\item Responzivní design pro mobilní zařízení.
+\end{itemize}
+\end{samepage}
+
+\section*{Budoucí rozvoj}
+\addcontentsline{toc}{section}{Budoucí rozvoj}
+
+V budoucnu je plánováno rozšíření aplikace o:
+\begin{samepage}
+\begin{itemize}
+	\item Firemní branding a přizpůsobení barevného schématu.
+	\item Lepší responzivní design pro mobilní zařízení.
+\end{itemize}
+\end{samepage}
+
+
+\chapter*{Seznam použitých informačních zdrojů}
+\addcontentsline{toc}{chapter}{Seznam použitých informačních zdrojů}
+
+[1] Django Documentation. Dostupné z: \url{https://docs.djangoproject.com/}
+
+[2] Bootstrap 5 Documentation. Dostupné z: \url{https://getbootstrap.com/docs/5.0/}
+
+[3] Chart.js Documentation. Dostupné z: \url{https://www.chartjs.org/docs/}
+
+[4] Django REST Framework. Dostupné z: \url{https://www.django-rest-framework.org/}
+
+[5] django-encrypted-model-fields. Dostupné z: \url{https://pypi.org/project/django-encrypted-model-fields/}
+
+[6] MySQL 8 Reference Manual. Dostupné z: \url{https://dev.mysql.com/doc/refman/8.0/en/}
+
+[7] Git Documentation. Dostupné z: \url{https://git-scm.com/doc}
+
+[8] pytest Documentation. Dostupné z: \url{https://docs.pytest.org/}
+
+[9] Playwright Documentation. Dostupné z: \url{https://playwright.dev/python/}
+
+
+\chapter*{Seznam příloh}
+\addcontentsline{toc}{chapter}{Seznam příloh}
+
+\begin{itemize}
+	\item Příloha 1: Přihlašovací obrazovka (login.pdf)
+	\item Příloha 2: Úvodní obrazovka aplikace (uvod.png)
+	\item Příloha 3: Klientský formulář (formular.pdf)
+	\item Příloha 4: Seznam klientů (klienti.pdf)
+	\item Příloha 5: Detail klienta (detail.pdf)
+	\item Příloha 6: Dashboard (dashboard.pdf)
+	\item Příloha 7: Reporting (reporting.pdf)
+	\item Příloha 8: Klientská část (klientska.pdf)
+	\item Příloha 9: Klientská část -- Detail (klientskadetail.pdf)
+\end{itemize}
+
+
+\end{document}
