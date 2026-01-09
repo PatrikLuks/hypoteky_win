@@ -90,3 +90,6 @@ dev/snapshots/*.html
 __pycache__/
 .env
 .env.*
+
+# Šablona LaTeX
+sablona-zaverecne-prace.tex
