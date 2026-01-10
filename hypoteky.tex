@@ -37,14 +37,14 @@
 \widowpenalty=10000
 \clubpenalty=10000
 
-\usepackage[pagestyles]{titlesec} %% balíček pro úpravu stylu kapitol a sekcí
+\usepackage[pagestyles]{titlesec} %
 \titleformat{\chapter}[block]{\scshape\bfseries\LARGE}{\thechapter}{10pt}{\vspace{0pt}}[\vspace{-22pt}]
 \titleformat{\section}[block]{\scshape\bfseries\Large}{\thesection}{10pt}{\vspace{0pt}}
 \titleformat{\subsection}[block]{\bfseries\large}{\thesubsection}{10pt}{\vspace{0pt}}
 
-\usepackage{tocloft} % Balíček umožní přizpůsobit vzhled tabulky obsahu
-\setlength{\cftbeforechapskip}{0pt}  % Menší rozestup pro kapitoly
-\setlength{\cftbeforesecskip}{0pt}   % Menší rozestup pro sekce
+\usepackage{tocloft}
+\setlength{\cftbeforechapskip}{0pt}
+\setlength{\cftbeforesecskip}{0pt}
 
 \setcounter{secnumdepth}{2}
 \setcounter{tocdepth}{1}
@@ -62,10 +62,9 @@
 \usepackage{amsfonts}
 \usepackage{esint}
 \usepackage{mathrsfs}
-\usepackage{helvet} % Helvet font
-\usepackage{mathptmx} % Times New Roman
+\usepackage{helvet}
+\usepackage{mathptmx}
 
-% \usepackage{Oswald} % Oswald font (odstraněno pro soulad se šablonou)
 
 \makeatletter
 \def\superiorSup{}
@@ -77,12 +76,9 @@
 \def\proportionalProp{}
 \makeatother
 
-% --- odstraneni zbytkoveho textu "superiorSup" a pod. ---
 \AtBeginDocument{%
-	% pojistka proti nechtenemu textu nactenemu z aux/toc
 	\immediate\write16{(cleaning stray figureversions output...)}%
 	\thispagestyle{empty}
-	% uplne vyprazdneni vseho, co by se objevilo mimo hlavni text
 	\let\superiorSup\relax
 	\let\textOsF\relax
 	\let\textTOsF\relax
@@ -150,19 +146,19 @@
 	\pagestyle{empty}
 	\pagenumbering{Roman}
 	
-%% Titulní stránka s informacemi
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	
 	{\fontfamily{phv}\selectfont
-		%% Logo školy
+		%
 		\begin{figure}[h]
 			\centering
 			\includegraphics[width=0.6\linewidth]{logo.png} 
 		\end{figure}
 		
 		
-		%% Hlavička práce a její název
-		{\bfseries %%% písmo na stránce je tučně
+		%
+		{\bfseries %%
 			\begin{center}
 				\vspace{0.025 \textheight}
 				\LARGE{ZÁVĚREČNÁ STUDIJNÍ PRÁCE}\\
@@ -190,7 +186,7 @@
 		\end{table}		
 	}
 	
-\clearpage %% Zalomení stránky
+\clearpage %
 
 \vspace*{0.5\textheight}
 
@@ -232,8 +228,8 @@
 \tableofcontents
 
 \pagestyle{fancy}
-\pagenumbering{arabic} %% Nastavení způsobu číslování stránek (alternativy roman | Roman)
-\setcounter{page}{1} %% Nastavení počitadla stránek
+\pagenumbering{arabic} %
+\setcounter{page}{1} %
 
 \chapter*{Úvod}
 \addcontentsline{toc}{chapter}{Úvod}
@@ -295,25 +291,20 @@ Aplikace využívá sedm databázových tabulek propojených relacemi. Hlavní t
 		arrow/.style={->, thick, >=stealth}
 	]
 	
-	% Row 1: User
 	\node[entity] (User) at (0, 6) {\textbf{auth\_user}\\id (PK), username\\email, password};
 	
-	% Row 2: UserProfile
 	\node[entity] (UserProfile) at (0, 3) {\textbf{klienti\_userprofile}\\id (PK), user\_id (FK)\\role: poradce/klient};
 	
-	% Row 3: Main entities - spread horizontally
 	\node[encrypted] (Poznamka) at (-7, 0) {\textbf{klienti\_poznamka}\\id (PK), klient\_id (FK)\\text (ENCRYPTED)};
 	
 	\node[entity] (Klient) at (0, 0) {\textbf{klienti\_klient}\\id (PK), 56 polí\\14 šifrovaných polí};
 	
 	\node[entity] (Workflow) at (7, 0) {\textbf{klienti\_hypoteka}\\id (PK), klient\_id (FK)\\krok 1-15, datum};
 	
-	% Row 4: Bottom entities
 	\node[entity] (Notifikace) at (-7, -3) {\textbf{klienti\_notifikace}\\id (PK), klient\_id (FK)\\prijemce, typ, datum};
 	
 	\node[encrypted] (Zmena) at (7, -3) {\textbf{klienti\_zmena}\\id (PK), klient\_id (FK)\\popis (ENCRYPTED)};
 	
-	% Relationships with labels
 	\draw[arrow] (User) -- (UserProfile) node[midway, right] {\scriptsize 1:1};
 	\draw[arrow] (UserProfile) -- (Klient) node[midway, right] {\scriptsize 1:N};
 	\draw[arrow] (Klient) -- (Poznamka) node[midway, above] {\scriptsize 1:N};
@@ -737,7 +728,5 @@ V budoucnu je plánováno rozšíření aplikace o:
 \appendix
 \titleformat{\chapter}[block]{\scshape\bfseries\LARGE}{Příloha \thechapter}{10pt}{\vspace{0pt}}[\vspace{-22pt}]
 
-% Volitelné: přidejte kapitoly příloh dle potřeby, např.:
-% \chapter{Dodatečné diagramy}
 
 \end{document}
